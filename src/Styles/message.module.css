@@ -1,0 +1,13 @@
+.userMessage {
+    color: #ffffff;
+    background-color: #007bff; /* Primary color for user messages */
+    padding: 15px;
+    border-radius: 8px;
+  }
+
+  .assistantMessage {
+    color: #000000;
+    background-color: #eaeaea; /* Light grey for assistant messages */
+    padding: 15px;
+    border-radius: 8px;
+  }

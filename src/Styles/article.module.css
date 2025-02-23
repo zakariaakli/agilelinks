@@ -1,0 +1,124 @@
+/* src/styles/article.module.css */
+
+/* Layout for the article page */
+.articleLayout {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px;
+    gap: 20px; /* Space between the columns */
+  }
+
+  /* Left Column (Author Info) */
+  .leftColumn {
+    width: 25%;
+    padding: 20px;
+  }
+
+  .rightColumn {
+    width: 25%;
+    padding: 20px;
+  }
+
+  /* Center Column (Main Article Content) */
+  .centerColumn {
+    width: 50%;
+    padding: 20px;
+    text-align: justify; /* Justified text for better readability */
+  }
+
+  .articleHeader {
+    text-align: center;
+  }
+
+  .featuredImage {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  .articleTitle {
+    font-size: 2.8rem; /* Larger title */
+    font-weight: bold;
+    color: #2c6e49;
+    margin-bottom: 10px;
+  }
+
+  .articleMeta {
+    font-size: 1.2rem;
+    color: #777;
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  .author,
+  .date {
+    margin-right: 10px;
+  }
+
+  .articleContent {
+    font-size: 1.25rem; /* Larger content font */
+    line-height: 1.8;   /* Spacing for better readability */
+    color: #333;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: justify;
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .articleContent p {
+    margin-bottom: 20px; /* Space between paragraphs */
+  }
+
+  .cta {
+    background-color: #f0f8ff;
+    padding: 25px;
+    text-align: center;
+    margin-top: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .cta a {
+    font-size: 1.5rem;
+    color: #007bff;
+    text-decoration: none;
+  }
+
+  .cta a:hover {
+    text-decoration: underline;
+    font-weight: bold;
+    color: #0056b3;
+  }
+
+  /* Mobile Optimization */
+  @media (max-width: 768px) {
+    .articleLayout {
+      flex-direction: column; /* Stack the columns vertically on mobile */
+      gap: 10px;
+    }
+
+    .leftColumn, .rightColumn {
+      width: 100%; /* Make the columns full-width on smaller screens */
+      padding: 10px;
+    }
+
+    .centerColumn {
+      width: 100%;
+      padding: 10px;
+    }
+
+    .articleTitle {
+      font-size: 2rem; /* Adjust title size for mobile */
+    }
+
+    .articleContent {
+      font-size: 1.1rem; /* Adjust content font size for mobile */
+      padding: 15px;
+    }
+  }
