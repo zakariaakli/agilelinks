@@ -1,0 +1,41 @@
+/* Call to Action Section */
+.cta {
+    background-color: #f0f8ff; /* Light background to attract attention */
+    padding: 25px;
+    text-align: center;
+    margin-top: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .cta a {
+    font-size: 1.5rem;
+    color: #34D399; /* Green for CTA button */
+    text-decoration: none;
+  }
+
+  .cta a:hover {
+    text-decoration: underline;
+    font-weight: bold;
+    color: #34D399; /* Darker green on hover */
+  }
+
+  /* Product Section */
+.ProductSection {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background: #34D399; /* AgileLinks Green */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .titleBlack {
+    color: black; /* AgileLinks Green */
+    text-align: center;
+    padding: 0.5rem 0;
+  }
+
+  .prodcutLine {
+    color: black; /* AgileLinks Green */
+    text-align: left;
+  }

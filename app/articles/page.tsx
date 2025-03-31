@@ -1,9 +1,11 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { db, collection, getDocs } from '../../../firebase';
-import ArticleCard from '../../Components/ArticleCard';
-import styles from '../../Styles/articles.module.css';
+import { db, collection, getDocs } from '../../firebase';
+import ArticleCard from '../Components/ArticleCard';
+import styles from '../Styles/articles.module.css';
+
+import InsightsSection from '../Components/InsightsSection';
 
 const ArticlesPage = () => {
   const [articles, setArticles] = useState<any[]>([]);
@@ -37,6 +39,10 @@ const ArticlesPage = () => {
             image={article.image}
           />
         ))}
+      </div>
+         {/* Call to Action */}
+         <div className={styles.cta}>
+        <p>Liked our articles? <a href="/subscribe">Sign up for more insights!</a></p>
       </div>
     </div>
   );

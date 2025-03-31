@@ -47,7 +47,7 @@ const RadarChart: React.FC<{ data: ResultData | null }> = ({ data }) => {
     datasets: [
       {
         label: "Rate",
-        backgroundColor: "#28a745",// "#343a40"
+        backgroundColor: "#34D399",// "#343a40"
         borderColor: "#005F0F",
         pointBackgroundColor: "#005F0F",
         pointBorderColor: "#fff",
@@ -67,7 +67,7 @@ const RadarChart: React.FC<{ data: ResultData | null }> = ({ data }) => {
     datasets: [
       {
         label: "Rate",
-        backgroundColor: "#28a745",// "#343a40"
+        backgroundColor: "#34D399",// "#343a40"
         borderColor: "#005F0F",
         pointBackgroundColor: "#005F0F",
         pointBorderColor: "#fff",

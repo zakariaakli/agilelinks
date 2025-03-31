@@ -1,0 +1,106 @@
+/* Styling for the Article Listing */
+.articlesListing {
+  padding: 30px;
+  text-align: center;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  margin-bottom: 30px;
+  font-weight: bold;
+  color: #2D2D2D; /* Dark Charcoal for better readability */
+}
+
+.articlesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
+}
+
+/* Article Card Styling */
+.articleCard {
+  background-color: #ffffff; /* White background for article cards */
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  text-align: left;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  max-width: 100%;
+  height: auto;
+}
+
+.articleCard:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Article Image Styling */
+.articleImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+/* Article Title Styling */
+.articleTitle {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #34D399; /* AgileLinks Green for titles */
+  margin-bottom: 15px;
+}
+
+/* Article Description Styling */
+.articleDescription {
+  font-size: 1rem;
+  color: #2D2D2D; /* Light grey for description text */
+  margin-bottom: 20px;
+}
+
+/* Read More Link Styling */
+.readMore {
+  font-size: 1.1rem;
+  color: #34D399; /* Electric Blue for links */
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.readMore:hover {
+  text-decoration: underline;
+}
+
+.articleLink {
+  color:  #2D2D2D; /* Electric Blue for links */
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.articleLink:hover {
+  text-decoration: none;
+  color:  #2D2D2D;
+}
+
+/* Call to Action Section */
+.cta {
+  background-color: #f0f8ff; /* Light background to attract attention */
+  padding: 25px;
+  text-align: center;
+  margin-top: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cta a {
+  font-size: 1.5rem;
+  color: #34D399; /* Green for CTA button */
+  text-decoration: none;
+}
+
+.cta a:hover {
+  text-decoration: underline;
+  font-weight: bold;
+  color: #34D399; /* Darker green on hover */
+}

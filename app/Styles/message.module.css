@@ -1,0 +1,17 @@
+.userMessage {
+  color: #ffffff; /* White text for user messages */
+  background-color: #34D399; /* Vibrant Green for user messages */
+  padding: 15px;
+  border-radius: 8px;
+  max-width: 80%; /* Keeps the message within bounds */
+  margin-bottom: 10px;
+}
+
+.assistantMessage {
+  color: #2D2D2D; /* Dark Charcoal for assistant messages */
+  background-color: #F7D36B; /* Pastel Yellow for assistant messages */
+  padding: 15px;
+  border-radius: 8px;
+  max-width: 80%;
+  margin-bottom: 10px;
+}

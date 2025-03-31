@@ -157,11 +157,6 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
       }
     };
 
-
-
-
-
-
   const handleButtonClick = (value: number) => {
     handleSendMessage(value.toString()); // Send the rating as a string
     setShowButtons(false); // Hide buttons after selection
@@ -200,7 +195,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
           {[...Array(10).keys()].map((num) => (
             <Button
               key={num}
-              variant="outline-primary"
+              variant="outline-dark"
               onClick={() => handleButtonClick(num)}
               className="rating-button m-1"
             >
@@ -224,7 +219,5 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
     </Container>
   );
 }
-
-
 
 export default Chat;

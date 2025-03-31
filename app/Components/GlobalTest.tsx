@@ -7,7 +7,7 @@ import "../Styles/global.module.css";
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import ArticlesPage from "../pages/articles/index";
+import ArticlesPage from "../articles/page";
 
 const GlobalTest: React.FC = () => {
   const [assessmentResult, setAssessmentResult] = useState<ResultData | null>();

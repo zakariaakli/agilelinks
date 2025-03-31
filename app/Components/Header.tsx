@@ -19,10 +19,9 @@ const Header = () => {
       {/* Navigation */}
       <nav className={styles.nav}>
         <ul className={styles.navList}>
-          <li><Link href="/">Home</Link></li>
-          <li><Link href="/articles">Articles</Link></li>
+          <li><Link href="/product">Product</Link></li>
+          <li><Link href="/articles">Blog</Link></li>
           <li><Link href="/about">About</Link></li>
-          <li><Link href="/contact">Contact</Link></li>
         </ul>
       </nav>
 
