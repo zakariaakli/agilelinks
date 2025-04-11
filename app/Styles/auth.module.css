@@ -79,7 +79,7 @@
   height: 1px;
   position: relative;
   vertical-align: middle;
-  width: 50%;
+  width: 30%;
 }
 .separator::before {
   right: 0.5em;

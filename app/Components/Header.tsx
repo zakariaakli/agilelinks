@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { auth } from '../../firebase';
-import { onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../../firebase';
+import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
 import styles from '../Styles/header.module.css';
 import { useRouter } from 'next/navigation';
- 
+
 const Header = () => {
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
@@ -20,15 +20,16 @@ const Header = () => {
   const handleSignOut = async () => {
     await signOut(auth); // Sign out the user
     setUser(null); // Reset user state
-    router.push('/'); // Redirect to the home page after sign out
+    router.push('/');
   };
 
   const handleGoogleSignIn = async () => {
     try {
-      const provider = new GoogleAuthProvider(); // Create a Google authentication provider
-      await signInWithPopup(auth, provider); // Open a popup window for Google sign-in
+      await signInWithPopup(auth, googleProvider);
+      // The user is automatically signed in at this point
+      router.push("/");
     } catch (error) {
-      console.error("Error signing in with Google", error); // Display an error if something goes wrong
+      console.error("Error signing in with Google", error);
     }
   };
 
@@ -50,20 +51,21 @@ const Header = () => {
       {/* Conditional rendering of buttons */}
       <div className={styles.cta}>
         {user ? (
-          <button onClick={handleSignOut} className={`${styles.signOutBtn} ${styles.button}`}>
-            Sign Out
-          </button>
+          <div className={styles.userInfo}>
+            {user.photoURL && <img src={user.photoURL} alt="Profile" className={styles.profilePic} />}
+            {user.displayName && <span className={styles.userName}>{user.displayName}</span>}
+            <button onClick={handleSignOut} className={`${styles.signOutBtn} ${styles.button}`}>
+              Sign Out
+            </button>
+          </div>
         ) : (
           <div>
             <Link href="/login" className={`${styles.button} ${styles.loginButton}`}>Log In</Link>
+            <Link href="/signup" className={`${styles.button} ${styles.signupButton}`}>Sign Up</Link>
           </div>
         )}
-        <button onClick={handleGoogleSignIn} className={`${styles.googleButton} ${styles.button}`}>
-            Continue with Google
-          </button>
       </div>
     </header>
-    
   );
 };
 

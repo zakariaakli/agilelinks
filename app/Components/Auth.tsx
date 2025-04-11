@@ -1,170 +1,159 @@
-"use client"
-
-import React, { useState } from 'react'; // Import necessary modules from React
-import { auth, provider } from '../../firebase'; // Import Firebase auth and provider
+"use client";
+import React, { useState } from 'react';
 import styles from '../Styles/auth.module.css';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useRouter, usePathname } from 'next/navigation';
-import Image from 'next/image'; // Import Image for Google logo
+import { auth, googleProvider, db } from '../../firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 
-const Auth: React.FC = () => {
-    const [email, setEmail] = useState<string>(''); // State for email input
-    const [password, setPassword] = useState<string>(''); // State for password input
-    const [fullName, setFullName] = useState<string>(''); // State for full name input
-    const [confirmPassword, setConfirmPassword] = useState<string>(''); // State for confirm password input
-    const router = useRouter(); // Router for navigation
-    const pathname = usePathname(); // Get the current pathname
-    const isLoginPage = pathname === '/login'; // Check if on login page
-    const isSignupPage = pathname === '/signup'; // Check if on signup page
+const Auth = () => {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const router = useRouter();
+  const pathname = usePathname();
 
-    // Handle signup form submission
-    const handleSignup = async (e: React.FormEvent) => {
-      e.preventDefault();
-      // Check if on the signup page
-      try {
-        if (isSignupPage) {
-          await createUserWithEmailAndPassword(auth, email, password);
-          console.log('User signed up successfully');
-          setEmail('');
-          setPassword('');
-          setFullName('');
-          setConfirmPassword('');
-        }
-      } catch (error) {
-        console.error('Error signing up:', error);
-      } 
-    };
-
-    // Handle login form submission
-    const handleLogin = async (e: React.FormEvent) => {
-      e.preventDefault();
-      try {
-        if(isLoginPage) {
-            await signInWithEmailAndPassword(auth, email, password);
-            console.log('User logged in successfully');
-            // Reset form fields after successful login
-            setEmail('');
-            setPassword('');
-        }
-      } catch (error) {
-        console.error('Error logging in:', error);
+  // Handle Google sign-in
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      // If it is a new user, add the user to firestore.
+      const user = result.user;
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          name: user.displayName,
+          email: user.email,
+        });
       }
-    };  
-    
-    // Handle Google sign in
-    const handleGoogleSignIn = async () => {
-        try {
-          await signInWithPopup(auth, provider);
-          console.log('User signed in with google successfully');
-          // Reset form fields after successful login
-          setEmail('');
-          setPassword('');
-        } catch (error) {
-          console.error('Error signing in with google:', error);
-        }
-      };
-  
-    return (
-      <div className={styles.container}>
-        {isSignupPage && (
-          <form onSubmit={handleSignup} className={styles.form}>
-            <h2 className={styles.formTitle}>Create Your Account</h2>
-            <button className={styles.googleButton} onClick={handleGoogleSignIn} type="button">
-                <Image src="/google-logo.svg" alt="Google Logo" className={styles.googleLogo} width={20} height={20}/>
-                Continue with Google
-            </button>
-            <div className={styles.separator}>Or continue with email</div>
-            <div>
-              <label htmlFor="signup-fullname" className={styles.label}>Full Name</label>
-              <input
-                className={styles.input}
-                type="text"
-                id="signup-fullname"
-                name="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="signup-email" className={styles.label}>Email</label>
-              <input
-                className={styles.input}
-                type="email"
-                id="signup-email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="signup-password" className={styles.label}>Password</label>
-              <input
-                className={styles.input}
-                type="password"
-                id="signup-password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="signup-confirm-password" className={styles.label}>Confirm Password</label>
-              <input
-                className={styles.input}
-                type="password"
-                id="signup-confirm-password"
-                name="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit" className={styles.button}>Sign Up</button> 
-            <div>Already have an account? <Link href="/login" className={styles.authLink}>Sign in</Link></div>
-          </form>
-        )}
-        {isLoginPage && (
-          <form onSubmit={handleLogin} className={styles.form}>
-            <h2 className={styles.formTitle}>Log In</h2>
-            <button className={styles.googleButton} onClick={handleGoogleSignIn} type="button"> 
-                <Image src="/google-logo.svg" alt="Google Logo" className={styles.googleLogo} width={20} height={20}/>
-                Continue with Google
-            </button>
-            <div className={styles.separator}>Or continue with email</div>
-            <div>
-              <label htmlFor="login-email" className={styles.label}>Email</label>
-              <input
-                className={styles.input}
-                type="email"
-                id="login-email"
-                name="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="login-password" className={styles.label}>Password</label>
-              <input
-                className={styles.input}
-                type="password"
-                id="login-password"
-                name="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit" className={styles.button}>Log In</button>
-            <div>Create account <Link href="/signup" className={styles.authLink}>Sign up</Link></div>
-          </form> 
-        )} 
-      </div>
-    );
+      router.push('/');
+    } catch (error) {
+      console.error("Error signing in with Google", error);
+    }
   };
-  
-  export default Auth;
+
+  // Handle Sign Up
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent page refresh
+    try {
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Add user to Firestore
+      const userDocRef = doc(db, 'users', user.uid);
+      await setDoc(userDocRef, {
+        name: fullName,
+        email: email,
+      });
+
+      router.push('/'); // Redirect to home page
+    } catch (error) {
+      console.error('Error signing up:', error);
+    }
+  };
+
+  // Handle Sign In
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault(); // Prevent page refresh
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/'); // Redirect to home page
+    } catch (error) {
+      console.error('Error logging in:', error);
+    }
+  };
+
+  return (
+    <div>
+      {pathname === '/signup' && (
+        <form className={styles.form} onSubmit={handleSignUp}>
+          <h2 className={styles.formTitle}>Welcome! Create your account</h2>
+          <button onClick={handleGoogleSignIn} className={styles.googleButton}>
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className={styles.googleLogo} />
+            Continue with Google
+          </button>
+          <div className={styles.separator}>Or continue with email</div>
+          <label htmlFor="fullName" className={styles.label}>Full Name</label>
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            className={styles.input}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
+          <label htmlFor="email" className={styles.label}>Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            className={styles.input}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <label htmlFor="password" className={styles.label}>Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            className={styles.input}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <label htmlFor="confirmPassword" className={styles.label}>Confirm Password</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            className={styles.input}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+          <button type="submit" className={styles.button}>Sign Up</button>
+          <div style={{ textAlign: "center", marginTop: "10px" }}>
+            Already have an account? <Link href="/login" className={styles.authLink}>Sign in</Link>
+          </div>
+        </form>
+      )}
+
+      {pathname === '/login' && (
+        <form className={styles.form} onSubmit={handleSignIn}>
+          <h2 className={styles.formTitle}>Happy to have you back!</h2>
+          <button onClick={handleGoogleSignIn} className={styles.googleButton}>
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className={styles.googleLogo} />
+            Continue with Google
+          </button>
+          <div className={styles.separator}>Or continue with email</div>
+          <label htmlFor="email" className={styles.label}>Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            className={styles.input}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <label htmlFor="password" className={styles.label}>Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            className={styles.input}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button type="submit" className={styles.button}>Log In</button>
+          <div style={{ textAlign: "center", marginTop: "10px" }}>
+            Create Account? <Link href="/signup" className={styles.authLink}>Sign up</Link>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+};
+
+export default Auth;
