@@ -6,16 +6,16 @@
   padding: 15px 40px;
   background-color: white; /* AgileLinks Green */
   color: white;
-  position: fixed;  /* Make the header fixed */
+  position: fixed; /* Make the header fixed */
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);  /* Optional: Add shadow to make it stand out */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional: Add shadow to make it stand out */
 }
 
 .logoImage {
-  height: 40px;  /* Logo size */
+  height: 40px; /* Logo size */
 }
 
 .nav {
@@ -40,7 +40,8 @@
 }
 
 .navList li a:hover {
-  background-color: white;
+  background-color: #34D399;
+  color: white;
   border-radius: 5px;
 }
 
@@ -66,19 +67,21 @@
   align-items: center;
 }
 
-.searchIcon, .menuIcon {
+.searchIcon,
+.menuIcon {
   margin-left: 20px;
   cursor: pointer;
 }
 
-.searchIcon img, .menuIcon img {
+.searchIcon img,
+.menuIcon img {
   width: 20px;
 }
 
 /* Book Button Styling */
 .bookButton {
   padding: 10px 20px;
-  background-color: #34D399;  /* Dark Green for CTA Button */
+  background-color: #34D399; /* Dark Green for CTA Button */
   color: white;
   font-weight: bold;
   border-radius: 5px;
@@ -86,33 +89,66 @@
 }
 
 .bookButton:hover {
-  background-color: #34D399;  /* Darker green on hover */
+  background-color: #28A745; /* Darker green on hover */
 }
+/* New Button Styles */
+.button {
+  background-color: #34D399; /* Green */
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  margin: 0 5px;
+  display: inline-block;
+}
+
+.button:hover {
+  background-color: #28A745; /* Darken on hover */
+}
+
+.loginButton {
+  background-color: transparent;
+  color: #34D399; /* Green */
+  border: 2px solid #34D399; /* Green border */
+}
+
+.loginButton:hover {
+  background-color: #e6e6e6;
+}
+
+.signupButton {}
+
+.signupButton:hover {}
 
 /* Mobile Optimization */
 @media (max-width: 768px) {
   .header {
-      flex-direction: column;
-      align-items: center;
+    flex-direction: column;
+    align-items: center;
   }
 
   .nav {
-      display: none; /* Hide navigation on mobile */
+    display: none; /* Hide navigation on mobile */
   }
 
   .cta {
-      margin-top: 10px;
+    margin-top: 10px;
   }
 
   .logoImage {
-      height: 30px;  /* Adjust logo size on mobile */
+    height: 30px; /* Adjust logo size on mobile */
   }
 
   .languageSelector {
-      font-size: 0.9rem;
+    font-size: 0.9rem;
   }
 
-  .searchIcon, .menuIcon {
-      margin-left: 10px;
+  .searchIcon,
+  .menuIcon {
+    margin-left: 10px;
   }
 }

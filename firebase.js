@@ -1,26 +1,27 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, doc, getDoc, query, where } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Placeholder Firebase configuration - REPLACE THESE WITH YOUR ACTUAL VALUES
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_REACT_APP_FIREBASE_apiKey,
-  authDomain: process.env.NEXT_PUBLIC_REACT_APP_FIREBASE_authDomain,
-  projectId: process.env.NEXT_PUBLIC_REACT_APP_FIREBASE_projectId,
-  storageBucket: process.env.NEXT_PUBLIC_REACT_APP_FIREBASE_storageBucket,
-  messagingSenderId: process.env.NEXT_PUBLIC_REACT_APP_FIREBASE_messagingSenderId,
-  appId: process.env.NEXT_PUBLIC_REACT_APP_FIREBASE_appId ,
-  measurementId: process.env.NEXT_PUBLIC_REACT_APP_FIREBASE_measurementId
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID",
+  measurementId: "YOUR_MEASUREMENT_ID",
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase app
+const firebaseApp = initializeApp(firebaseConfig);
 
-// Initialize Firestore
-const db = getFirestore(app);
+// Get the authentication object
+const auth = getAuth(firebaseApp);
 
-export { db, collection, getDocs, doc, getDoc, query, where };
+// Create a Google Auth Provider
+const googleProvider = new GoogleAuthProvider();
+
+// Export the firebase app and the auth object
+
+export { firebaseApp, auth, googleProvider };
+
