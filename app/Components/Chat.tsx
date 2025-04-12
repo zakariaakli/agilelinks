@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useEffect, useState, useRef, useContext, useMemo } from "react";
 import ChatInput from "./ChatInput";
 import Message from "./Message";
 import { OpenAI } from "openai";
@@ -7,9 +7,12 @@ import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
-import { DataContext } from "../Helpers/dataContext"
+import { DataContext } from "../Helpers/dataContext";
 import { ResultData } from "../Models/EnneagramResult";
 import { Container, Row, Col, Button, ProgressBar, Spinner } from "react-bootstrap";
+import Auth from "./Auth";
+import styles from "../Styles/auth.module.css";
+
 
 interface ChatProps {
   setAssessmentResult: (result: any) => void;
@@ -17,11 +20,11 @@ interface ChatProps {
 
 // Function to check if the chatbot has completed the process
 function hasChatbotFinishedFunc(message: string): boolean {
-  const hasWeAre = message.includes("The Enneagram assessment is now finished");
-  return hasWeAre;
+  const completionKeyword = "TEST FINISHED";
+  return message.includes(completionKeyword);
 }
 
-const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
+const Chat: React.FC<ChatProps> = ({ setAssessmentResult, }) => {
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
   const [messages, setMessages] = useState<Array<MessageDto>>([]);
   const [input, setInput] = useState<string>("");
@@ -32,6 +35,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
   const [showSendReport, setShowSendReport] = useState<boolean>(false);
   const [hasChatbotFinished, setHasChatbotFinished] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
+  const [isPopUpVisible, setIsPopUpVisible] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +68,6 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
     setThread(thread);
     setShowButtons(false);
     setHasChatbotFinished(false);
-
   };
 
   const createNewMessage = (content: string, isUser: boolean) => {
@@ -107,6 +110,9 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
         if (hasChatbotFinishedFunc(lastMessage.content[0]["text"].value)) {
           console.log("Chatbot process is complete.");
           setHasChatbotFinished(true);
+          setTimeout(() => {
+            setIsPopUpVisible(true);
+          }, 2000);
           // TEST OPENAI API
           const EnneagramResult = z.object({
             enneagramType1: z.number(),
@@ -137,7 +143,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
             setAssessmentResult(event);
           }
           catch (error) {
-            console.log("Error adding result: ", error);
+            console.error("Error adding result: ", error);
           }
 
         }
@@ -175,48 +181,54 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
 
   return (
     <Container fluid="sm" className="chat-container d-flex flex-column">
-      <div className="chat-box flex-grow-1 overflow-auto p-3">
-        <Row>
-          {messages.map((message, index) => (
-            <Col
-              xs={12}
-              className={`d-flex ${message.isUser ? "justify-content-end" : "justify-content-start"} mb-2`}
-              key={index}
-            >
-              <Message message={message} />
-            </Col>
-          ))}
-        </Row>
-        <div ref={messagesEndRef} />
+    <div className="chat-box flex-grow-1 overflow-auto p-3">
+      <Row>
+        {messages.map((message, index) => (
+          <Col xs={12}
+          className={`d-flex ${message.isUser ? "justify-content-end" : "justify-content-start"} mb-2`}
+          key={index}
+        >
+          <Message message={message} />
+        </Col>
+      ))}
+    </Row>
+    <div ref={messagesEndRef} />
+  </div>
+
+  {showButtons && (
+    <Row className="button-group justify-content-center my-2">
+      {[...Array(10).keys()].map((num) => (
+        <Button
+          key={num}
+          variant="outline-dark"
+          onClick={() => handleButtonClick(num)}
+          className="rating-button m-1"
+        >
+          {num}
+        </Button>
+      ))}
+    </Row>
+  )}
+
+  <ChatInput
+    input={input}
+    setInput={setInput}
+    handleSendMessage={() => handleSendMessage(input)}
+    refreshTest={initChatBot}
+    isWaiting={isWaiting}
+    isTestFinished={hasChatbotFinished}
+    name={name}
+  />
+
+  {isWaiting && <ProgressBar animated now={100} className="loading-bar" />}
+  {isPopUpVisible && (
+    <div className={styles.popupContainer}>
+      <div className={styles.popupContent}>
+        <Auth />
       </div>
-
-      {showButtons && (
-        <Row className="button-group justify-content-center my-2">
-          {[...Array(10).keys()].map((num) => (
-            <Button
-              key={num}
-              variant="outline-dark"
-              onClick={() => handleButtonClick(num)}
-              className="rating-button m-1"
-            >
-              {num}
-            </Button>
-          ))}
-        </Row>
-      )}
-
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        handleSendMessage={() => handleSendMessage(input)}
-        refreshTest={initChatBot}
-        isWaiting={isWaiting}
-        isTestFinished={hasChatbotFinished}
-        name={name}
-      />
-
-      {isWaiting && <ProgressBar animated now={100} className="loading-bar" />}
-    </Container>
+    </div>
+  )}
+</Container>
   );
 }
 
