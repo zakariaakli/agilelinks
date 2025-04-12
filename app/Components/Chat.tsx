@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useContext, useMemo } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
 import ChatInput from "./ChatInput";
 import Message from "./Message";
 import { OpenAI } from "openai";
@@ -9,10 +9,10 @@ import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import { DataContext } from "../Helpers/dataContext";
 import { ResultData } from "../Models/EnneagramResult";
-import { Container, Row, Col, Button, ProgressBar, Spinner } from "react-bootstrap";
-import Auth from "./Auth";
-import styles from "../Styles/auth.module.css";
-
+import { Container, Row, Col, Button, ProgressBar } from "react-bootstrap";
+import styles from "../Styles/auth.module.css"; // Import auth styles
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface ChatProps {
   setAssessmentResult: (result: any) => void;
@@ -24,7 +24,7 @@ function hasChatbotFinishedFunc(message: string): boolean {
   return message.includes(completionKeyword);
 }
 
-const Chat: React.FC<ChatProps> = ({ setAssessmentResult, }) => {
+const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
   const [messages, setMessages] = useState<Array<MessageDto>>([]);
   const [input, setInput] = useState<string>("");
@@ -36,6 +36,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, }) => {
   const [hasChatbotFinished, setHasChatbotFinished] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
   const [isPopUpVisible, setIsPopUpVisible] = useState<boolean>(false);
+  const router = useRouter();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -141,27 +142,27 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, }) => {
             addResult(event);
             // send data to the parent component to update the radar chart
             setAssessmentResult(event);
-          }
-          catch (error) {
+          } catch (error) {
             console.error("Error adding result: ", error);
           }
-
         }
       } else {
         console.log("Chatbot process is not yet complete.");
-      }}
-
-
+      }
       // Check if the last message is a prompt for rating
-      if (lastMessage && (lastMessage.content[0]["text"].value.includes("Please rate the following"))
-        || lastMessage.content[0]["text"].value.includes("please rate the following")
-        || lastMessage.content[0]["text"].value.includes("Now, please rate the")) {
+      if (
+        lastMessage &&
+        (lastMessage.content[0]["text"].value.includes("Please rate the following") ||
+          lastMessage.content[0]["text"].value.includes("please rate the following") ||
+          lastMessage.content[0]["text"].value.includes("Now, please rate the"))
+      ) {
         setShowButtons(true);
         setRatingQuestion(lastMessage.content[0]["text"].value);
       } else {
         setShowButtons(false);
       }
-    };
+    }
+  };
 
   const handleButtonClick = (value: number) => {
     handleSendMessage(value.toString()); // Send the rating as a string
@@ -169,7 +170,6 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, }) => {
   };
 
   const addResult = async (resultData: ResultData) => {
-
     try {
       const resultsCollectionRef = collection(db, "Results");
       const docRef = await addDoc(resultsCollectionRef, resultData);
@@ -179,57 +179,79 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, }) => {
     }
   };
 
+  const handleClosePopUp = () => {
+    setIsPopUpVisible(false);
+  };
+
   return (
     <Container fluid="sm" className="chat-container d-flex flex-column">
-    <div className="chat-box flex-grow-1 overflow-auto p-3">
-      <Row>
-        {messages.map((message, index) => (
-          <Col xs={12}
-          className={`d-flex ${message.isUser ? "justify-content-end" : "justify-content-start"} mb-2`}
-          key={index}
-        >
-          <Message message={message} />
-        </Col>
-      ))}
-    </Row>
-    <div ref={messagesEndRef} />
-  </div>
-
-  {showButtons && (
-    <Row className="button-group justify-content-center my-2">
-      {[...Array(10).keys()].map((num) => (
-        <Button
-          key={num}
-          variant="outline-dark"
-          onClick={() => handleButtonClick(num)}
-          className="rating-button m-1"
-        >
-          {num}
-        </Button>
-      ))}
-    </Row>
-  )}
-
-  <ChatInput
-    input={input}
-    setInput={setInput}
-    handleSendMessage={() => handleSendMessage(input)}
-    refreshTest={initChatBot}
-    isWaiting={isWaiting}
-    isTestFinished={hasChatbotFinished}
-    name={name}
-  />
-
-  {isWaiting && <ProgressBar animated now={100} className="loading-bar" />}
-  {isPopUpVisible && (
-    <div className={styles.popupContainer}>
-      <div className={styles.popupContent}>
-        <Auth />
+      <div className="chat-box flex-grow-1 overflow-auto p-3">
+        <Row>
+          {messages.map((message, index) => (
+            <Col
+              xs={12}
+              className={`d-flex ${message.isUser ? "justify-content-end" : "justify-content-start"} mb-2`}
+              key={index}
+            >
+              <Message message={message} />
+            </Col>
+          ))}
+        </Row>
+        <div ref={messagesEndRef} />
       </div>
-    </div>
-  )}
-</Container>
+
+      {showButtons && (
+        <Row className="button-group justify-content-center my-2">
+          {[...Array(10).keys()].map((num) => (
+            <Button
+              key={num}
+              variant="outline-dark"
+              onClick={() => handleButtonClick(num)}
+              className="rating-button m-1"
+            >
+              {num}
+            </Button>
+          ))}
+        </Row>
+      )}
+
+      <ChatInput
+        input={input}
+        setInput={setInput}
+        handleSendMessage={() => handleSendMessage(input)}
+        refreshTest={initChatBot}
+        isWaiting={isWaiting}
+        isTestFinished={hasChatbotFinished}
+        name={name}
+      />
+
+      {isWaiting && <ProgressBar animated now={100} className="loading-bar" />}
+
+      {/* Modal Popup */}
+      {isPopUpVisible && (
+        <div className={styles.popupContainer}>
+          <div className={styles.popupContent}>
+            <button className={styles.closeButton} onClick={handleClosePopUp}>
+              X
+            </button>
+            <h2 className={styles.formTitle}>
+              Sign up or log in to discover more about your Enneagram type!
+            </h2>
+            <div style={{ textAlign: "center", marginTop: "10px" }}>
+              <Link href="/signup" className={styles.authLink}>
+                Sign up
+              </Link>
+            </div>
+            <div style={{ textAlign: "center", marginTop: "10px" }}>
+              <Link href="/login" className={styles.authLink}>
+                Log In
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </Container>
   );
-}
+};
 
 export default Chat;
