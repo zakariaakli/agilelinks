@@ -8,14 +8,14 @@ import { db } from "../../firebase";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { z } from "zod";
 import { DataContext } from "../Helpers/dataContext";
-import { ResultData } from "../Models/EnneagramResult";
+import { EnneagramResult } from "../Models/EnneagramResult";
 import { Container, Row, Col, Button, ProgressBar } from "react-bootstrap";
 import styles from "../Styles/auth.module.css"; // Import auth styles
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 interface ChatProps {
-  setAssessmentResult: (result: any) => void;
+  setAssessmentResult: (result: EnneagramResult) => void;
 }
 
 // Function to check if the chatbot has completed the process
@@ -23,8 +23,15 @@ function hasChatbotFinishedFunc(message: string): boolean {
   const completionKeyword = "TEST FINISHED";
   return message.includes(completionKeyword);
 }
+interface BaseChatProps {
+  setAssessmentResult: (result: EnneagramResult) => void;
+}
 
-const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
+interface ChatProps extends BaseChatProps {
+  setResultData: (result: EnneagramResult) => void;
+}
+
+const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
   const [messages, setMessages] = useState<Array<MessageDto>>([]);
   const [input, setInput] = useState<string>("");
@@ -125,7 +132,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
             enneagramType7: z.number(),
             enneagramType8: z.number(),
             enneagramType9: z.number(),
-            profession: z.string(),
+            summary: z.string(),
           });
 
           const completion = await openai.beta.chat.completions.parse({
@@ -138,10 +145,9 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
           });
           const event = completion.choices[0].message.parsed;
           try {
-            // Add the result to the database
-            addResult(event);
             // send data to the parent component to update the radar chart
             setAssessmentResult(event);
+            setResultData(event);
           } catch (error) {
             console.error("Error adding result: ", error);
           }
@@ -167,16 +173,6 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult }) => {
   const handleButtonClick = (value: number) => {
     handleSendMessage(value.toString()); // Send the rating as a string
     setShowButtons(false); // Hide buttons after selection
-  };
-
-  const addResult = async (resultData: ResultData) => {
-    try {
-      const resultsCollectionRef = collection(db, "Results");
-      const docRef = await addDoc(resultsCollectionRef, resultData);
-      console.log("Document written with data: ", resultData);
-    } catch (error) {
-      console.error("Error adding document: ", error);
-    }
   };
 
   const handleClosePopUp = () => {

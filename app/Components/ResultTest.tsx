@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { Radar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -10,14 +10,17 @@ import {
   Legend,
 } from 'chart.js';
 import { DataContext } from "../Helpers/dataContext"
-import { ResultData } from "../Models/EnneagramResult";
+import { EnneagramResult } from "../Models/EnneagramResult";
+import { auth, db } from "../../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { setDoc, doc } from "firebase/firestore";
 
 // Register the necessary components for the Radar chart
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 
 
-const RadarChart: React.FC<{ data: ResultData | null }> = ({ data }) => {
+const RadarChart: React.FC<{ data: EnneagramResult | null }> = ({ data }) => {
 
   const RadarOptions = {
     scales: {
@@ -77,6 +80,48 @@ const RadarChart: React.FC<{ data: ResultData | null }> = ({ data }) => {
       },
     ],
   };
+
+  useEffect(() => {
+    onAuthStateChanged(auth, async (user) => {
+      console.log('--------resultData')
+      console.log(data)
+      if (user && data) {
+        try {
+          console.log('ResultTest------------ user & resultData')
+          // Store the result in the user's document in Firestore
+          await setDoc(doc(db, 'users', user.uid), { enneagramResult: data }, { merge: true });
+          console.log("result saved successfully in user db");
+        } catch (error) {
+          console.error("Error saving test result in user db:", error);
+        }
+      } else if (user) {
+        console.log('ResultTest------------ user')
+        const userTestResult = localStorage.getItem('userTestResult');
+        if (userTestResult) {
+          console.log('ResultTest------------ userTestResult')
+          try {
+            const parsedResult = JSON.parse(userTestResult);
+            await setDoc(doc(db, 'users', user.uid), { enneagramResult: parsedResult }, { merge: true });
+            localStorage.removeItem('userTestResult');
+            console.log("result saved successfully in user db after login");
+          } catch (error) {
+            console.error("Error saving test result in user db after login:", error);
+          }
+        }
+      } else if(data){
+        console.log('ResultTest------------ resultData')
+        try {
+        // If no user is logged in, store the result in local storage
+        localStorage.setItem('userTestResult', JSON.stringify(data));
+        console.log("result saved in local storage");
+        } catch (error) {
+          console.error("Error saving test result in local storage:", error);
+        }
+      }
+
+      // Clear resultData after saving
+    });
+  }, [data]);
 
 
   return (

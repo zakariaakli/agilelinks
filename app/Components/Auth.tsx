@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import styles from '../Styles/auth.module.css';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, redirect } from 'next/navigation';
 import { auth, googleProvider, db } from '../../firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -20,6 +20,16 @@ const Auth = () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       // If it is a new user, add the user to firestore.
+      // Read user test result from local storage
+      const userTestResult = localStorage.getItem('userTestResult');
+      if (userTestResult) {
+        // Add test result to user document in Firestore
+        const parsedResult = JSON.parse(userTestResult);
+        await setDoc(doc(db, 'users', result.user.uid), { enneagramResult: parsedResult }, { merge: true });
+        // Clear local storage
+        localStorage.removeItem('userTestResult');
+      }
+
       const user = result.user;
       const userDocRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
@@ -29,7 +39,8 @@ const Auth = () => {
           email: user.email,
         });
       }
-      router.push('/');
+
+      redirect('/');
     } catch (error) {
       console.error("Error signing in with Google", error);
     }
@@ -44,11 +55,22 @@ const Auth = () => {
       const user = userCredential.user;
 
       // Add user to Firestore
+      // Read user test result from local storage
+      const userTestResult = localStorage.getItem('userTestResult');
+      if (userTestResult) {
+        // Add test result to user document in Firestore
+        const parsedResult = JSON.parse(userTestResult);
+        await setDoc(doc(db, 'users', user.uid), { enneagramResult: parsedResult }, { merge: true });
+        // Clear local storage
+        localStorage.removeItem('userTestResult');
+      }
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
         name: fullName,
         email: email,
       });
+
+
 
       router.push('/'); // Redirect to home page
     } catch (error) {
@@ -59,8 +81,18 @@ const Auth = () => {
   // Handle Sign In
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault(); // Prevent page refresh
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+        // Read user test result from local storage
+        const userTestResult = localStorage.getItem('userTestResult');
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        if (userTestResult) {
+          // Add test result to user document in Firestore
+          const parsedResult = JSON.parse(userTestResult);
+          await setDoc(doc(db, 'users', result.user.uid), { enneagramResult: parsedResult }, { merge: true });
+          // Clear local storage
+          localStorage.removeItem('userTestResult');
+        }
       router.push('/'); // Redirect to home page
     } catch (error) {
       console.error('Error logging in:', error);
