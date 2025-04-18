@@ -1,31 +1,35 @@
+// app/articles/page.tsx
 import React from 'react';
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { db, collection, getDocs } from '../../firebase';
 import ArticleCard from '../Components/ArticleCard';
 import styles from '../Styles/articles.module.css';
 
-import InsightsSection from '../Components/InsightsSection';
+// Define a type for the article
+interface Article {
+  slug: string;
+  title: string;
+  image: string;
+  description: string; // Add the description field
+  // Add other fields if necessary
+}
 
-const ArticlesPage = () => {
-  const [articles, setArticles] = useState<any[]>([]);
+// Create a separate function to fetch data
+async function getData(): Promise<Article[]> {
+  const querySnapshot = await getDocs(collection(db, 'Articles'));
+  const fetchedArticles = querySnapshot.docs.map((doc) => ({
+    slug: doc.data().slug,
+    title: doc.data().title,
+    image: doc.data().image,
+    description: doc.data().description, // Add the description field
+    ...doc.data(),
+  })) as Article[];
 
-  // Fetch articles from Firestore when component mounts
-  useEffect(() => {
-    const fetchArticles = async () => {
-      const querySnapshot = await getDocs(collection(db, 'Articles'));
-      const fetchedArticles = querySnapshot.docs.map((doc) => ({
-         slug: doc.data().slug,
-         title: doc.data().title,
-         image: doc.data().image,
-        ...doc.data(),
-      }));
+  return fetchedArticles;
+}
 
-      setArticles(fetchedArticles); // Store the articles in the state
-    };
-
-    fetchArticles();
-  }, []); // Empty dependency array ensures this runs once when component mounts
+const ArticlesPage = async () => {
+  const articles = await getData();
 
   return (
     <div className={styles.articlesListing}>
@@ -35,14 +39,16 @@ const ArticlesPage = () => {
             key={article.slug}
             title={article.title}
             slug={article.slug}
-            description="{article.description}"
+            description={article.description} // Pass the description as a prop
             image={article.image}
           />
         ))}
       </div>
-         {/* Call to Action */}
-         <div className={styles.cta}>
-        <p>Liked our articles? <a href="/subscribe">Sign up for more insights!</a></p>
+      {/* Call to Action */}
+      <div className={styles.cta}>
+        <p>
+          Liked our articles? <a href="/subscribe">Sign up for more insights!</a>
+        </p>
       </div>
     </div>
   );

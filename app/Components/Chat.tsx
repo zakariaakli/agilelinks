@@ -1,18 +1,25 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
-import ChatInput from "./ChatInput";
-import Message from "./Message";
-import { OpenAI } from "openai";
-import { MessageDto } from "../Models/MessageDto";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "../../firebase";
-import { zodResponseFormat } from "openai/helpers/zod";
-import { z } from "zod";
-import { DataContext } from "../Helpers/dataContext";
-import { EnneagramResult } from "../Models/EnneagramResult";
-import { Container, Row, Col, Button, ProgressBar } from "react-bootstrap";
-import styles from "../Styles/auth.module.css"; // Import auth styles
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+// app/Components/Chat.tsx
+'use client';
+
+import React, { useEffect, useState, useRef, useContext } from 'react';
+import ChatInput from './ChatInput';
+import Message from './Message';
+import { OpenAI } from 'openai';
+import { MessageDto } from '../Models/MessageDto';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { zodResponseFormat } from 'openai/helpers/zod';
+import { z } from 'zod';
+import { DataContext } from '../Helpers/dataContext';
+import { EnneagramResult } from '../Models/EnneagramResult';
+import { Container, Row, Col, Button, ProgressBar } from 'react-bootstrap';
+import styles from '../Styles/auth.module.css'; // Import auth styles
+import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../../firebase';
+
 
 interface ChatProps {
   setAssessmentResult: (result: EnneagramResult) => void;
@@ -20,7 +27,7 @@ interface ChatProps {
 
 // Function to check if the chatbot has completed the process
 function hasChatbotFinishedFunc(message: string): boolean {
-  const completionKeyword = "TEST FINISHED";
+  const completionKeyword = 'TEST FINISHED';
   return message.includes(completionKeyword);
 }
 interface BaseChatProps {
@@ -34,20 +41,20 @@ interface ChatProps extends BaseChatProps {
 const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
   const [isWaiting, setIsWaiting] = useState<boolean>(false);
   const [messages, setMessages] = useState<Array<MessageDto>>([]);
-  const [input, setInput] = useState<string>("");
+  const [input, setInput] = useState<string>('');
   const [thread, setThread] = useState<any>(null);
   const [openai, setOpenai] = useState<any>(null);
   const [showButtons, setShowButtons] = useState<boolean>(false);
-  const [ratingQuestion, setRatingQuestion] = useState<string>("");
+  const [ratingQuestion, setRatingQuestion] = useState<string>('');
   const [showSendReport, setShowSendReport] = useState<boolean>(false);
   const [hasChatbotFinished, setHasChatbotFinished] = useState<boolean>(false);
-  const [name, setName] = useState<string>("");
+  const [name, setName] = useState<string>('');
   const [isPopUpVisible, setIsPopUpVisible] = useState<boolean>(false);
   const router = useRouter();
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
+  const [user, setUser] = useState<any>(null);
   const updateData = useContext(DataContext);
+
 
   useEffect(() => {
     initChatBot();
@@ -63,8 +70,15 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
   }, [thread]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user); // Update user state on login/logout
+    });
+    return () => unsubscribe();
+  }, []);
 
   const initChatBot = async () => {
     const openai = new OpenAI({
@@ -85,10 +99,10 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
   const handleSendMessage = async (message?: string) => {
     const newMessages = [...messages, createNewMessage(message || input, true)];
     setMessages(newMessages);
-    setInput("");
+    setInput('');
 
     await openai.beta.threads.messages.create(thread.id, {
-      role: "user",
+      role: 'user',
       content: message || input, // Use the passed message or input state
     });
 
@@ -98,7 +112,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
 
     let response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
 
-    while (response.status === "in_progress" || response.status === "queued") {
+    while (response.status === 'in_progress' || response.status === 'queued') {
       setIsWaiting(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
@@ -107,20 +121,25 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
     setIsWaiting(false);
     const messageList = await openai.beta.threads.messages.list(thread.id);
     const lastMessage = messageList.data
-      .filter((message: any) => message.run_id === run.id && message.role === "assistant")
+      .filter((message: any) => message.run_id === run.id && message.role === 'assistant')
       .pop();
 
     if (lastMessage) {
-      const lastContent = lastMessage.content[0]["text"].value;
-      if (typeof lastContent === "string") {
-        setMessages([...newMessages, createNewMessage(lastMessage.content[0]["text"].value, false)]);
+      const lastContent = lastMessage.content[0]['text'].value;
+      if (typeof lastContent === 'string') {
+        setMessages([
+          ...newMessages,
+          createNewMessage(lastMessage.content[0]['text'].value, false),
+        ]);
 
-        if (hasChatbotFinishedFunc(lastMessage.content[0]["text"].value)) {
-          console.log("Chatbot process is complete.");
+        if (hasChatbotFinishedFunc(lastMessage.content[0]['text'].value)) {
+          console.log('Chatbot process is complete.');
           setHasChatbotFinished(true);
-          setTimeout(() => {
-            setIsPopUpVisible(true);
-          }, 2000);
+          if (!user) {
+            setTimeout(() => {
+              setIsPopUpVisible(true);
+            }, 2000);
+          }
           // TEST OPENAI API
           const EnneagramResult = z.object({
             enneagramType1: z.number(),
@@ -136,12 +155,16 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
           });
 
           const completion = await openai.beta.chat.completions.parse({
-            model: "gpt-4o-2024-08-06",
+            model: 'gpt-4o-2024-08-06',
             messages: [
-              { role: "system", content: "extract the obtained rating for each enneagram type you will reflect the same results given to the user. put each of these rating in variables respectively enneagramtype1, enneagramType2, etc" },
-              { role: "user", content: lastMessage.content[0]["text"].value },
+              {
+                role: 'system',
+                content:
+                  'extract the obtained rating for each enneagram type you will reflect the same results given to the user. put each of these rating in variables respectively enneagramtype1, enneagramType2, etc',
+              },
+              { role: 'user', content: lastMessage.content[0]['text'].value },
             ],
-            response_format: zodResponseFormat(EnneagramResult, "result"),
+            response_format: zodResponseFormat(EnneagramResult, 'result'),
           });
           const event = completion.choices[0].message.parsed;
           try {
@@ -149,21 +172,21 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
             setAssessmentResult(event);
             setResultData(event);
           } catch (error) {
-            console.error("Error adding result: ", error);
+            console.error('Error adding result: ', error);
           }
         }
       } else {
-        console.log("Chatbot process is not yet complete.");
+        console.log('Chatbot process is not yet complete.');
       }
       // Check if the last message is a prompt for rating
       if (
         lastMessage &&
-        (lastMessage.content[0]["text"].value.includes("Please rate the following") ||
-          lastMessage.content[0]["text"].value.includes("please rate the following") ||
-          lastMessage.content[0]["text"].value.includes("Now, please rate the"))
+        (lastMessage.content[0]['text'].value.includes('Please rate the following') ||
+          lastMessage.content[0]['text'].value.includes('please rate the following') ||
+          lastMessage.content[0]['text'].value.includes('Now, please rate the'))
       ) {
         setShowButtons(true);
-        setRatingQuestion(lastMessage.content[0]["text"].value);
+        setRatingQuestion(lastMessage.content[0]['text'].value);
       } else {
         setShowButtons(false);
       }
@@ -186,7 +209,9 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
           {messages.map((message, index) => (
             <Col
               xs={12}
-              className={`d-flex ${message.isUser ? "justify-content-end" : "justify-content-start"} mb-2`}
+              className={`d-flex ${
+                message.isUser ? 'justify-content-end' : 'justify-content-start'
+              } mb-2`}
               key={index}
             >
               <Message message={message} />
@@ -233,12 +258,12 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
             <h2 className={styles.formTitle}>
               Sign up or log in to discover more about your Enneagram type!
             </h2>
-            <div style={{ textAlign: "center", marginTop: "10px" }}>
+            <div style={{ textAlign: 'center', marginTop: '10px' }}>
               <Link href="/signup" className={styles.authLink}>
                 Sign up
               </Link>
             </div>
-            <div style={{ textAlign: "center", marginTop: "10px" }}>
+            <div style={{ textAlign: 'center', marginTop: '10px' }}>
               <Link href="/login" className={styles.authLink}>
                 Log In
               </Link>
