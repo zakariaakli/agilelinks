@@ -1,3 +1,4 @@
+
 // app/articles/page.tsx
 import React from 'react';
 import Link from 'next/link';
@@ -33,15 +34,20 @@ const ArticlesPage = async () => {
 
   return (
     <div className={styles.articlesListing}>
+      <div className={styles.header}>
+      <h1>Discover insights and knowledge from our articles.</h1>
+      </div>
       <div className={styles.articlesGrid}>
         {articles.map((article) => (
+          <Link href={`/articles/${article.slug}`} key={article.slug}>
           <ArticleCard
-            key={article.slug}
+
             title={article.title}
             slug={article.slug}
             description={article.description} // Pass the description as a prop
             image={article.image}
           />
+           </Link>
         ))}
       </div>
       {/* Call to Action */}

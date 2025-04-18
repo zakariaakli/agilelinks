@@ -7,13 +7,13 @@ const ArticleCard = ({ title, slug, description, image }: { title: string, slug:
     <div className={styles.articleCard}>
       <img src={image} alt={title} className={styles.articleImage} />
       <h3 className={styles.articleTitle}>
-        <Link href={`/articles/${slug}`}>
-          <span className={styles.articleLink}> {title} </span></Link>
+
+          <span className={styles.articleLink}> {title} </span>
       </h3>
       <p className={styles.articleDescription}>{description}</p>
-      <Link href={`/articles/${slug}`}>
+   
         <span className={styles.readMore}>Read More</span>
-      </Link>
+
     </div>
   );
 };

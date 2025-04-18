@@ -1,23 +1,22 @@
-// pages/index.tsx
+// app/page.tsx
 import React from 'react';
-import { AppProps } from 'next/app';
+import ArticlesPage from './articles/page';
+import GlobalTest from './Components/GlobalTest';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import GlobalTest from './Components/GlobalTest'; // Adjust path based on your new folder structure
-import "./globals.css";
 
-const HomePage= ({ Component, pageProps }: AppProps) =>  {
+export default function Home() {
   return (
-    <Container fluid>
-
-      <Row className="mt-4">
-        <Col>
-          <GlobalTest />
-        </Col>
-      </Row>
-    </Container>
+    <Container fluid className="mt-2" style={{ height: '80vh' }}>
+    <Row className="mb-2" style={{ height: '100%' }}>
+      <Col xs={12} md={3} className="Info-section text-center" style={{ height: '100%', overflowY: 'auto' }}>
+        <ArticlesPage />
+      </Col>
+      <Col xs={12} md={9} className="Chat-section" style={{ height: '100%', overflowY: 'auto' }}>
+        <GlobalTest />
+      </Col>
+    </Row>
+  </Container>
   );
-};
-
-export default HomePage;
+}
