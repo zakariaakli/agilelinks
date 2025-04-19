@@ -13,46 +13,39 @@ interface Props {
   image: string;
   content: string;
   slug: string;
+  readingTime?: string;
 }
 
-const ClientArticle: React.FC<Props> = ({ title, author, date, image, content, slug }) => {
+const ClientArticle: React.FC<Props> = ({ title, author, date, image, content, slug, readingTime }) => {
   return (
-    <>
-      <div className={styles.articleLayout}>
-        <div className={styles.leftColumn}>
-          <AuthorCard
-            name={author}
-            title={title}
-            imageUrl={image}
-          />
+    <article className={styles.articleContainer}>
+      <header className={styles.articleHeader}>
+        <img src={image} alt={title} className={styles.featuredImage} />
+        <h1 className={styles.articleTitle}>{title}</h1>
+        <div className={styles.metaInfo}>
+          <span>{author}</span>
+          <span> | {new Date(date).toLocaleDateString()}</span>
+          {readingTime && <span> | {readingTime} min read</span>}
         </div>
+      </header>
 
-        <div className={styles.centerColumn}>
-          <div className={styles.articleHeader}>
-            <img src={image} alt={title} className={styles.featuredImage} />
-            <h1 className={styles.articleTitle}>{title}</h1>
-            <div className={styles.articleMeta}>
-              <span className={styles.author}>{author}</span> |
-              <span className={styles.date}>{date}</span>
-            </div>
-          </div>
+      <section className={styles.articleContent} dangerouslySetInnerHTML={{ __html: content }} />
 
-          <div className={styles.articleContent}>
-            <div>{content}</div>
-          </div>
-
-          <SocialShare url={`https://agilelinks.vercel.app/articles/${slug}`} title={title} />
-        </div>
-
-        <div className={styles.rightColumn}>
-          <InsightsSection />
-        </div>
+      <div className={styles.shareSection}>
+        <SocialShare url={`https://agilelinks.vercel.app/articles/${slug}`} title={title} />
       </div>
 
-      <div className={styles.cta}>
-        <p>Liked this article? <a href="/subscribe">Sign up for more insights!</a></p>
-      </div>
-    </>
+      <aside className={styles.sidebarSection}>
+        <AuthorCard name={author} title="Digital Strategy & AI Consultant" imageUrl="/zakariaakli.png" />
+        <InsightsSection />
+      </aside>
+
+      <footer className={styles.cta}>
+        <p>
+          Liked this article? <a href="/subscribe">Sign up for more insights!</a>
+        </p>
+      </footer>
+    </article>
   );
 };
 
