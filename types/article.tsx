@@ -7,4 +7,5 @@ export interface Article {
     image: string;
     author: string;
     date: string;
+    keywords: Array<string>;
   }

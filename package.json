@@ -1,6 +1,7 @@
 {
   "name": "agilelinks",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -19,10 +20,12 @@
     "css-loader": "^7.1.2",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.6.0",
+    "firebase-admin": "^13.2.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
     "next": "^15.1.7",
     "next-auth": "^4.24.11",
+    "next-sitemap": "^4.2.3",
     "openai": "^4.67.3",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.5",
@@ -30,6 +33,7 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.3.1",
     "react-icons": "^4.10.1",
+    "sitemap": "^8.0.0",
     "style-loader": "^4.0.0",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
@@ -38,7 +42,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postbuild": "node scripts/generate-sitemap.mjs"
   },
   "eslintConfig": {
     "extends": [

@@ -1,87 +1,113 @@
 // src/app/articles/[slug]/page.tsx
 import React from 'react';
-import { db, collection, getDocs, query, where } from '../../../firebase'; // Firebase methods
-import { Article } from '../../../types/article'; // Import Article type
-import Head from 'next/head'; // SEO Head for page metadata
-import styles from '../../../Styles/article.module.css'; // Import styles for article
-import AuthorCard from '../../../Components/AuthorCard'; // Import Author Card
-import InsightsSection from '../../../Components/InsightsSection'; // Import Insights Section
-import Seo from '../../../Components/Seo'; // Import Seo for SEO optimization
+import { db, collection, getDocs, query, where } from '../../../firebase';
+import { Article } from '../../../types/article';
+import styles from '../../../Styles/article.module.css';
+import AuthorCard from '../../../Components/AuthorCard';
+import InsightsSection from '../../../Components/InsightsSection';
+import Script from 'next/script';
 
-// Mockup data for missing fields
+// Mockup data for fallback
 const mockupData = {
   author: "John Doe",
   date: new Date().toISOString(),
-  featuredImage: "https://source.unsplash.com/random/800x600", // Mock image URL
+  featuredImage: "https://source.unsplash.com/random/800x600",
 };
 
+// Fetch article data
 const fetchArticle = async (slug: string): Promise<Article | null> => {
   const q = query(collection(db, 'Articles'), where('slug', '==', slug));
   const querySnapshot = await getDocs(q);
 
-  if (querySnapshot.empty) {
-    return null; // Return null if article is not found
-  }
+  if (querySnapshot.empty) return null;
 
-  const article = querySnapshot.docs[0].data(); // Get the article data
+  const article = querySnapshot.docs[0].data();
 
-  // Return the article data with proper types
   return {
     title: article.title,
-    content: article.content ? article.content : "",
-    description: article.description ? article.description : "",
-    slug: article.slug ? article.slug : "",
-    image: article.image ? article.image : "",
-    author: article.author ? article.author : "",
+    content: article.content || "",
+    description: article.description || "",
+    slug: article.slug || "",
+    image: article.image || "",
+    author: article.author || "",
     date: article.date ? article.date.toDate().toISOString() : new Date().toISOString(),
+    keywords: Array.isArray(article.keywords) ? article.keywords : [],
   };
 };
 
-// Fetch article params using async/await
+// Used by Next.js to prebuild paths
 export async function generateStaticParams() {
   const querySnapshot = await getDocs(collection(db, 'Articles'));
-  const slugs = querySnapshot.docs.map((doc) => ({ slug: doc.data().slug }));
-
-  return slugs.map(({ slug }) => ({
-    slug,
+  return querySnapshot.docs.map((doc) => ({
+    slug: doc.data().slug,
   }));
 }
 
-// SEO Metadata
+// ✅ SEO Metadata with keywords
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const { slug } = params;
-  const article = await fetchArticle(slug);
+  const article = await fetchArticle(params.slug);
 
-  const title = article ? article.title : 'Article Not Found';
-  const description = article ? article.description : 'Description not available';
+  const title = article?.title ?? "Article Not Found";
+  const description = article?.description ?? "Explore insights on agile, enneagram, and teams.";
+  const image = article?.image ?? "https://yourdomain.com/default-og-image.jpg";
+  const keywords = article?.keywords?.length ? article.keywords : [
+    "Enneagram",
+    "Agile Teams",
+    "Leadership",
+    "Team Dynamics",
+    "Personality Insights"
+  ];
 
   return {
     title: `${title} - Enneagram Insights`,
-    description: description,
-    openGraph: {
-      title: `${title} - Enneagram Insights`,
-      description: description,
-      url: `https://yourwebsite.com/articles/${slug}`,
+    description,
+    keywords,
+    alternates: {
+      canonical: `https://agilelinks.vercel.app/articles/${params.slug}`, // ✅ Canonical URL
     },
+    openGraph: {
+      title,
+      description,
+      images: [{ url: image }],
+      url: `https://agilelinks.vercel.app/articles/${params.slug}`,
+      type: 'article',
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    }
   };
 }
 
-// Article Page Rendering
+// ✅ Main Page Component
 const ArticlePage = async ({ params }: { params: { slug: string } }) => {
-  const { slug } = params; // Await params before accessing
-  const article = await fetchArticle(slug);
+  const article = await fetchArticle(params.slug);
 
-  if (!article) {
-    return <p>Article not found</p>; // Show this if the article is not found
-  }
+  if (!article) return <p>Article not found</p>;
 
   return (
     <>
-      <Head>
-        <title>{article.title} | Enneagram Insights</title>
-        <meta name="description" content={article.content.substring(0, 150)} />
-        <meta name="keywords" content="Enneagram, personality test, coaching, insights" />
-      </Head>
+      {/* JSON-LD Structured Data for Rich Results */}
+      <Script type="application/ld+json" id="article-jsonld">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: article.title,
+          description: article.description,
+          image: article.image,
+          author: {
+            "@type": "Person",
+            name: article.author || mockupData.author,
+          },
+          datePublished: article.date,
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": `https://agilelinks.vercel.app/articles/${article.slug}`,
+          }
+        })}
+      </Script>
 
       <div className={styles.articleLayout}>
         <div className={styles.leftColumn}>
@@ -112,7 +138,6 @@ const ArticlePage = async ({ params }: { params: { slug: string } }) => {
         </div>
       </div>
 
-      {/* Call to Action */}
       <div className={styles.cta}>
         <p>Liked this article? <a href="/subscribe">Sign up for more insights!</a></p>
       </div>
