@@ -8,62 +8,97 @@ import { useRouter } from 'next/navigation';
 
 const Header = () => {
   const [user, setUser] = useState<any>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user); // Update user state on login/logout
+      setUser(user);
     });
     return () => unsubscribe();
   }, []);
 
   const handleSignOut = async () => {
-    await signOut(auth); // Sign out the user
-    setUser(null); // Reset user state
+    await signOut(auth);
+    setUser(null);
     router.push('/');
   };
 
   const handleGoogleSignIn = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-      // The user is automatically signed in at this point
       router.push("/");
     } catch (error) {
       console.error("Error signing in with Google", error);
     }
   };
 
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
+  };
+
   return (
     <header className={styles.header}>
-      <div className={styles.logo}>
-        <Link href="/">
-          <img src="/logo.jpg" alt="AgileLinks Logo" className={styles.logoImage} />
-        </Link>
-      </div>
-      <nav className={styles.nav}>
-        <ul className={styles.navList}>
-          <li><Link href="/product">Product</Link></li>
-          <li><Link href="/articles">Blog</Link></li>
-          <li><Link href="/about">About</Link></li>
-        </ul>
-      </nav>
+      <div className="page-container d-flex align-items-center justify-content-between w-100">
 
-      {/* Conditional rendering of buttons */}
-      <div className={styles.cta}>
-        {user ? (
-          <div className={styles.userInfo}>
-            {user.photoURL && <img src={user.photoURL} alt="Profile" className={styles.profilePic} />}
-            {user.displayName && <span className={styles.userName}>{user.displayName}</span>}
-            <button onClick={handleSignOut} className={`${styles.signOutBtn} ${styles.button}`}>
-              Sign Out
-            </button>
+        {/* Logo */}
+        <div className={styles.logo}>
+          <Link href="/">
+            <img src="/logo.jpg" alt="AgileLinks Logo" className={styles.logoImage} />
+          </Link>
+        </div>
+
+        {/* Mobile Menu Toggle */}
+        {mobileMenuOpen ? (
+          <div className={styles.menuToggle} onClick={toggleMobileMenu}>
+            <span style={{ fontSize: '24px', color: '#6366F1' }}>✕</span>
           </div>
         ) : (
-          <div>
-            <Link href="/login" className={`${styles.button} ${styles.loginButton}`}>Log In</Link>
-            <Link href="/signup" className={`${styles.button} ${styles.signupButton}`}>Sign Up</Link>
+          <div className={styles.menuToggle} onClick={toggleMobileMenu}>
+            <div className={styles.bar}></div>
+            <div className={styles.bar}></div>
+            <div className={styles.bar}></div>
           </div>
         )}
+
+        {/* Desktop Navigation */}
+        <nav className={styles.nav}>
+          <ul className={styles.navList}>
+            <li><Link href="/articles">Blog</Link></li>
+          </ul>
+        </nav>
+
+        {/* Mobile Dropdown */}
+        <ul className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.open : ''}`}>
+          {!user && (
+            <div className={styles.mobileButtons}>
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className={styles.login}>
+                Log In
+              </Link>
+              <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className={styles.signup}>
+                Sign Up
+              </Link>
+            </div>
+          )}
+        </ul>
+
+        {/* Desktop CTA */}
+        <div className={styles.cta}>
+          {user ? (
+            <div className={styles.userInfo}>
+              {user.photoURL && <img src={user.photoURL} alt="Profile" className={styles.profilePic} />}
+              {user.displayName && <span className={styles.userName}>{user.displayName}</span>}
+              <button onClick={handleSignOut} className={`${styles.signOutBtn} ${styles.button}`}>
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <div>
+              <Link href="/login" className={`${styles.button} ${styles.loginButton}`}>Log In</Link>
+              <Link href="/signup" className={`${styles.button} ${styles.signupButton}`}>Sign Up</Link>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

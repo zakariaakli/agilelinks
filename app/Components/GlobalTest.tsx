@@ -1,33 +1,57 @@
-"use client"
-import React, { useState, useEffect } from "react";
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
 import Chat from "./Chat";
 import ResultTest from "./ResultTest";
 import { EnneagramResult } from "../Models/EnneagramResult";
-import "../Styles/global.module.css";
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+import Container from "react-bootstrap/Container";
+import Link from "next/link";
+import chatStyles from "../Styles/chat.module.css";
+import LandingHero from "./landing";
 
 const GlobalTest: React.FC = () => {
-  const [assessmentResult, setAssessmentResult] = useState<EnneagramResult | null>();
-  // Scroll to top on component mount
-  useEffect(() => {
-    window.scrollTo(0, 0);
+  const [assessmentResult, setAssessmentResult] = useState<EnneagramResult | null>(null);
+  const [started, setStarted] = useState(false);
+  const resultRef = useRef<HTMLDivElement | null>(null);
 
-  }, []);
+  useEffect(() => {
+    if (assessmentResult && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [assessmentResult]);
 
   return (
-    <Container fluid className="mt-2" style={{ height: '80vh' }}>
-      <Row className="mb-2" style={{ height: '100%' }}>
-        <Col xs={12} md={9} className="Chat-section" style={{ height: '100%', overflowY: 'auto' }}>
-          <Chat setAssessmentResult={setAssessmentResult} setResultData={setAssessmentResult} />
-        </Col>
-        <Col xs={12} md={3} className="Result-section text-center" style={{ height: '100%', overflowY: 'auto' }}>
-          <h3 className="title-green">Discover your Enneagram type and what it means for you!</h3>
-          <button className="Book-appointment-button mt-3">Book an Appointment with a Coach</button>
-          <ResultTest data={assessmentResult ?? null} />
-        </Col>
-      </Row>
+    <Container fluid className="d-flex flex-column align-items-center px-2 px-md-5">
+      {!started ? (
+        <LandingHero onStart={() => setStarted(true)} />
+      ) : (
+        <>
+          <div className={chatStyles.chatWrapper}>
+            <Chat setAssessmentResult={setAssessmentResult} setResultData={setAssessmentResult} />
+          </div>
+
+          {assessmentResult && (
+            <div ref={resultRef} className={`${chatStyles.chatWrapper} mt-4`}>
+              <h3 className="text-center fw-semibold mb-3">Your Enneagram Result</h3>
+              <button className="btn btn-success w-100 mb-3">Book a Coach</button>
+              <ResultTest data={assessmentResult} />
+              <div className="cta-box mt-4 p-4 bg-white rounded shadow text-center">
+                <h5 className="fw-bold mb-3">Want to save your result and track your growth?</h5>
+                <ul className="list-unstyled text-start small text-muted mb-3">
+                  <li>✔️ View historical assessments</li>
+                  <li>✔️ Access personalized coaching tips</li>
+                  <li>✔️ Re-test anytime</li>
+                  <li>✔️ Unlock future features</li>
+                </ul>
+                <div className="d-flex flex-column gap-2">
+                  <Link href="/signup" className="btn btn-success w-100">Sign up for free</Link>
+                  <Link href="/login" className="btn btn-outline-secondary w-100">Log in</Link>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </Container>
   );
 };

@@ -1,7 +1,6 @@
-import React from 'react';
-import { TextField, Grid } from '@mui/material';
-import { Container, Row, Col, Button, ProgressBar, Spinner } from "react-bootstrap";
+import React, { RefObject } from 'react';
 import { BsSend, BsArrowCounterclockwise } from 'react-icons/bs';
+import styles from '../Styles/chat.module.css';
 
 interface ChatInputProps {
   input: string;
@@ -11,47 +10,41 @@ interface ChatInputProps {
   isWaiting: boolean;
   isTestFinished: boolean;
   name: string;
+  inputRef: RefObject<HTMLInputElement>;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ input, setInput, handleSendMessage, refreshTest, isWaiting, isTestFinished, name }) => {
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter") {
+const ChatInput: React.FC<ChatInputProps> = ({
+  input,
+  setInput,
+  handleSendMessage,
+  refreshTest,
+  isWaiting,
+  isTestFinished,
+  name
+}) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
       handleSendMessage();
     }
   };
 
   return (
-
-    <Container>
-      <Row className="align-items-center mb-1">
-        <Col xs={12} md={10}>
-          <TextField
-            label="Type your message"
-            variant="outlined"
-            fullWidth
-            disabled={isWaiting}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-
-          />
-        </Col>
-        <Col xs={12} md={1}>
-          <Button variant="success" className="mx-1" color="primary" onClick={handleSendMessage} disabled={isWaiting}>
-            <BsSend />
-          </Button>
-        </Col>
-        <Col xs={12} md={1}>
-          <Button variant="dark" className="mx-1" color="warning"
-            onClick={refreshTest}
-            disabled={isWaiting}>
-            <BsArrowCounterclockwise />
-          </Button>
-        </Col>
-      </Row>
-
-    </Container>
-
+    <div className={styles.inputContainer}>
+      <input
+        type="text"
+        placeholder="Type your message"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyPress}
+        disabled={isWaiting}
+      />
+      <button onClick={handleSendMessage} disabled={isWaiting} title="Send message">
+        <BsSend size={16} />
+      </button>
+      <button onClick={refreshTest} disabled={isWaiting} title="Restart chat">
+        <BsArrowCounterclockwise size={16} />
+      </button>
+    </div>
   );
 };
 

@@ -1,23 +1,34 @@
-/* Layout for the header */
+/* Main header container */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 15px 40px;
-  background-color: white; /* AgileLinks Green */
-  color: white;
-  position: fixed; /* Make the header fixed */
+  background-color: #FFFFFF;
+  color: #111827;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 100;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Optional: Add shadow to make it stand out */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
+/* Logo styling */
 .logoImage {
-  height: 40px; /* Logo size */
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Desktop Nav */
 .nav {
   flex-grow: 1;
   display: flex;
@@ -34,70 +45,30 @@
 
 .navList li a {
   font-size: 1.1rem;
-  color: #34D399;
+  color: #6B7280;
   text-decoration: none;
   font-weight: 500;
+  transition: all 0.2s ease;
 }
 
 .navList li a:hover {
-  background-color: #34D399;
-  color: white;
-  border-radius: 5px;
+  color: #6366F1;
+  border-bottom: 2px solid #6366F1;
 }
 
+/* CTA Buttons */
 .cta {
   display: flex;
   align-items: center;
 }
 
-.languageSelector {
-  margin-right: 20px;
-  color: white;
-  font-size: 1rem;
-  text-decoration: none;
-}
-
-.socialIcons a img {
-  width: 25px;
-  margin: 0 10px;
-}
-
-.searchMenu {
-  display: flex;
-  align-items: center;
-}
-
-.searchIcon,
-.menuIcon {
-  margin-left: 20px;
-  cursor: pointer;
-}
-
-.searchIcon img,
-.menuIcon img {
-  width: 20px;
-}
-
-/* Book Button Styling */
-.bookButton {
-  padding: 10px 20px;
-  background-color: #34D399; /* Dark Green for CTA Button */
-  color: white;
-  font-weight: bold;
-  border-radius: 5px;
-  text-decoration: none;
-}
-
-.bookButton:hover {
-  background-color: #28A745; /* Darker green on hover */
-}
-/* New Button Styles */
+/* General Button */
 .button {
-  background-color: #34D399; /* Green */
-  color: #fff;
+  background-color: #6366F1;
+  color: #FFFFFF;
   padding: 10px 20px;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
   text-decoration: none;
   font-weight: bold;
@@ -107,23 +78,28 @@
 }
 
 .button:hover {
-  background-color: #28A745; /* Darken on hover */
+  background-color: #4F46E5;
 }
 
 .loginButton {
   background-color: transparent;
-  color: #34D399; /* Green */
-  border: 2px solid #34D399; /* Green border */
+  color: #6366F1;
+  border: 2px solid #6366F1;
 }
 
 .loginButton:hover {
-  background-color: #e6e6e6;
+  background-color: #F3F4F6;
 }
 
-.signupButton {}
+.signupButton {
+  background-color: #6366F1;
+}
 
-.signupButton:hover {}
-/* User info */
+.signupButton:hover {
+  background-color: #4F46E5;
+}
+
+/* User Info */
 .userInfo {
   display: flex;
   align-items: center;
@@ -139,34 +115,110 @@
 
 .userName {
   font-weight: bold;
-  color: #2d2d2d;
+  color: #111827;
 }
 
-/* Mobile Optimization */
+/* Hamburger menu icon */
+.menuToggle {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  margin-left: 20px;
+}
+
+.bar {
+  width: 25px;
+  height: 3px;
+  background-color: #6366F1;
+  margin: 4px 0;
+  transition: 0.4s;
+}
+
+/* Mobile Menu */
+.mobileMenu {
+  display: none;
+  flex-direction: column;
+  background-color: #ffffff;
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: auto;
+  min-width: 180px;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  z-index: 90;
+}
+
+.mobileMenu.open {
+  display: flex;
+}
+
+.mobileMenu li {
+  list-style-type: none;
+  padding: 10px 0;
+  text-align: right;
+  font-size: 0.95rem;
+}
+
+.mobileMenu li a {
+  color: #111827;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.mobileMenu li a:hover {
+  color: #6366F1;
+}
+
+.mobileButtons {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobileButtons a {
+  text-align: center;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mobileButtons .login {
+  color: #6366F1;
+  border: 2px solid #6366F1;
+  background-color: transparent;
+}
+
+.mobileButtons .signup {
+  background-color: #6366F1;
+  color: white;
+}
+
+/* Mobile Layout */
 @media (max-width: 768px) {
   .header {
-    flex-direction: column;
-    align-items: center;
+    padding: 10px 20px;
+    flex-direction: row;
   }
 
   .nav {
-    display: none; /* Hide navigation on mobile */
+    display: none;
+  }
+
+  .menuToggle {
+    display: flex;
   }
 
   .cta {
-    margin-top: 10px;
+    display: none;
   }
 
   .logoImage {
-    height: 30px; /* Adjust logo size on mobile */
-  }
-
-  .languageSelector {
-    font-size: 0.9rem;
-  }
-
-  .searchIcon,
-  .menuIcon {
-    margin-left: 10px;
+    height: 32px;
+    width: 32px;
   }
 }

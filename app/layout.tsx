@@ -1,9 +1,8 @@
 import React from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';  // Import Bootstrap CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
 import "./globals.css";
 
 import Seo from "./Components/Seo";
-
 import Header from "./Components/Header";
 
 export default function RootLayout({
@@ -12,20 +11,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const seoProps = {
-    title: 'My Website',
-    description: '', 
-    image: '', 
+    title: 'Free Enneagram Test!',
+    description: '',
+    image: '',
     url: ''
   };
+
   return (
     <html lang="en">
       <Seo {...seoProps} />
       <head>
-        <title>My Website</title>
+        <title>Free Enneagram Test!</title>
       </head>
-      <body >
-        <Header/>
-        {children}
+      <body>
+        <Header />
+        <main>
+          {children}
+        </main>
       </body>
     </html>
   );

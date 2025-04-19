@@ -13,48 +13,39 @@ import { z } from 'zod';
 import { DataContext } from '../Helpers/dataContext';
 import { EnneagramResult } from '../Models/EnneagramResult';
 import { Container, Row, Col, Button, ProgressBar } from 'react-bootstrap';
-import styles from '../Styles/auth.module.css'; // Import auth styles
+import styles from '../Styles/auth.module.css';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../../firebase';
-
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../firebase';
+import chatStyles from '../Styles/chat.module.css';
 
 interface ChatProps {
   setAssessmentResult: (result: EnneagramResult) => void;
-}
-
-// Function to check if the chatbot has completed the process
-function hasChatbotFinishedFunc(message: string): boolean {
-  const completionKeyword = 'TEST FINISHED';
-  return message.includes(completionKeyword);
-}
-interface BaseChatProps {
-  setAssessmentResult: (result: EnneagramResult) => void;
-}
-
-interface ChatProps extends BaseChatProps {
   setResultData: (result: EnneagramResult) => void;
 }
 
+function hasChatbotFinishedFunc(message: string): boolean {
+  return message.includes('TEST FINISHED');
+}
+
 const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
-  const [isWaiting, setIsWaiting] = useState<boolean>(false);
+  const [isWaiting, setIsWaiting] = useState(false);
   const [messages, setMessages] = useState<Array<MessageDto>>([]);
-  const [input, setInput] = useState<string>('');
+  const [input, setInput] = useState('');
   const [thread, setThread] = useState<any>(null);
   const [openai, setOpenai] = useState<any>(null);
-  const [showButtons, setShowButtons] = useState<boolean>(false);
-  const [ratingQuestion, setRatingQuestion] = useState<string>('');
-  const [showSendReport, setShowSendReport] = useState<boolean>(false);
-  const [hasChatbotFinished, setHasChatbotFinished] = useState<boolean>(false);
-  const [name, setName] = useState<string>('');
-  const [isPopUpVisible, setIsPopUpVisible] = useState<boolean>(false);
+  const [showButtons, setShowButtons] = useState(false);
+  const [ratingQuestion, setRatingQuestion] = useState('');
+  const [hasChatbotFinished, setHasChatbotFinished] = useState(false);
+  const [name, setName] = useState('');
+  const [isPopUpVisible, setIsPopUpVisible] = useState(false);
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesWrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<any>(null);
   const updateData = useContext(DataContext);
-
 
   useEffect(() => {
     initChatBot();
@@ -70,15 +61,24 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
   }, [thread]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    scrollToBottom();
   }, [messages]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user); // Update user state on login/logout
+      setUser(user);
     });
     return () => unsubscribe();
   }, []);
+
+  const scrollToBottom = () => {
+    if (messagesWrapperRef.current) {
+      messagesWrapperRef.current.scrollTo({
+        top: messagesWrapperRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   const initChatBot = async () => {
     const openai = new OpenAI({
@@ -92,9 +92,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
     setHasChatbotFinished(false);
   };
 
-  const createNewMessage = (content: string, isUser: boolean) => {
-    return new MessageDto(isUser, content);
-  };
+  const createNewMessage = (content: string, isUser: boolean) => new MessageDto(isUser, content);
 
   const handleSendMessage = async (message?: string) => {
     const newMessages = [...messages, createNewMessage(message || input, true)];
@@ -103,7 +101,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
 
     await openai.beta.threads.messages.create(thread.id, {
       role: 'user',
-      content: message || input, // Use the passed message or input state
+      content: message || input,
     });
 
     const run = await openai.beta.threads.runs.create(thread.id, {
@@ -111,7 +109,6 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
     });
 
     let response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-
     while (response.status === 'in_progress' || response.status === 'queued') {
       setIsWaiting(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -121,72 +118,58 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
     setIsWaiting(false);
     const messageList = await openai.beta.threads.messages.list(thread.id);
     const lastMessage = messageList.data
-      .filter((message: any) => message.run_id === run.id && message.role === 'assistant')
+      .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
       .pop();
 
     if (lastMessage) {
       const lastContent = lastMessage.content[0]['text'].value;
-      if (typeof lastContent === 'string') {
-        setMessages([
-          ...newMessages,
-          createNewMessage(lastMessage.content[0]['text'].value, false),
-        ]);
+      setMessages([...newMessages, createNewMessage(lastContent, false)]);
 
-        if (hasChatbotFinishedFunc(lastMessage.content[0]['text'].value)) {
-          console.log('Chatbot process is complete.');
-          setHasChatbotFinished(true);
-          if (!user) {
-            setTimeout(() => {
-              setIsPopUpVisible(true);
-            }, 2000);
-          }
-          // TEST OPENAI API
-          const EnneagramResult = z.object({
-            enneagramType1: z.number(),
-            enneagramType2: z.number(),
-            enneagramType3: z.number(),
-            enneagramType4: z.number(),
-            enneagramType5: z.number(),
-            enneagramType6: z.number(),
-            enneagramType7: z.number(),
-            enneagramType8: z.number(),
-            enneagramType9: z.number(),
-            summary: z.string(),
-          });
+      setTimeout(() => {
+        if (inputRef.current) inputRef.current.focus();
+        scrollToBottom();
+      }, 100);
 
-          const completion = await openai.beta.chat.completions.parse({
-            model: 'gpt-4o-2024-08-06',
-            messages: [
-              {
-                role: 'system',
-                content:
-                  'extract the obtained rating for each enneagram type you will reflect the same results given to the user. put each of these rating in variables respectively enneagramtype1, enneagramType2, etc',
-              },
-              { role: 'user', content: lastMessage.content[0]['text'].value },
-            ],
-            response_format: zodResponseFormat(EnneagramResult, 'result'),
-          });
-          const event = completion.choices[0].message.parsed;
-          try {
-            // send data to the parent component to update the radar chart
-            setAssessmentResult(event);
-            setResultData(event);
-          } catch (error) {
-            console.error('Error adding result: ', error);
-          }
+      if (hasChatbotFinishedFunc(lastContent)) {
+        setHasChatbotFinished(true);
+        if (!user) setTimeout(() => setIsPopUpVisible(true), 2000);
+
+        const EnneagramResult = z.object({
+          enneagramType1: z.number(),
+          enneagramType2: z.number(),
+          enneagramType3: z.number(),
+          enneagramType4: z.number(),
+          enneagramType5: z.number(),
+          enneagramType6: z.number(),
+          enneagramType7: z.number(),
+          enneagramType8: z.number(),
+          enneagramType9: z.number(),
+          summary: z.string(),
+        });
+
+        const completion = await openai.beta.chat.completions.parse({
+          model: 'gpt-4o-2024-08-06',
+          messages: [
+            {
+              role: 'system',
+              content: 'extract the obtained rating for each enneagram type you will reflect the same results given to the user. put each of these rating in variables respectively enneagramtype1, enneagramType2, etc',
+            },
+            { role: 'user', content: lastContent },
+          ],
+          response_format: zodResponseFormat(EnneagramResult, 'result'),
+        });
+        const event = completion.choices[0].message.parsed;
+        try {
+          setAssessmentResult(event);
+          setResultData(event);
+        } catch (error) {
+          console.error('Error adding result:', error);
         }
-      } else {
-        console.log('Chatbot process is not yet complete.');
       }
-      // Check if the last message is a prompt for rating
-      if (
-        lastMessage &&
-        (lastMessage.content[0]['text'].value.includes('Please rate the following') ||
-          lastMessage.content[0]['text'].value.includes('please rate the following') ||
-          lastMessage.content[0]['text'].value.includes('Now, please rate the'))
-      ) {
+
+      if (/please rate the following|Now, please rate the/i.test(lastContent)) {
         setShowButtons(true);
-        setRatingQuestion(lastMessage.content[0]['text'].value);
+        setRatingQuestion(lastContent);
       } else {
         setShowButtons(false);
       }
@@ -194,17 +177,13 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
   };
 
   const handleButtonClick = (value: number) => {
-    handleSendMessage(value.toString()); // Send the rating as a string
-    setShowButtons(false); // Hide buttons after selection
-  };
-
-  const handleClosePopUp = () => {
-    setIsPopUpVisible(false);
+    handleSendMessage(value.toString());
+    setShowButtons(false);
   };
 
   return (
-    <Container fluid="sm" className="chat-container d-flex flex-column">
-      <div className="chat-box flex-grow-1 overflow-auto p-3">
+    <Container fluid className="d-flex flex-column justify-content-end min-vh-100">
+      <div ref={messagesWrapperRef} className="flex-grow-1 overflow-auto px-3 pt-3">
         <Row>
           {messages.map((message, index) => (
             <Col
@@ -214,63 +193,47 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
               } mb-2`}
               key={index}
             >
-              <Message message={message} />
+              <div
+                className={`${chatStyles['message-bubble']} ${
+                  message.isUser ? chatStyles['message-user'] : chatStyles['message-bot']
+                }`}
+              >
+                {message.content}
+              </div>
             </Col>
           ))}
         </Row>
-        <div ref={messagesEndRef} />
+
+        {showButtons && (
+          <div className="d-flex flex-wrap justify-content-center gap-2 mt-2 mb-3">
+            {[...Array(10).keys()].map((num) => (
+              <Button
+                key={num}
+                variant="outline-dark"
+                onClick={() => handleButtonClick(num)}
+                className={chatStyles.ratingButton}
+              >
+                {num}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {showButtons && (
-        <Row className="button-group justify-content-center my-2">
-          {[...Array(10).keys()].map((num) => (
-            <Button
-              key={num}
-              variant="outline-dark"
-              onClick={() => handleButtonClick(num)}
-              className="rating-button m-1"
-            >
-              {num}
-            </Button>
-          ))}
-        </Row>
-      )}
+      <div className="sticky-bottom bg-white pb-3 pt-1 px-3">
+        <ChatInput
+          input={input}
+          setInput={setInput}
+          handleSendMessage={() => handleSendMessage(input)}
+          refreshTest={initChatBot}
+          isWaiting={isWaiting}
+          isTestFinished={hasChatbotFinished}
+          name={name}
+          inputRef={inputRef}
+        />
+        {isWaiting && <ProgressBar animated now={100} className="loading-bar mt-2" />}
+      </div>
 
-      <ChatInput
-        input={input}
-        setInput={setInput}
-        handleSendMessage={() => handleSendMessage(input)}
-        refreshTest={initChatBot}
-        isWaiting={isWaiting}
-        isTestFinished={hasChatbotFinished}
-        name={name}
-      />
-
-      {isWaiting && <ProgressBar animated now={100} className="loading-bar" />}
-
-      {/* Modal Popup */}
-      {isPopUpVisible && (
-        <div className={styles.popupContainer}>
-          <div className={styles.popupContent}>
-            <button className={styles.closeButton} onClick={handleClosePopUp}>
-              X
-            </button>
-            <h2 className={styles.formTitle}>
-              Sign up or log in to discover more about your Enneagram type!
-            </h2>
-            <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              <Link href="/signup" className={styles.authLink}>
-                Sign up
-              </Link>
-            </div>
-            <div style={{ textAlign: 'center', marginTop: '10px' }}>
-              <Link href="/login" className={styles.authLink}>
-                Log In
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </Container>
   );
 };
