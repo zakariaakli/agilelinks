@@ -8,20 +8,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
-
 if (!admin.apps.length) {
   if (process.env.NODE_ENV === 'production') {
-    const serviceAccount = JSON.parse(
-      process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-    );
-    // ✅ Production (e.g., Vercel) — use env vars
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}');
+
     admin.initializeApp({
-      credential: admin.credential.cert({
-        credential: admin.credential.cert(serviceAccount),
-      }),
+      credential: admin.credential.cert(serviceAccount),
     });
   } else {
-    // ✅ Development — use local serviceAccount.json file
     const serviceAccountPath = path.resolve(__dirname, './serviceaccount.json');
     const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
 
