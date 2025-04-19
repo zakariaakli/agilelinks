@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import styles from '../Styles/profile.module.css';
-import { EnneagramResult } from '../Models/EnneagramResult';
+import styles from '../../Styles/profile.module.css';
+import { EnneagramResult } from '../../Models/EnneagramResult';
 
 
 const ProfilePage = () => {

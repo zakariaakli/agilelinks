@@ -1,12 +1,12 @@
 // src/app/articles/[slug]/page.tsx
 import React from 'react';
 import { db, collection, getDocs, query, where } from '../../../firebase'; // Firebase methods
-import { Article } from '../../types/article'; // Import Article type
+import { Article } from '../../../types/article'; // Import Article type
 import Head from 'next/head'; // SEO Head for page metadata
-import styles from '../../Styles/article.module.css'; // Import styles for article
-import AuthorCard from '../../Components/AuthorCard'; // Import Author Card
-import InsightsSection from '../../Components/InsightsSection'; // Import Insights Section
-import Seo from '../../Components/Seo'; // Import Seo for SEO optimization
+import styles from '../../../Styles/article.module.css'; // Import styles for article
+import AuthorCard from '../../../Components/AuthorCard'; // Import Author Card
+import InsightsSection from '../../../Components/InsightsSection'; // Import Insights Section
+import Seo from '../../../Components/Seo'; // Import Seo for SEO optimization
 
 // Mockup data for missing fields
 const mockupData = {

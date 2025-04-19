@@ -1,6 +1,5 @@
-import Auth from '../Components/Auth';
-import Seo from '../Components/Seo';
-import styles from '../Styles/product.module.css';
+import Auth from '../../Components/Auth';
+import Seo from '../../Components/Seo';
 
 export default function LoginPage() {
   return (

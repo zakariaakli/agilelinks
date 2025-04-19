@@ -1,8 +1,8 @@
 import React from "react";
 import ArticlesPage from "./articles/page";
-import GlobalTest from "./Components/GlobalTest";
+import GlobalTest from "../Components/GlobalTest";
 import Container from "react-bootstrap/Container";
-import './Styles/homepage.css';
+import '../Styles/homepage.css';
 
 export default function Home() {
   return (

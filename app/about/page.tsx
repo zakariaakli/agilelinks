@@ -4,8 +4,8 @@ import { AppProps } from 'next/app';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import "../globals.css";
-import styles from '../Styles/about.module.css';
+import "../../globals.css";
+import styles from '../../Styles/about.module.css';
 
 const HomePage= ({ Component, pageProps }: AppProps) =>  {
   return (

@@ -1,9 +1,8 @@
 import React from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import "./globals.css";
-
-import Seo from "./Components/Seo";
-import Header from "./Components/Header";
+import "../globals.css";
+import Seo from "../Components/Seo";
+import Header from "../Components/Header";
 
 // app/layout.tsx
 export const metadata = {

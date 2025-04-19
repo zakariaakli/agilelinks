@@ -33,7 +33,7 @@
     "next-env.d.ts",
     "pages/**/*",
     ".next/types/**/*.ts"
-, "src/layout.tsx", "src/page.tsx"  ],
+, "src/layout.tsx", "src/page.tsx", "Components", "Models", "Helpers", "types"  ],
   "exclude": [
     "node_modules",
     ".next"

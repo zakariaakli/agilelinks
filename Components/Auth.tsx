@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import styles from '../Styles/auth.module.css';
 import { useRouter, usePathname, redirect } from 'next/navigation';
-import { auth, googleProvider, db } from '../../firebase';
+import { auth, googleProvider, db } from '../firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import Link from 'next/link';

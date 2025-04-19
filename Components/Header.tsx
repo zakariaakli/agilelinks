@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { auth, googleProvider } from '../../firebase';
+import { auth, googleProvider } from '../firebase';
 import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
 import styles from '../Styles/header.module.css';
 import { useRouter } from 'next/navigation';

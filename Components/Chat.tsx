@@ -7,7 +7,7 @@ import Message from './Message';
 import { OpenAI } from 'openai';
 import { MessageDto } from '../Models/MessageDto';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { db } from '../firebase';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { DataContext } from '../Helpers/dataContext';
@@ -17,7 +17,7 @@ import styles from '../Styles/auth.module.css';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../../firebase';
+import { auth } from '../firebase';
 import chatStyles from '../Styles/chat.module.css';
 
 interface ChatProps {

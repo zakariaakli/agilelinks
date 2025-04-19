@@ -10,7 +10,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import { auth, db } from '../../firebase';
+import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
 import { EnneagramResult } from '../Models/EnneagramResult';

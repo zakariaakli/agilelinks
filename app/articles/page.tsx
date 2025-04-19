@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { db, collection, getDocs } from '../../firebase';
-import ArticleCard from '../Components/ArticleCard';
-import styles from '../Styles/articles.module.css';
+import ArticleCard from '../../Components/ArticleCard';
+import styles from '../../Styles/articles.module.css';
 
 // Define a type for the article
 interface Article {
