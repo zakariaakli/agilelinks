@@ -7,14 +7,17 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+
+
 if (!admin.apps.length) {
   if (process.env.NODE_ENV === 'production') {
+    const serviceAccount = JSON.parse(
+      process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+    );
     // ✅ Production (e.g., Vercel) — use env vars
     admin.initializeApp({
       credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        credential: admin.credential.cert(serviceAccount),
       }),
     });
   } else {
