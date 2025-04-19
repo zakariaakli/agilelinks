@@ -8,4 +8,5 @@ export interface Article {
     author: string;
     date: string;
     keywords: Array<string>;
+    readingTime: string;
   }

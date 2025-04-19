@@ -3,7 +3,8 @@
   display: flex;
   justify-content: space-between;
   margin: 20px;
-  gap: 20px; /* Space between the columns */
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
 /* Left Column (Author Info) */
@@ -22,7 +23,7 @@
 .centerColumn {
   width: 50%;
   padding: 20px;
-  text-align: justify; /* Justified text for better readability */
+  text-align: justify;
 }
 
 .articleHeader {
@@ -38,7 +39,7 @@
 }
 
 .articleTitle {
-  font-size: 2.8rem; /* Larger title for more emphasis */
+  font-size: 2.8rem;
   font-weight: bold;
   color: #34D399; /* AgileLinks Green */
   margin-bottom: 10px;
@@ -46,36 +47,44 @@
 
 .articleMeta {
   font-size: 1.2rem;
-  color: #777; /* Light gray for metadata */
-  margin-bottom: 20px;
+  color: #777;
+  margin-bottom: 10px;
   font-style: italic;
 }
 
+.readingTime {
+  font-size: 1rem;
+  color: #999;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+/* Author and Date display */
 .author, .date {
   margin-right: 10px;
 }
 
 .articleContent {
-  font-size: 1.25rem; /* Larger content font for readability */
-  line-height: 1.8;   /* Line spacing for better readability */
-  color: #333; /* Dark Charcoal for text */
+  font-size: 1.25rem;
+  line-height: 1.8;
+  color: #333;
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
   padding: 20px;
   text-align: justify;
-  background-color: #F7D36B; /* Pastel Yellow background for the article content */
+  background-color: #F7D36B; /* Pastel Yellow */
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .articleContent p {
-  margin-bottom: 20px; /* Space between paragraphs */
+  margin-bottom: 20px;
 }
 
 /* Call to Action Section */
 .cta {
-  background-color: #f0f8ff; /* Light background to attract attention */
+  background-color: #f0f8ff;
   padding: 25px;
   text-align: center;
   margin-top: 40px;
@@ -85,39 +94,56 @@
 
 .cta a {
   font-size: 1.5rem;
-  color: #34D399; /* Green for CTA button */
+  color: #34D399;
   text-decoration: none;
 }
 
 .cta a:hover {
   text-decoration: underline;
   font-weight: bold;
-  color: #34D399; /* Darker green on hover */
+  color: #34D399;
 }
 
 /* Mobile Optimization */
 @media (max-width: 768px) {
   .articleLayout {
-      flex-direction: column; /* Stack the columns vertically on mobile */
-      gap: 10px;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .leftColumn, .rightColumn {
-      width: 100%; /* Make the columns full-width on smaller screens */
-      padding: 10px;
-  }
-
-  .centerColumn {
-      width: 100%;
-      padding: 10px;
+  .leftColumn, .rightColumn, .centerColumn {
+    width: 100%;
+    padding: 10px;
   }
 
   .articleTitle {
-      font-size: 2rem; /* Adjust title size for mobile */
+    font-size: 2rem;
   }
 
   .articleContent {
-      font-size: 1.1rem; /* Adjust content font size for mobile */
-      padding: 15px;
+    font-size: 1.1rem;
+    padding: 15px;
   }
+
+  .readingTime {
+    font-size: 0.95rem;
+  }
+}
+
+.shareSection {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.shareSection h3 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.shareButtons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
