@@ -1,13 +1,14 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from '../Styles/auth.module.css';
 import { useRouter, usePathname, redirect } from 'next/navigation';
 import { auth, googleProvider, db } from '../firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import Link from 'next/link';
 
 const Auth = () => {
+  const [user, setUser] = useState<any>(null);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -98,6 +99,27 @@ const Auth = () => {
       console.error('Error logging in:', error);
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const storedResult = localStorage.getItem('userTestResult');
+        if (storedResult) {
+          try {
+            const enneagramResult = JSON.parse(storedResult);
+            await setDoc(doc(db, 'users', user.uid), { enneagramResult }, { merge: true });
+            localStorage.removeItem('userTestResult'); // Clean after saving
+            console.log('✅ Test result saved after login.');
+          } catch (error) {
+            console.error('❌ Error saving stored result after login:', error);
+          }
+        }
+        setUser(user);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
 
   return (
     <div>

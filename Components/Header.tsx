@@ -1,4 +1,6 @@
-"use client";
+// src/components/Header.tsx
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { auth, googleProvider } from '../firebase';
@@ -13,6 +15,7 @@ const Header = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log(user)
       setUser(user);
     });
     return () => unsubscribe();
@@ -70,7 +73,7 @@ const Header = () => {
 
         {/* Mobile Dropdown */}
         <ul className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.open : ''}`}>
-          {!user && (
+          {!user ? (
             <div className={styles.mobileButtons}>
               <Link href="/login" onClick={() => setMobileMenuOpen(false)} className={styles.login}>
                 Log In
@@ -79,6 +82,17 @@ const Header = () => {
                 Sign Up
               </Link>
             </div>
+          ) : (
+            <div className={styles.mobileUserInfo}>
+              <Link href="/profile">
+              <img src={user.photoURL} alt="Profile" className={styles.mobileProfilePic} />
+              </Link>
+
+              <span className={styles.mobileUserName}>{user.name}</span>
+              <button onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} className={`${styles.button} ${styles.logoutButton}`}>
+                Sign Out
+              </button>
+            </div>
           )}
         </ul>
 
@@ -86,8 +100,9 @@ const Header = () => {
         <div className={styles.cta}>
           {user ? (
             <div className={styles.userInfo}>
-              {user.photoURL && <img src={user.photoURL} alt="Profile" className={styles.profilePic} />}
-              {user.displayName && <span className={styles.userName}>{user.displayName}</span>}
+              <Link href="/profile">
+                {user.photoURL && <img src={user.photoURL} alt="Profile" className={styles.profilePic} />}
+              </Link>
               <button onClick={handleSignOut} className={`${styles.signOutBtn} ${styles.button}`}>
                 Sign Out
               </button>
@@ -99,6 +114,7 @@ const Header = () => {
             </div>
           )}
         </div>
+
       </div>
     </header>
   );
