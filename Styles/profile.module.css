@@ -93,3 +93,19 @@
   color: #6B7280;
   margin-top: 40px;
 }
+
+.aiLink {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #34D399;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.aiLink:hover {
+  background-color: #2ebd8c;
+}

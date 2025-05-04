@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import styles from '../../Styles/profile.module.css';
 import { EnneagramResult } from '../../Models/EnneagramResult';
+import Link from 'next/link';
 
 const enneagramLabels = {
   enneagramType1: 'Type 1 – The Reformer',
@@ -44,6 +45,9 @@ const ProfilePage = () => {
     <div className={styles.profileContainer}>
       <h1 className={styles.profileTitle}>Welcome back, {user.displayName}</h1>
       <p className={styles.email}>{user.email}</p>
+      <Link href="/profile/companion" className={styles.aiLink}>
+  🌟 Go to Your AI Companion
+</Link>
 
       {enneagramResult ? (
         <div className={styles.enneagramResultContainer}>
