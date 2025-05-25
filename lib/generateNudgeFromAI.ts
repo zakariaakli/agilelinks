@@ -3,7 +3,7 @@ import { OpenAI } from 'openai';
 
 export async function generateNudgeFromAI(input: { type: string, summary: string }) {
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const openai = new OpenAI({ apiKey: process.env.NEXT_PUBLIC_REACT_APP_OPENAI_API_KEY })
   try {
     const thread = await openai.beta.threads.create()
 

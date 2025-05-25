@@ -1,0 +1,12 @@
+{
+    "cron": [
+      {
+        "path": "/api/generateNudges",
+        "schedule": "0 1 * * *"
+      },
+      {
+        "path": "/api/sendDailyNudges",
+        "schedule": "0 6 * * *"  
+      }
+    ]
+  }
