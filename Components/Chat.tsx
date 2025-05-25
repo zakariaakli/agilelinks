@@ -20,6 +20,20 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../firebase';
 import chatStyles from '../Styles/chat.module.css';
 
+// onboardingPrompt.ts
+export const ONBOARDING_PROMPT = `
+👋  I’m your AI Companion!
+
+Take a 20-minute personality assessment and I can:
+
+🔍  Discover your strengths & blind spots
+🎯  Turn patterns into clear goals and track progress
+💡  Send regular, uplifting guidance when you need it
+🛠️  Adapt advice to your style and ambitions
+
+Start the assessment ➜ 
+`;
+
 interface ChatProps {
   setAssessmentResult: (result: EnneagramResult) => void;
   setResultData: (result: EnneagramResult) => void;
@@ -54,7 +68,7 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
   useEffect(() => {
     setMessages([
       {
-        content: "Hi, I'm your Enneagram assistant. How can I help you?",
+        content: ONBOARDING_PROMPT,
         isUser: false,
       },
     ]);

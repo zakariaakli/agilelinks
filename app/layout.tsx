@@ -6,8 +6,8 @@ import Header from "../Components/Header";
 
 // app/layout.tsx
 export const metadata = {
-  title: 'Enneagram Type for Free!',
-  description: 'Enneagram personality test for free',
+  title: 'Know yourself. Grow every day!',
+  description: 'Know yourself. Grow every day! AI Companion',
   icons: {
     icon: '/favicon.ico',
     apple: '/logo192.png',
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const seoProps = {
-    title: 'Free Enneagram Test!',
+    title: 'Know yourself. Grow every day! ',
     description: '',
     image: '',
     url: ''
@@ -31,7 +31,7 @@ export default function RootLayout({
     <html lang="en">
       <Seo {...seoProps} />
       <head>
-        <title>Free Enneagram Test!</title>
+        <title>Know yourself. Grow every day!</title>
       </head>
       <body>
         <Header />
