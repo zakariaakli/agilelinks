@@ -11,9 +11,9 @@ const LandingHero: React.FC<LandingHeroProps> = ({ onStart }) => {
   return (
     <section className={styles.landingWrapper}>
       <div className={styles.innerContainer}>
-        <h1 className={styles.title}>Discover your Enneagram type</h1>
+        <h1 className={styles.title}>Meet your AI Growth Companion</h1>
         <p className={styles.subtitle}>
-          Understand yourself better through intelligent coaching.
+        Turn deep personality insight into daily progress with tailored tips, reflections, and goal-nudges.
         </p>
         <button onClick={onStart} className={styles.ctaButton}>
           Get Started
