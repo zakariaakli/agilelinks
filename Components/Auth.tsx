@@ -21,7 +21,8 @@ const Auth = () => {
       const userTestResult = localStorage.getItem('userTestResult');
       if (userTestResult) {
         const parsedResult = JSON.parse(userTestResult);
-        await setDoc(doc(db, 'users', result.user.uid), { enneagramResult: parsedResult }, { merge: true });
+        await setDoc(doc(db, 'users', result.user.uid), { enneagramResult: parsedResult, name:result.user.displayName, email:
+        result.user.email  }, { merge: true });
         localStorage.removeItem('userTestResult');
       }
 

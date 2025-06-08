@@ -1,73 +1,732 @@
+/* GENERAL WRAPPER */
 .container {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 30px;
-    background: #ffffff;
-    border-radius: 16px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
-    font-family: 'Inter', sans-serif;
+  font-family: 'Inter', sans-serif;
+  background-color: #ffffff;
+  color: #111827;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  min-height: 100vh;
+}
+
+/* TITLE */
+.title {
+  font-size: 2.5rem;
+  color: #111827;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+/* STEP INDICATOR */
+.stepIndicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stepItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 80px;
+}
+
+.stepNumber {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.stepActive .stepNumber {
+  background-color: #6366f1;
+  color: white;
+}
+
+.stepCompleted .stepNumber {
+  background-color: #10b981;
+  color: white;
+}
+
+.stepLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+  font-weight: 500;
+}
+
+.stepActive .stepLabel {
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.stepCompleted .stepLabel {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* SECTIONS */
+.section {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e5e7eb;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  color: #111827;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.helperText {
+  color: #6b7280;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* GOAL TYPE DROPDOWN */
+.goalTypeDropdown {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: #ffffff;
+  color: #111827;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 3rem;
+}
+
+.goalTypeDropdown:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.goalTypeDropdown:hover {
+  border-color: #d1d5db;
+}
+
+/* GOAL TEXTAREA */
+.autosuggestContainer {
+  position: relative;
+  width: 100%;
+}
+
+.goalTextarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+}
+
+.goalTextarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.goalTextarea::placeholder {
+  color: #9ca3af;
+}
+
+/* SUGGESTIONS */
+.suggestionsContainer {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-top: none;
+  border-radius: 0 0 0.5rem 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.suggestionsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.suggestion {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  color: #374151;
+}
+
+.suggestion:hover,
+.suggestionHighlighted {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+/* DATE PICKER */
+.datePicker {
+  width: 100%;
+  max-width: 300px;
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.datePicker:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* GOAL SUMMARY */
+.goalSummary {
+  background-color: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border-left: 4px solid #6366f1;
+}
+
+.goalSummary h3 {
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.goalSummary h3:first-child {
+  margin-top: 0;
+}
+
+.goalSummary p {
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+}
+
+.goalSummary p:last-child {
+  margin-bottom: 0;
+}
+
+/* LOADING */
+.loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6b7280;
+}
+
+.loading p {
+  font-size: 1.1rem;
+  margin: 0;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* QUESTIONS */
+.questionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.questionItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.questionLabel {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.questionAnswer {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+.questionAnswer:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.questionAnswer::placeholder {
+  color: #9ca3af;
+}
+
+/* MILESTONES */
+.milestonesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.milestoneItem {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.milestoneItem:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.milestoneHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.milestoneTitle {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: #ffffff;
+}
+
+.milestoneTitle:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.deleteButton {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.25rem;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+.deleteButton:hover {
+  background-color: #dc2626;
+}
+
+.milestoneDescription {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 1rem;
+  background-color: #ffffff;
+}
+
+.milestoneDescription:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.milestoneDueDate {
+  width: 100%;
+  max-width: 200px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+}
+
+.milestoneDueDate:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.addMilestoneButton {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 2rem;
+}
+
+.addMilestoneButton:hover {
+  background-color: #059669;
+}
+
+/* TIMELINE */
+.ganttChart h3 {
+  color: #374151;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.timelineContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.timelineItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.timelineDate {
+  min-width: 120px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.timelineBar {
+  flex: 1;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.timelineProgress {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.timelineTitle {
+  min-width: 200px;
+  font-size: 0.95rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* PLAN SUMMARY */
+.planSummary {
+  background-color: #f9fafb;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  border-left: 4px solid #10b981;
+}
+
+.summarySection {
+  margin-bottom: 2rem;
+}
+
+.summarySection:last-of-type {
+  margin-bottom: 2rem;
+}
+
+.summarySection h3 {
+  color: #374151;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.summarySection p {
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.milestoneList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.milestoneListItem {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #e5e7eb;
+  color: #6b7280;
+}
+
+.milestoneListItem:last-child {
+  border-bottom: none;
+}
+
+.milestoneListItem strong {
+  color: #374151;
+}
+
+.createPlanButton {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 300px;
+}
+
+.createPlanButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2);
+}
+
+/* STEP CONTENT */
+.stepContent {
+  min-height: 400px;
+  margin-bottom: 2rem;
+}
+
+/* NAVIGATION BUTTONS */
+.navigationButtons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+}
+
+.navButton {
+  padding: 0.875rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #374151;
+}
+
+.navButton:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.navButtonPrimary {
+  background-color: #6366f1;
+  border-color: #6366f1;
+  color: white;
+}
+
+.navButtonPrimary:hover:not(:disabled) {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem 0.5rem;
   }
 
   .title {
     font-size: 2rem;
-    font-weight: bold;
-    color: #111827;
-    margin-bottom: 30px;
+    margin-bottom: 1.5rem;
   }
 
   .section {
-    margin-bottom: 30px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stepIndicator {
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stepItem {
+    min-width: 60px;
+  }
+
+  .stepNumber {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .stepLabel {
+    font-size: 0.75rem;
   }
 
   .subtitle {
     font-size: 1.25rem;
-    color: #1F2937;
-    font-weight: 600;
-    margin-bottom: 12px;
   }
 
-  .box {
-    background-color: #F7D36B;
-    padding: 20px;
-    border-radius: 10px;
-    color: #111827;
-    line-height: 1.6;
+  .goalTypeDropdown {
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
+
+  .goalTextarea {
+    padding: 0.875rem;
+    font-size: 0.95rem;
+    min-height: 100px;
+  }
+
+  .datePicker {
+    max-width: 100%;
+    padding: 0.75rem;
+  }
+
+  .milestoneItem {
+    padding: 1rem;
+  }
+
+  .milestoneHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .deleteButton {
+    align-self: flex-end;
+    width: 28px;
+    height: 28px;
     font-size: 1rem;
   }
 
-  .reminderBox {
-    background-color: #34D399;
-    color: #ffffff;
-    padding: 20px;
-    border-radius: 10px;
-    font-style: italic;
-    font-weight: 500;
-    line-height: 1.6;
+  .timelineItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
   }
 
-  .goalList {
-    list-style-type: none;
-    padding-left: 0;
+  .timelineDate,
+  .timelineTitle {
+    min-width: auto;
+    text-align: center;
   }
 
-  .goalItem {
-    background-color: #ECFDF5;
-    padding: 12px 16px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    color: #065F46;
-    border-left: 4px solid #34D399;
+  .timelineBar {
+    order: 2;
   }
 
-  .backLink {
-    display: inline-block;
-    margin-top: 30px;
-    color: #34D399;
-    font-weight: 500;
-    text-decoration: none;
+  .timelineTitle {
+    order: 1;
   }
 
-  .backLink:hover {
-    text-decoration: underline;
+  .timelineDate {
+    order: 3;
   }
+
+  .navigationButtons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .navButton {
+    width: 100%;
+    padding: 0.75rem 1rem;
+  }
+
+  .planSummary {
+    padding: 1.5rem;
+  }
+
+  .createPlanButton {
+    max-width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem 0.25rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .section {
+    padding: 1rem;
+  }
+
+  .stepIndicator {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .goalSummary,
+  .planSummary {
+    padding: 1rem;
+  }
+
+  .suggestion {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9rem;
+  }
+}
