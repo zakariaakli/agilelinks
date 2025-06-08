@@ -31,7 +31,7 @@ Take a 20-minute personality assessment and I can:
 💡  Send regular, uplifting guidance when you need it
 🛠️  Adapt advice to your style and ambitions
 
-Start the assessment ➜ 
+Say Hello, and we can start the assessment ➜
 `;
 
 interface ChatProps {

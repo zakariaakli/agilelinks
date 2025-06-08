@@ -1,5 +1,8 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../../../firebase';; // Adjust path as needed
 import styles from '../../../Styles/companion.module.css';
 
 interface Suggestion {
@@ -24,6 +27,30 @@ interface GoalTemplate {
   value: string;
   label: string;
   template: string;
+}
+
+interface EnneagramResult {
+  enneagramType1: number;
+  enneagramType2: number;
+  enneagramType3: number;
+  enneagramType4: number;
+  enneagramType5: number;
+  enneagramType6: number;
+  enneagramType7: number;
+  enneagramType8: number;
+  enneagramType9: number;
+  summary: string;
+  name: string;
+  email: string;
+}
+
+interface User {
+  uid: string;
+  email: string | null;
+}
+
+interface OpenAIQuestionsResponse {
+  questions: string[];
 }
 
 const goalTemplates: GoalTemplate[] = [
@@ -60,8 +87,62 @@ const GoalWizard: React.FC = () => {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Firebase auth listener
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUser(user);
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setEnneagramResult(data.enneagramResult as EnneagramResult);
+        }
+      } else {
+        setUser(null);
+        setEnneagramResult(null);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Call OpenAI Assistant to generate clarifying questions
+  const callOpenAIAssistant = async (objective: string, personalitySummary: string): Promise<string[]> => {
+    try {
+      console.log(personalitySummary)
+      const response = await fetch('/api/openAi/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          objective,
+          personalitySummary,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: OpenAIQuestionsResponse = await response.json();
+      return data.questions;
+    } catch (error) {
+      console.error('Error calling OpenAI Assistant:', error);
+      // Fallback to default questions if API call fails
+      return [
+        'What specific skills do you need to develop to achieve this goal?',
+        'What resources or support do you currently have available?',
+        'What potential obstacles do you anticipate?',
+        'How will you measure success?'
+      ];
+    }
+  };
 
   // Handle goal type selection
   const handleGoalTypeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
@@ -78,20 +159,47 @@ const GoalWizard: React.FC = () => {
     }
   };
 
-  // Mock clarifying questions generation
-  const generateClarifyingQuestions = () => {
+  // Generate clarifying questions using OpenAI
+  const generateClarifyingQuestions = async () => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      const questions: ClarifyingQuestion[] = [
+
+    try {
+      let questionsArray: string[] = [];
+
+      if (enneagramResult && enneagramResult.summary) {
+        // Call OpenAI Assistant with user's goal and personality summary
+        questionsArray = await callOpenAIAssistant(goal, enneagramResult.summary);
+      } else {
+        // Fallback to default questions if no personality data
+        questionsArray = [
+          'What specific skills do you need to develop to achieve this goal?',
+          'What resources or support do you currently have available?',
+          'What potential obstacles do you anticipate?',
+          'How will you measure success?'
+        ];
+      }
+
+      // Convert to ClarifyingQuestion format
+      const questions: ClarifyingQuestion[] = questionsArray.map((question, index) => ({
+        id: (index + 1).toString(),
+        question,
+        answer: ''
+      }));
+
+      setClarifyingQuestions(questions);
+    } catch (error) {
+      console.error('Error generating clarifying questions:', error);
+      // Fallback questions in case of error
+      const fallbackQuestions: ClarifyingQuestion[] = [
         { id: '1', question: 'What specific skills do you need to develop to achieve this goal?', answer: '' },
         { id: '2', question: 'What resources or support do you currently have available?', answer: '' },
         { id: '3', question: 'What potential obstacles do you anticipate?', answer: '' },
         { id: '4', question: 'How will you measure success?', answer: '' },
       ];
-      setClarifyingQuestions(questions);
+      setClarifyingQuestions(fallbackQuestions);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   // Mock milestone generation
@@ -271,7 +379,8 @@ const GoalWizard: React.FC = () => {
       goal,
       targetDate,
       clarifyingQuestions,
-      milestones
+      milestones,
+      personalityType: enneagramResult ? enneagramResult.summary : null
     };
     console.log('Creating plan:', planData);
     alert('Plan created successfully! Check console for details.');
@@ -384,6 +493,14 @@ const GoalWizard: React.FC = () => {
               <p>{goal}</p>
               <h3>Target Date:</h3>
               <p>{new Date(targetDate).toLocaleDateString()}</p>
+              {enneagramResult && (
+                <>
+                  <h3>Personality Insight:</h3>
+                  <p className={styles.personalityInsight}>
+                    Questions will be personalized based on your Enneagram profile
+                  </p>
+                </>
+              )}
             </div>
           </div>
         );
@@ -392,9 +509,14 @@ const GoalWizard: React.FC = () => {
         return (
           <div className={styles.section}>
             <h2 className={styles.subtitle}>Clarifying Questions</h2>
+            {enneagramResult && (
+              <p className={styles.personalizedNote}>
+                These questions are personalized based on your personality profile and goal.
+              </p>
+            )}
             {isLoading ? (
               <div className={styles.loading}>
-                <p>Generating personalized questions...</p>
+                <p>Generating personalized questions based on your goal and personality...</p>
               </div>
             ) : (
               <div className={styles.questionsContainer}>
