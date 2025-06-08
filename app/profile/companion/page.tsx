@@ -1,9 +1,22 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../../firebase';; // Adjust path as needed
 import styles from '../../../Styles/companion.module.css';
+
+interface PlanData {
+  id?: string;
+  userId: string;
+  goalType: string;
+  goal: string;
+  targetDate: string;
+  hasTimePressure: boolean;
+  clarifyingQuestions: ClarifyingQuestion[];
+  milestones: Milestone[];
+  createdAt: any; // Will be server timestamp
+  status: 'active' | 'completed' | 'paused';
+}
 
 interface Suggestion {
   name: string;
@@ -21,6 +34,8 @@ interface Milestone {
   description: string;
   dueDate: string;
   completed: boolean;
+  blindSpotTip?: string;
+  strengthHook?: string;
 }
 
 interface GoalTemplate {
@@ -52,6 +67,47 @@ interface User {
 interface OpenAIQuestionsResponse {
   questions: string[];
 }
+
+interface OpenAIMilestonesResponse {
+  milestones: {
+    id: string;
+    title: string;
+    description: string;
+    dueDate: string;
+    blindSpotTip: string;
+    strengthHook: string;
+  }[];
+}
+
+interface GoalTemplateItem {
+  id: string;
+  title: string;
+  description: string;
+  defaultOffsetDays: number;
+}
+
+// Static goal templates for milestone generation
+const goalTemplateItems: { [key: string]: GoalTemplateItem[] } = {
+  consultant: [
+    { id: "network", title: "Target-firm networking", description: "Schedule coffee chats with alumni and recruiters.", defaultOffsetDays: -120 },
+    { id: "case_core", title: "Master core cases", description: "Drill 20 profitability and market-entry cases.", defaultOffsetDays: -90 },
+    { id: "fit_stories", title: "Craft fit-interview stories", description: "Write STAR stories for leadership and impact themes.", defaultOffsetDays: -80 },
+    { id: "mock_interviews", title: "Mock interview sprint", description: "Complete 8 peer mocks and 2 pro mocks.", defaultOffsetDays: -60 },
+    { id: "apply", title: "Submit applications", description: "Polish CV and cover letters; send to target offices.", defaultOffsetDays: -45 },
+    { id: "first_round", title: "First-round interviews", description: "Live cases with managers.", defaultOffsetDays: -30 },
+    { id: "partner_round", title: "Partner / final interviews", description: "Advanced cases and PEI.", defaultOffsetDays: -20 },
+    { id: "decision", title: "Offer decision & negotiation", description: "Compare offers and negotiate start date.", defaultOffsetDays: -10 }
+  ],
+  manager: [
+    { id: "assess_skills", title: "Skills assessment", description: "Evaluate current competencies and gaps.", defaultOffsetDays: -180 },
+    { id: "leadership_training", title: "Leadership development", description: "Complete leadership courses and workshops.", defaultOffsetDays: -150 },
+    { id: "mentor_relationships", title: "Build mentor network", description: "Establish relationships with senior leaders.", defaultOffsetDays: -120 },
+    { id: "project_leadership", title: "Lead high-impact project", description: "Take ownership of strategic initiative.", defaultOffsetDays: -90 },
+    { id: "team_building", title: "Develop team skills", description: "Practice mentoring and team management.", defaultOffsetDays: -60 },
+    { id: "performance_review", title: "Mid-cycle review", description: "Discuss promotion timeline with manager.", defaultOffsetDays: -30 },
+    { id: "promotion_discussion", title: "Formal promotion request", description: "Present case for promotion to leadership.", defaultOffsetDays: -14 }
+  ]
+};
 
 const goalTemplates: GoalTemplate[] = [
   {
@@ -89,6 +145,7 @@ const GoalWizard: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
   const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
+  const [hasTimePressure, setHasTimePressure] = useState<boolean>(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -111,37 +168,143 @@ const GoalWizard: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Call OpenAI Assistant to generate clarifying questions
-  const callOpenAIAssistant = async (objective: string, personalitySummary: string): Promise<string[]> => {
-    try {
-      console.log(personalitySummary)
-      const response = await fetch('/api/openAi/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          objective,
-          personalitySummary,
-        }),
-      });
+  // Get dominant Enneagram type
+  const getDominantEnneagramType = (): string => {
+    if (!enneagramResult) return '1';
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+    let maxScore = 0;
+    let dominantType = '1';
+
+    for (let i = 1; i <= 9; i++) {
+      const score = enneagramResult[`enneagramType${i}` as keyof EnneagramResult] as number;
+      if (score > maxScore) {
+        maxScore = score;
+        dominantType = i.toString();
       }
-
-      const data: OpenAIQuestionsResponse = await response.json();
-      return data.questions;
-    } catch (error) {
-      console.error('Error calling OpenAI Assistant:', error);
-      // Fallback to default questions if API call fails
-      return [
-        'What specific skills do you need to develop to achieve this goal?',
-        'What resources or support do you currently have available?',
-        'What potential obstacles do you anticipate?',
-        'How will you measure success?'
-      ];
     }
+
+    return dominantType;
+  };
+
+  // Call OpenAI Assistant
+ const callOpenAIAssistant = async (objective: string, personalitySummary: string): Promise<string[]> => {
+  try {
+    console.log(personalitySummary)
+    const response = await fetch('/api/openAi/?type=questions', { // Add query parameter
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        objective,
+        personalitySummary,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: OpenAIQuestionsResponse = await response.json();
+    return data.questions;
+  } catch (error) {
+    console.error('Error calling OpenAI Assistant:', error);
+    // Fallback to default questions if API call fails
+    return [
+      'What specific skills do you need to develop to achieve this goal?',
+      'What resources or support do you currently have available?',
+      'What potential obstacles do you anticipate?',
+      'How will you measure success?'
+    ];
+  }
+};
+
+  const callOpenAIMilestoneGenerator = async (): Promise<Milestone[]> => {
+  try {
+    const payload = {
+      goalType: selectedGoalType,
+      goalSummary: goal,
+      targetDate: targetDate,
+      enneagramType: getDominantEnneagramType(),
+      personalitySummary: enneagramResult?.summary || 'No personality data available',
+      paceInfo: { hasTimePressure },
+      qaPairs: clarifyingQuestions.map(q => ({
+        question: q.question,
+        answer: q.answer
+      })),
+      goalTemplate: goalTemplateItems[selectedGoalType] || []
+    };
+
+    console.log('Sending milestone generation payload:', payload);
+
+    const response = await fetch('/api/openAi/?type=milestones', { // Add query parameter
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data: OpenAIMilestonesResponse = await response.json();
+
+    // Convert to our Milestone format
+    return data.milestones.map(m => ({
+      id: m.id,
+      title: m.title,
+      description: m.description,
+      dueDate: m.dueDate,
+      completed: false,
+      blindSpotTip: m.blindSpotTip,
+      strengthHook: m.strengthHook
+    }));
+  } catch (error) {
+    console.error('Error calling OpenAI Milestone Generator:', error);
+    // Fallback to default milestones
+    return generateFallbackMilestones();
+  }
+};
+
+  // Generate fallback milestones if API fails
+  const generateFallbackMilestones = (): Milestone[] => {
+    const today = new Date();
+    const endDate = new Date(targetDate);
+    const timeSpan = endDate.getTime() - today.getTime();
+    const quarterSpan = timeSpan / 4;
+
+    return [
+      {
+        id: '1',
+        title: 'Research and Planning Phase',
+        description: 'Conduct market research and create detailed action plan',
+        dueDate: new Date(today.getTime() + quarterSpan).toISOString().split('T')[0],
+        completed: false
+      },
+      {
+        id: '2',
+        title: 'Skill Development',
+        description: 'Complete necessary training and skill building activities',
+        dueDate: new Date(today.getTime() + quarterSpan * 2).toISOString().split('T')[0],
+        completed: false
+      },
+      {
+        id: '3',
+        title: 'Implementation Phase',
+        description: 'Execute the main activities towards achieving the goal',
+        dueDate: new Date(today.getTime() + quarterSpan * 3).toISOString().split('T')[0],
+        completed: false
+      },
+      {
+        id: '4',
+        title: 'Final Push and Evaluation',
+        description: 'Complete final steps and evaluate progress',
+        dueDate: targetDate,
+        completed: false
+      }
+    ];
   };
 
   // Handle goal type selection
@@ -202,48 +365,20 @@ const GoalWizard: React.FC = () => {
     }
   };
 
-  // Mock milestone generation
-  const generateMilestones = () => {
+  // Generate milestones using OpenAI
+  const generateMilestones = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      const today = new Date();
-      const endDate = new Date(targetDate);
-      const timeSpan = endDate.getTime() - today.getTime();
-      const quarterSpan = timeSpan / 4;
-
-      const generatedMilestones: Milestone[] = [
-        {
-          id: '1',
-          title: 'Research and Planning Phase',
-          description: 'Conduct market research and create detailed action plan',
-          dueDate: new Date(today.getTime() + quarterSpan).toISOString().split('T')[0],
-          completed: false
-        },
-        {
-          id: '2',
-          title: 'Skill Development',
-          description: 'Complete necessary training and skill building activities',
-          dueDate: new Date(today.getTime() + quarterSpan * 2).toISOString().split('T')[0],
-          completed: false
-        },
-        {
-          id: '3',
-          title: 'Implementation Phase',
-          description: 'Execute the main activities towards achieving the goal',
-          dueDate: new Date(today.getTime() + quarterSpan * 3).toISOString().split('T')[0],
-          completed: false
-        },
-        {
-          id: '4',
-          title: 'Final Push and Evaluation',
-          description: 'Complete final steps and evaluate progress',
-          dueDate: targetDate,
-          completed: false
-        }
-      ];
+    try {
+      const generatedMilestones = await callOpenAIMilestoneGenerator();
       setMilestones(generatedMilestones);
+    } catch (error) {
+      console.error('Error generating milestones:', error);
+      // Fallback to default milestones
+      const fallbackMilestones = generateFallbackMilestones();
+      setMilestones(fallbackMilestones);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const getSuggestions = (value: string): Suggestion[] => {
@@ -373,18 +508,69 @@ const GoalWizard: React.FC = () => {
     setCurrentStep(prev => Math.max(prev - 1, 0));
   };
 
-  const createPlan = (): void => {
-    const planData = {
+ const createPlan = async (): Promise<void> => {
+  if (!user) {
+    alert('Please log in to create a plan.');
+    return;
+  }
+
+  setIsLoading(true);
+
+  try {
+    const planData: PlanData = {
+      userId: user.uid,
       goalType: selectedGoalType,
       goal,
       targetDate,
+      hasTimePressure,
       clarifyingQuestions,
       milestones,
-      personalityType: enneagramResult ? enneagramResult.summary : null
+      createdAt: serverTimestamp(),
+      status: 'active'
     };
-    console.log('Creating plan:', planData);
-    alert('Plan created successfully! Check console for details.');
-  };
+
+    // Add the plan to Firestore
+    const docRef = await addDoc(collection(db, 'plans'), planData);
+
+    console.log('Plan created successfully with ID:', docRef.id);
+
+    // Optional: Update user's document to track their plans
+    await updateUserPlansCount(user.uid);
+
+    // Show success message
+    alert(`🎉 Plan created successfully! Your plan ID is: ${docRef.id}`);
+
+    // Optional: Reset the wizard or redirect to dashboard
+    // resetWizard(); // Uncomment if you want to reset after creation
+
+  } catch (error) {
+    console.error('Error creating plan:', error);
+    alert('Failed to create plan. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// Helper function to update user's plan count (optional)
+const updateUserPlansCount = async (userId: string): Promise<void> => {
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      const currentData = userDoc.data();
+      const currentPlanCount = currentData.planCount || 0;
+
+      await updateDoc(userDocRef, {
+        planCount: currentPlanCount + 1,
+        lastPlanCreated: serverTimestamp()
+      });
+    }
+  } catch (error) {
+    console.error('Error updating user plan count:', error);
+    // Don't throw error as this is optional functionality
+  }
+};
 
   const canProceed = (): boolean => {
     switch (currentStep) {
@@ -475,6 +661,32 @@ const GoalWizard: React.FC = () => {
                 className={styles.datePicker}
               />
             </div>
+
+            <div className={styles.section}>
+              <h2 className={styles.subtitle}>Timeline Preference</h2>
+              <div className={styles.paceSelection}>
+                <label className={styles.paceOption}>
+                  <input
+                    type="radio"
+                    name="pace"
+                    value="normal"
+                    checked={!hasTimePressure}
+                    onChange={() => setHasTimePressure(false)}
+                  />
+                  <span>Normal pace - I have adequate time</span>
+                </label>
+                <label className={styles.paceOption}>
+                  <input
+                    type="radio"
+                    name="pace"
+                    value="accelerated"
+                    checked={hasTimePressure}
+                    onChange={() => setHasTimePressure(true)}
+                  />
+                  <span>Accelerated - I'm under time pressure</span>
+                </label>
+              </div>
+            </div>
           </>
         );
 
@@ -493,11 +705,13 @@ const GoalWizard: React.FC = () => {
               <p>{goal}</p>
               <h3>Target Date:</h3>
               <p>{new Date(targetDate).toLocaleDateString()}</p>
+              <h3>Timeline Preference:</h3>
+              <p>{hasTimePressure ? 'Accelerated (time pressure)' : 'Normal pace'}</p>
               {enneagramResult && (
                 <>
                   <h3>Personality Insight:</h3>
                   <p className={styles.personalityInsight}>
-                    Questions will be personalized based on your Enneagram profile
+                    Questions will be personalized based on your Enneagram profile (Type {getDominantEnneagramType()})
                   </p>
                 </>
               )}
@@ -587,6 +801,26 @@ const GoalWizard: React.FC = () => {
                         onChange={(e) => updateMilestone(milestone.id, 'dueDate', e.target.value)}
                         className={styles.milestoneDueDate}
                       />
+
+                      {/* Personality-based tips */}
+                      {(milestone.blindSpotTip || milestone.strengthHook) && (
+                        <div className={styles.personalityTips}>
+                          {milestone.blindSpotTip && (
+                            <div className={styles.blindSpotTip}>
+                              <span className={styles.tipIcon}>⚠️</span>
+                              <span className={styles.tipLabel}>Blind Spot:</span>
+                              <span className={styles.tipText}>{milestone.blindSpotTip}</span>
+                            </div>
+                          )}
+                          {milestone.strengthHook && (
+                            <div className={styles.strengthHook}>
+                              <span className={styles.tipIcon}>💪</span>
+                              <span className={styles.tipLabel}>Leverage:</span>
+                              <span className={styles.tipText}>{milestone.strengthHook}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -659,9 +893,10 @@ const GoalWizard: React.FC = () => {
 
               <button
                 onClick={createPlan}
+                disabled={isLoading}
                 className={styles.createPlanButton}
               >
-                🎯 Create Plan
+                {isLoading ? '⏳ Creating Plan...' : '🎯 Create Plan'}
               </button>
             </div>
           </div>
