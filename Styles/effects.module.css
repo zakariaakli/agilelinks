@@ -1,0 +1,547 @@
+/**
+ * Advanced Visual Effects and Polish
+ * Professional visual enhancements for modern UI
+ */
+
+/* ==========================================
+   GRADIENT EFFECTS
+   ========================================== */
+
+.gradientText {
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradientTextAnimated {
+  background: linear-gradient(45deg, 
+    var(--color-primary-500), 
+    var(--color-secondary-500), 
+    var(--color-accent-500), 
+    var(--color-primary-500)
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  animation: gradientTextFlow 3s ease infinite;
+}
+
+@keyframes gradientTextFlow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.gradientBorder {
+  position: relative;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-xl);
+}
+
+.gradientBorder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: linear-gradient(45deg, var(--color-primary-500), var(--color-secondary-500));
+  border-radius: inherit;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+}
+
+/* ==========================================
+   GLASS MORPHISM EFFECTS
+   ========================================== */
+
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.glassDark {
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glassCard {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--border-radius-xl);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  transition: var(--transition-all);
+}
+
+.glassCard:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-5px);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================
+   GLOW AND SHADOW EFFECTS
+   ========================================== */
+
+.glow {
+  box-shadow: 
+    0 0 5px var(--color-primary-300),
+    0 0 10px var(--color-primary-300),
+    0 0 15px var(--color-primary-300);
+}
+
+.glowHover:hover {
+  box-shadow: 
+    0 0 10px var(--color-primary-400),
+    0 0 20px var(--color-primary-400),
+    0 0 30px var(--color-primary-400);
+  transition: box-shadow 0.3s ease;
+}
+
+.glowPulse {
+  animation: glowPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  from {
+    box-shadow: 
+      0 0 5px var(--color-primary-300),
+      0 0 10px var(--color-primary-300),
+      0 0 15px var(--color-primary-300);
+  }
+  to {
+    box-shadow: 
+      0 0 10px var(--color-primary-400),
+      0 0 20px var(--color-primary-400),
+      0 0 30px var(--color-primary-400);
+  }
+}
+
+.shadowNeon {
+  box-shadow: 
+    0 0 5px var(--color-secondary-400),
+    0 0 10px var(--color-secondary-400),
+    0 0 15px var(--color-secondary-400),
+    0 0 20px var(--color-secondary-400);
+}
+
+.shadowSoft {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.shadowMedium {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.shadowHard {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================
+   MORPHING AND TRANSFORM EFFECTS
+   ========================================== */
+
+.morphHover {
+  transition: var(--transition-all);
+  border-radius: var(--border-radius-lg);
+}
+
+.morphHover:hover {
+  border-radius: var(--border-radius-full);
+  transform: scale(1.05) rotate(2deg);
+}
+
+.tiltLeft:hover {
+  transform: perspective(1000px) rotateY(-10deg) rotateX(5deg);
+  transition: transform 0.3s ease;
+}
+
+.tiltRight:hover {
+  transform: perspective(1000px) rotateY(10deg) rotateX(5deg);
+  transition: transform 0.3s ease;
+}
+
+.flipCard {
+  perspective: 1000px;
+  width: 100%;
+  height: 200px;
+}
+
+.flipCardInner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flipCard:hover .flipCardInner {
+  transform: rotateY(180deg);
+}
+
+.flipCardFront,
+.flipCardBack {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: var(--border-radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flipCardBack {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  color: var(--color-neutral-0);
+}
+
+/* ==========================================
+   PARTICLE AND ANIMATED BACKGROUNDS
+   ========================================== */
+
+.particleBackground {
+  position: relative;
+  overflow: hidden;
+}
+
+.particleBackground::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+  animation: particleFloat 20s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes particleFloat {
+  0%, 100% {
+    transform: translateX(0px) translateY(0px);
+  }
+  33% {
+    transform: translateX(30px) translateY(-30px);
+  }
+  66% {
+    transform: translateX(-20px) translateY(20px);
+  }
+}
+
+.waveBackground {
+  position: relative;
+  overflow: hidden;
+}
+
+.waveBackground::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, 
+    transparent 40%, 
+    rgba(99, 102, 241, 0.05) 50%, 
+    transparent 60%
+  );
+  animation: waveMove 4s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes waveMove {
+  0%, 100% {
+    transform: translateX(-50%) translateY(-50%) rotate(0deg);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-50%) rotate(180deg);
+  }
+}
+
+/* ==========================================
+   TEXT EFFECTS
+   ========================================== */
+
+.textShadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.textGlow {
+  text-shadow: 0 0 10px var(--color-primary-400);
+}
+
+.textOutline {
+  -webkit-text-stroke: 1px var(--color-primary-500);
+  color: transparent;
+}
+
+.textGradientShadow {
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.typewriter {
+  overflow: hidden;
+  border-right: 2px solid var(--color-primary-500);
+  white-space: nowrap;
+  animation: typing 3.5s steps(40, end), blink 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  from, to { border-color: transparent; }
+  50% { border-color: var(--color-primary-500); }
+}
+
+/* ==========================================
+   LOADING AND STATE EFFECTS
+   ========================================== */
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmerMove 1.5s infinite;
+}
+
+@keyframes shimmerMove {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-200) 25%,
+    var(--color-neutral-100) 50%,
+    var(--color-neutral-200) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeletonLoading 1.5s infinite;
+}
+
+@keyframes skeletonLoading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ==========================================
+   INTERACTIVE EFFECTS
+   ========================================== */
+
+.magneticHover {
+  transition: transform 0.3s ease;
+}
+
+.magneticHover:hover {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.elasticHover {
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.elasticHover:hover {
+  transform: scale(1.1);
+}
+
+.bounceIn {
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.slideInFromLeft {
+  animation: slideInFromLeft 0.6s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slideInFromRight {
+  animation: slideInFromRight 0.6s ease-out;
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ==========================================
+   RESPONSIVE EFFECTS
+   ========================================== */
+
+@media (max-width: 768px) {
+  .morphHover:hover,
+  .tiltLeft:hover,
+  .tiltRight:hover,
+  .magneticHover:hover,
+  .elasticHover:hover {
+    transform: none;
+  }
+  
+  .flipCard:hover .flipCardInner {
+    transform: none;
+  }
+  
+  .glassCard:hover {
+    transform: none;
+  }
+}
+
+/* ==========================================
+   ACCESSIBILITY
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .gradientTextAnimated,
+  .glowPulse,
+  .particleBackground::before,
+  .waveBackground::before,
+  .typewriter,
+  .shimmer,
+  .skeleton,
+  .breathe,
+  .bounceIn,
+  .slideInFromLeft,
+  .slideInFromRight {
+    animation: none !important;
+  }
+  
+  .morphHover:hover,
+  .tiltLeft:hover,
+  .tiltRight:hover,
+  .magneticHover:hover,
+  .elasticHover:hover,
+  .flipCard:hover .flipCardInner {
+    transform: none !important;
+  }
+  
+  .glowHover:hover {
+    box-shadow: none !important;
+  }
+}
+
+/* ==========================================
+   DARK MODE ADAPTATIONS
+   ========================================== */
+
+[data-theme="dark"] .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .glassDark {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .glassCard {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-800) 25%,
+    var(--color-neutral-700) 50%,
+    var(--color-neutral-800) 75%
+  );
+  background-size: 200% 100%;
+}
+
+[data-theme="dark"] .shadowSoft {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .shadowMedium {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .shadowHard {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}

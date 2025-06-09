@@ -7,6 +7,8 @@ import styles from '../../Styles/profile.module.css';
 import { EnneagramResult } from '../../Models/EnneagramResult';
 import MilestoneCard from '../../Components/MilestoneCard';
 import Link from 'next/link';
+import { LinkButton } from '../../Components/Button';
+import { PlusIcon, EditIcon, EyeIcon, TargetIcon } from '../../Components/Icons';
 
 interface PlanData {
   id: string;
@@ -245,22 +247,33 @@ const ProfilePage = () => {
   if (!user) return <div className={styles.loading}>Please log in to view your profile.</div>;
 
   return (
-    <div className={styles.profileContainer}>
-      <h1 className={styles.profileTitle}>Welcome back, {user.displayName}</h1>
-      <p className={styles.email}>{user.email}</p>
+    <div className={`${styles.profileContainer} container my20`}>
+      <div className={`${styles.profileHeader} slideInDown`}>
+        <h1 className={styles.profileTitle}>Welcome back, {user.displayName}</h1>
+        <p className={styles.email}>{user.email}</p>
+      </div>
       {/* Plans Section */}
-      <div className={styles.plansSection}>
-        <div className={styles.plansSectionHeader}>
+      <section className={`${styles.plansSection} section slideInUp staggerDelay1`}>
+        <div className={`${styles.plansSectionHeader} flex justifyBetween itemsCenter mb6`}>
           <h2 className={styles.sectionTitle}>Your Plans</h2>
-          <Link href="/profile/companion" className={styles.createPlanLink}>
-            + Create New Plan
-          </Link>
+          <LinkButton 
+            href="/profile/companion" 
+            variant="primary"
+            icon={<PlusIcon size={16} />}
+            className={`${styles.createPlanLink} pulse`}
+          >
+            Create New Plan
+          </LinkButton>
         </div>
 
         {userPlans.length > 0 ? (
-          <div className={styles.plansGrid}>
-            {userPlans.map((plan) => (
-              <div key={plan.id} className={styles.planCard}>
+          <div className={`${styles.plansGrid} gridAutoFit gapLg`}>
+            {userPlans.map((plan, index) => (
+              <div 
+                key={plan.id} 
+                className={`${styles.planCard} scaleHover slideInUp`}
+                style={{ animationDelay: `${0.1 * (index + 2)}s` }}
+              >
                 {/* Plan Summary (Always Visible) */}
                 <div
                   className={styles.planSummary}
@@ -376,12 +389,24 @@ const ProfilePage = () => {
                     </div>
 
                     <div className={styles.planActions}>
-                      <button className={styles.editPlanButton}>
-                        ✏️ Edit Plan
-                      </button>
-                      <button className={styles.viewPlanButton}>
-                        👁️ View Full Plan
-                      </button>
+                      <LinkButton 
+                        href="#" 
+                        variant="ghost" 
+                        size="sm" 
+                        icon={<EditIcon size={14} />}
+                        className={styles.editPlanButton}
+                      >
+                        Edit Plan
+                      </LinkButton>
+                      <LinkButton 
+                        href="#" 
+                        variant="primary" 
+                        size="sm" 
+                        icon={<EyeIcon size={14} />}
+                        className={styles.viewPlanButton}
+                      >
+                        View Full Plan
+                      </LinkButton>
                     </div>
                   </div>
                 )}
@@ -389,26 +414,38 @@ const ProfilePage = () => {
             ))}
           </div>
         ) : (
-          <div className={styles.noPlans}>
-            <div className={styles.noPlansIcon}>🎯</div>
-            <h3>No plans yet!</h3>
-            <p>Create your first goal-oriented plan to get started on your journey.</p>
-            <Link href="/profile/companion" className={styles.createFirstPlanButton}>
+          <div className={`${styles.noPlans} fadeIn textCenter py20`}>
+            <div className={`${styles.noPlansIcon} float mb6`}>
+              <TargetIcon size={64} color="var(--color-neutral-400)" />
+            </div>
+            <h3 className="mb4">No plans yet!</h3>
+            <p className="mb8">Create your first goal-oriented plan to get started on your journey.</p>
+            <LinkButton 
+              href="/profile/companion" 
+              variant="primary"
+              size="lg"
+              icon={<PlusIcon size={20} />}
+              className={`${styles.createFirstPlanButton} bounce`}
+            >
               Create Your First Plan
-            </Link>
+            </LinkButton>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Enneagram Results Section */}
       {enneagramResult ? (
-        <div className={styles.enneagramResultContainer}>
-          <h2 className={styles.sectionTitle}>Your Enneagram Scores</h2>
-          <div className={styles.enneagramGrid}>
+        <section className={`${styles.enneagramResultContainer} section slideInUp staggerDelay2`}>
+          <h2 className={`${styles.sectionTitle} mb8`}>Your Enneagram Scores</h2>
+          <div className={`${styles.enneagramGrid} grid3 gapMd mb8`}>
             {Object.entries(enneagramResult)
               .filter(([key]) => key.startsWith("enneagramType"))
-              .map(([key, value]) => (
-                <div className={styles.enneagramItem} key={key}>
+              .map(([key, value], index) => (
+                <div 
+                  className={`${styles.enneagramItem} slideInUp tilt`} 
+                  key={key}
+                  style={{ animationDelay: `${0.1 * (index + 4)}s` }}
+                >
                   <div className={styles.enneagramType}>
                     {enneagramLabels[key as keyof typeof enneagramLabels] || key}
                   </div>
@@ -417,13 +454,15 @@ const ProfilePage = () => {
                 </div>
               ))}
           </div>
-          <div className={styles.summary}>
-            <h3>Summary</h3>
+          <div className={`${styles.summary} fadeIn p6`} style={{ animationDelay: '1.2s' }}>
+            <h3 className="mb4">Summary</h3>
             <p>{enneagramResult.summary}</p>
           </div>
-        </div>
+        </section>
       ) : (
-        <div className={styles.noData}>No Enneagram results found yet.</div>
+        <section className={`${styles.noData} section textCenter fadeIn`}>
+          <p>No Enneagram results found yet.</p>
+        </section>
       )}
     </div>
   );

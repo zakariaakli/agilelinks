@@ -1,0 +1,538 @@
+/* ==========================================
+   CARD COMPONENT STYLES
+   ========================================== */
+
+/* Base Card Styles */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-primary);
+  border-radius: var(--border-radius-xl);
+  transition: var(--transition-all);
+  overflow: hidden;
+  box-sizing: border-box;
+  
+  /* Micro-interaction preparation */
+  transform: perspective(1px) translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Shimmer effect on hover for interactive cards */
+.interactive::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transition: left 0.6s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.interactive:hover::before {
+  left: 100%;
+}
+
+/* Card Variants */
+.default {
+  border: var(--border-width-base) solid var(--border-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.elevated {
+  border: var(--border-width-base) solid var(--border-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.outlined {
+  border: var(--border-width-2) solid var(--border-secondary);
+  box-shadow: none;
+}
+
+.minimal {
+  border: none;
+  box-shadow: none;
+  background-color: transparent;
+}
+
+.gradient {
+  border: var(--border-width-base) solid transparent;
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-secondary-50) 100%);
+  box-shadow: var(--shadow-md);
+}
+
+/* Interactive States */
+.interactive {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+}
+
+.interactive.default:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary-200);
+}
+
+.interactive.elevated:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
+.interactive.outlined:hover {
+  border-color: var(--color-primary-400);
+  box-shadow: var(--shadow-sm);
+}
+
+.interactive.minimal:hover {
+  background-color: var(--color-neutral-50);
+}
+
+.interactive.gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, var(--color-primary-100) 0%, var(--color-secondary-100) 100%);
+}
+
+/* Active States */
+.interactive:active {
+  transform: translateY(0);
+}
+
+.interactive.default:active {
+  box-shadow: var(--shadow-md);
+}
+
+.interactive.elevated:active {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Padding Variants */
+.padding-none {
+  padding: 0;
+}
+
+.padding-sm {
+  padding: var(--space-3);
+}
+
+.padding-md {
+  padding: var(--space-6);
+}
+
+.padding-lg {
+  padding: var(--space-8);
+}
+
+/* Card Structure Components */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-width-base) solid var(--border-primary);
+  margin-bottom: var(--space-4);
+}
+
+.cardBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-4);
+  border-top: var(--border-width-base) solid var(--border-primary);
+  margin-top: var(--space-4);
+}
+
+/* Loading State */
+.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  backdrop-filter: blur(2px);
+}
+
+.loadingSpinner {
+  width: var(--size-6);
+  height: var(--size-6);
+  border: var(--border-width-2) solid var(--color-primary-200);
+  border-top: var(--border-width-2) solid var(--color-primary-500);
+  border-radius: var(--border-radius-full);
+  animation: spin 1s linear infinite;
+}
+
+/* Card Groups */
+.cardGrid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.cardStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cardRow {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* Responsive Card Grid */
+@media (max-width: 768px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .cardRow {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .padding-lg {
+    padding: var(--space-6);
+  }
+
+  .padding-md {
+    padding: var(--space-4);
+  }
+}
+
+/* Special Card Styles */
+.featureCard {
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+  border: var(--border-width-base) solid var(--color-primary-200);
+}
+
+.statsCard {
+  text-align: center;
+  background: var(--bg-primary);
+  border: var(--border-width-2) solid var(--color-primary-100);
+}
+
+.actionCard {
+  background: var(--bg-primary);
+  border: var(--border-width-base) solid var(--border-primary);
+  transition: all 0.2s ease;
+}
+
+.actionCard:hover {
+  border-color: var(--color-primary-300);
+  box-shadow: var(--shadow-md);
+}
+
+/* Card with Icon */
+.cardWithIcon {
+  position: relative;
+  padding-top: calc(var(--space-6) + var(--size-6));
+}
+
+.cardIcon {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  width: var(--size-6);
+  height: var(--size-6);
+  background: var(--color-primary-100);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-600);
+}
+
+/* Card Badge */
+.cardBadge {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: var(--color-primary-500);
+  color: var(--color-neutral-0);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* Card Image */
+.cardImage {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+/* Card Title */
+.cardTitle {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-2) 0;
+  line-height: var(--line-height-tight);
+}
+
+/* Card Subtitle */
+.cardSubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4) 0;
+  line-height: var(--line-height-normal);
+}
+
+/* Card Text */
+.cardText {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  line-height: var(--line-height-relaxed);
+  margin: 0 0 var(--space-4) 0;
+}
+
+/* Card Actions */
+.cardActions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: auto;
+}
+
+.cardActions.centered {
+  justify-content: center;
+}
+
+.cardActions.spaced {
+  justify-content: space-between;
+}
+
+/* Focus States for Accessibility */
+.interactive:focus-visible {
+  outline: var(--border-width-2) solid var(--color-primary-500);
+  outline-offset: var(--space-1);
+}
+
+/* ==========================================
+   ADVANCED CARD MICRO-INTERACTIONS
+   ========================================== */
+
+/* Staggered Animation for Card Groups */
+.cardGrid .card {
+  animation: slideInUp 0.6s ease-out;
+  animation-fill-mode: both;
+}
+
+.cardGrid .card:nth-child(1) { animation-delay: 0.1s; }
+.cardGrid .card:nth-child(2) { animation-delay: 0.2s; }
+.cardGrid .card:nth-child(3) { animation-delay: 0.3s; }
+.cardGrid .card:nth-child(4) { animation-delay: 0.4s; }
+.cardGrid .card:nth-child(5) { animation-delay: 0.5s; }
+.cardGrid .card:nth-child(6) { animation-delay: 0.6s; }
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse Effect for Important Cards */
+.pulse {
+  animation: cardPulse 2s infinite;
+}
+
+@keyframes cardPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 var(--color-primary-200);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+  }
+}
+
+/* Floating Effect */
+.float {
+  animation: cardFloat 3s ease-in-out infinite;
+}
+
+@keyframes cardFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Tilt Effect on Hover */
+.tilt:hover {
+  transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+  transition: transform 0.3s ease;
+}
+
+/* Scale Effect */
+.scaleHover:hover {
+  transform: scale(1.02);
+  transition: transform 0.3s ease;
+}
+
+/* Glow Effect for Special Cards */
+.glow {
+  box-shadow: 
+    0 0 10px var(--color-primary-200),
+    0 4px 20px var(--color-primary-100);
+  animation: cardGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes cardGlow {
+  from {
+    box-shadow: 
+      0 0 10px var(--color-primary-200),
+      0 4px 20px var(--color-primary-100);
+  }
+  to {
+    box-shadow: 
+      0 0 20px var(--color-primary-300),
+      0 4px 30px var(--color-primary-200);
+  }
+}
+
+/* Gradient Border Animation */
+.gradientBorder {
+  position: relative;
+  background: linear-gradient(var(--bg-primary), var(--bg-primary)) padding-box,
+              linear-gradient(45deg, var(--color-primary-500), var(--color-secondary-500)) border-box;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius-xl);
+}
+
+.gradientBorder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: linear-gradient(45deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-500));
+  border-radius: var(--border-radius-xl);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: gradientRotate 3s linear infinite;
+}
+
+@keyframes gradientRotate {
+  0% {
+    background: linear-gradient(0deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-500));
+  }
+  25% {
+    background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-500));
+  }
+  50% {
+    background: linear-gradient(180deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-500));
+  }
+  75% {
+    background: linear-gradient(270deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-500));
+  }
+  100% {
+    background: linear-gradient(360deg, var(--color-primary-500), var(--color-secondary-500), var(--color-accent-500));
+  }
+}
+
+/* Ripple Effect on Click */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.ripple:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Content positioning for effects */
+.card > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Print Styles */
+@media print {
+  .card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: var(--border-width-base) solid var(--color-neutral-300);
+  }
+
+  .interactive:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .pulse,
+  .float,
+  .glow,
+  .gradientBorder {
+    animation: none !important;
+  }
+}
+
+/* Accessibility - Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .cardGrid .card,
+  .pulse,
+  .float,
+  .glow,
+  .gradientBorder {
+    animation: none !important;
+  }
+  
+  .tilt:hover,
+  .scaleHover:hover {
+    transform: none !important;
+  }
+  
+  .interactive:hover {
+    transition: opacity 0.2s ease, background-color 0.2s ease !important;
+  }
+}

@@ -1,8 +1,11 @@
 import React from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "../globals.css";
+import "../Styles/dark-mode.css";
 import Seo from "../Components/Seo";
 import Header from "../Components/Header";
+import Footer from "../Components/Footer";
+import ThemeProvider from "../Components/ThemeProvider";
 
 // app/layout.tsx
 export const metadata = {
@@ -34,10 +37,13 @@ export default function RootLayout({
         <title>Know yourself. Grow every day!</title>
       </head>
       <body>
-        <Header />
-        <main>
-          {children}
-        </main>
+        <ThemeProvider>
+          <Header />
+          <main>
+            {children}
+          </main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

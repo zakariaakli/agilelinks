@@ -1,29 +1,70 @@
 .profileContainer {
-  max-width: 1200px;
-  margin: 60px auto;
-  padding: 40px 20px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  max-width: var(--container-xl);
+  margin: var(--space-16) auto;
+  padding: var(--space-10) var(--space-5);
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-3xl);
+  box-shadow: var(--shadow-lg);
+  transition: var(--transition-all);
+  position: relative;
+  overflow: hidden;
+}
+
+.profileContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--color-primary-500) 0%, 
+    var(--color-secondary-500) 50%, 
+    var(--color-accent-500) 100%
+  );
 }
 
 .profileTitle {
-  font-size: 2.2rem;
-  color: #111827;
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
   text-align: center;
+  margin-bottom: var(--space-2);
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-secondary-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: fadeInUp 0.6s ease-out;
 }
 
 .email {
   text-align: center;
-  color: #6B7280;
-  margin-bottom: 40px;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-10);
+  font-size: var(--font-size-lg);
+  animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
 .sectionTitle {
-  font-size: 1.5rem;
-  margin-bottom: 25px;
-  color: #111827;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-6);
+  color: var(--text-primary);
   text-align: center;
+  position: relative;
+  padding-bottom: var(--space-4);
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
+  border-radius: var(--border-radius-full);
 }
 
 .enneagramResultContainer {
@@ -113,10 +154,34 @@
 
 /* Plans Section Styles */
 .plansSection {
-  margin: 40px 0;
-  padding: 30px;
-  background: #F8FAFC;
-  border-radius: 12px;
+  margin: var(--space-10) 0;
+  padding: var(--space-8);
+  background: var(--bg-secondary);
+  border-radius: var(--border-radius-3xl);
+  border: var(--border-width-base) solid var(--border-primary);
+  position: relative;
+  overflow: hidden;
+  animation: slideInUp 0.6s ease-out 0.4s both;
+}
+
+.plansSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(99, 102, 241, 0.05) 50%, 
+    transparent 100%
+  );
+  transition: var(--transition-all);
+}
+
+.plansSection:hover::before {
+  left: 100%;
+  transition-duration: 0.8s;
 }
 
 .plansSectionHeader {
@@ -149,17 +214,40 @@
 }
 
 .planCard {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-2xl);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
-  transition: all 0.2s ease;
-  border: 1px solid #E5E7EB;
+  transition: var(--transition-all);
+  border: var(--border-width-base) solid var(--border-primary);
+  position: relative;
+  animation: slideInUp 0.5s ease-out;
+}
+
+.planCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    var(--color-primary-500) 0%, 
+    var(--color-secondary-500) 100%
+  );
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: var(--transition-all);
 }
 
 .planCard:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+  transform: translateY(-4px) scale(1.02);
+  border-color: var(--color-primary-200);
+}
+
+.planCard:hover::before {
+  transform: scaleX(1);
 }
 
 .planSummary {
@@ -471,11 +559,129 @@
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
+/* ==========================================
+   ANIMATIONS
+   ========================================== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* ==========================================
+   ENHANCED INTERACTIONS
+   ========================================== */
+
+.planCard {
+  animation: slideInUp 0.5s ease-out;
+  animation-fill-mode: both;
+}
+
+.planCard:nth-child(1) { animation-delay: 0.1s; }
+.planCard:nth-child(2) { animation-delay: 0.2s; }
+.planCard:nth-child(3) { animation-delay: 0.3s; }
+.planCard:nth-child(4) { animation-delay: 0.4s; }
+
+.createPlanLink {
+  transition: var(--transition-all);
+  position: relative;
+  overflow: hidden;
+}
+
+.createPlanLink::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    transparent 100%
+  );
+  transition: var(--transition-all);
+}
+
+.createPlanLink:hover::before {
+  left: 100%;
+  transition-duration: 0.6s;
+}
+
+.enneagramItem {
+  transition: var(--transition-all);
+  position: relative;
+  overflow: hidden;
+}
+
+.enneagramItem::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(99, 102, 241, 0.1) 0%, 
+    rgba(16, 185, 129, 0.1) 100%
+  );
+  opacity: 0;
+  transition: var(--transition-opacity);
+}
+
+.enneagramItem:hover::before {
+  opacity: 1;
+}
+
+.enneagramItem:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: var(--shadow-xl);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .profileContainer {
-    margin: 20px auto;
-    padding: 20px;
+    margin: var(--space-5) auto;
+    padding: var(--space-5) var(--space-4);
+  }
+  
+  .profileTitle {
+    font-size: var(--font-size-3xl);
   }
 
   .plansSectionHeader {

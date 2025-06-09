@@ -1,0 +1,275 @@
+/* ==========================================
+   DARK MODE FOUNDATION
+   ========================================== */
+
+/* Dark Mode CSS Variables */
+[data-theme="dark"] {
+  /* Background Colors */
+  --bg-primary: var(--color-neutral-900);
+  --bg-secondary: var(--color-neutral-800);
+  --bg-muted: var(--color-neutral-700);
+  --bg-subtle: var(--color-neutral-600);
+
+  /* Text Colors */
+  --text-primary: var(--color-neutral-100);
+  --text-secondary: var(--color-neutral-300);
+  --text-muted: var(--color-neutral-400);
+  --text-disabled: var(--color-neutral-500);
+  --text-inverse: var(--color-neutral-900);
+
+  /* Border Colors */
+  --border-primary: var(--color-neutral-700);
+  --border-secondary: var(--color-neutral-600);
+  --border-focus: var(--color-primary-400);
+
+  /* Component-specific dark mode adjustments */
+  --color-focus: var(--color-primary-400);
+  --color-hover: var(--color-primary-500);
+  --color-active: var(--color-primary-600);
+}
+
+/* Smooth transition for theme switching */
+:root {
+  color-scheme: light dark;
+}
+
+* {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* ==========================================
+   DARK MODE COMPONENT OVERRIDES
+   ========================================== */
+
+/* Header Dark Mode */
+[data-theme="dark"] .header {
+  background-color: rgba(17, 24, 39, 0.95);
+  border-bottom-color: var(--border-primary);
+}
+
+/* Card Dark Mode */
+[data-theme="dark"] .card {
+  background-color: var(--bg-primary);
+  border-color: var(--border-primary);
+}
+
+[data-theme="dark"] .card:hover {
+  border-color: var(--color-primary-400);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+/* Button Dark Mode */
+[data-theme="dark"] .button.secondary {
+  background-color: var(--color-neutral-700);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+[data-theme="dark"] .button.secondary:hover {
+  background-color: var(--color-neutral-600);
+  border-color: var(--border-secondary);
+}
+
+[data-theme="dark"] .button.ghost {
+  color: var(--color-primary-400);
+}
+
+[data-theme="dark"] .button.ghost:hover {
+  background-color: var(--color-primary-900);
+  color: var(--color-primary-300);
+}
+
+/* Form Dark Mode */
+[data-theme="dark"] .input,
+[data-theme="dark"] .textarea,
+[data-theme="dark"] .select {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-primary);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .input:focus,
+[data-theme="dark"] .textarea:focus,
+[data-theme="dark"] .select:focus {
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 var(--space-1) rgba(99, 102, 241, 0.2);
+}
+
+[data-theme="dark"] .radioOption {
+  background-color: var(--bg-secondary);
+  border-color: var(--border-primary);
+}
+
+[data-theme="dark"] .radioOption:hover {
+  border-color: var(--color-primary-400);
+  background-color: var(--color-primary-900);
+}
+
+[data-theme="dark"] .radioOption.selected {
+  border-color: var(--color-primary-400);
+  background-color: var(--color-primary-900);
+}
+
+/* Footer Dark Mode */
+[data-theme="dark"] .footer {
+  background: linear-gradient(135deg, var(--color-neutral-950) 0%, var(--color-neutral-900) 100%);
+}
+
+[data-theme="dark"] .socialLink {
+  background-color: var(--color-neutral-800);
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .socialLink:hover {
+  background-color: var(--color-primary-600);
+  color: var(--color-neutral-0);
+}
+
+[data-theme="dark"] .newsletterInput {
+  background-color: var(--color-neutral-800);
+  border-color: var(--color-neutral-600);
+  color: var(--text-primary);
+}
+
+/* ==========================================
+   DARK MODE ANIMATIONS
+   ========================================== */
+
+[data-theme="dark"] .planCard::before {
+  background: linear-gradient(90deg, 
+    var(--color-primary-400) 0%, 
+    var(--color-secondary-400) 100%
+  );
+}
+
+[data-theme="dark"] .profileTitle {
+  background: linear-gradient(135deg, var(--color-primary-400), var(--color-secondary-400));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="dark"] .sectionTitle::after {
+  background: linear-gradient(90deg, var(--color-primary-400), var(--color-secondary-400));
+}
+
+/* ==========================================
+   DARK MODE UTILITIES
+   ========================================== */
+
+/* Theme Toggle Button */
+.themeToggle {
+  position: fixed;
+  top: var(--space-20);
+  right: var(--space-4);
+  z-index: var(--z-index-fixed);
+  width: var(--size-12);
+  height: var(--size-12);
+  border-radius: var(--border-radius-full);
+  background-color: var(--bg-primary);
+  border: var(--border-width-2) solid var(--border-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-all);
+  box-shadow: var(--shadow-lg);
+}
+
+.themeToggle:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-xl);
+}
+
+.themeToggle:active {
+  transform: scale(0.95);
+}
+
+/* Sun/Moon icons for theme toggle */
+.sunIcon,
+.moonIcon {
+  width: var(--size-6);
+  height: var(--size-6);
+  transition: var(--transition-all);
+}
+
+[data-theme="light"] .moonIcon {
+  opacity: 0;
+  transform: rotate(90deg);
+}
+
+[data-theme="dark"] .sunIcon {
+  opacity: 0;
+  transform: rotate(-90deg);
+}
+
+/* ==========================================
+   REDUCED MOTION SUPPORT
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="dark"] *,
+  [data-theme="light"] * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ==========================================
+   SYSTEM PREFERENCE DETECTION
+   ========================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bg-primary: var(--color-neutral-900);
+    --bg-secondary: var(--color-neutral-800);
+    --bg-muted: var(--color-neutral-700);
+    --bg-subtle: var(--color-neutral-600);
+
+    --text-primary: var(--color-neutral-100);
+    --text-secondary: var(--color-neutral-300);
+    --text-muted: var(--color-neutral-400);
+    --text-disabled: var(--color-neutral-500);
+    --text-inverse: var(--color-neutral-900);
+
+    --border-primary: var(--color-neutral-700);
+    --border-secondary: var(--color-neutral-600);
+    --border-focus: var(--color-primary-400);
+  }
+}
+
+/* ==========================================
+   DARK MODE SPECIFIC EFFECTS
+   ========================================== */
+
+[data-theme="dark"] .glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+[data-theme="dark"] .textGlow {
+  text-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+}
+
+[data-theme="dark"] .gradient {
+  background: linear-gradient(135deg, var(--color-primary-900) 0%, var(--color-secondary-900) 100%);
+}
+
+/* Enhanced shadows for dark mode */
+[data-theme="dark"] .shadow-sm {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .shadow-md {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .shadow-lg {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .shadow-xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+}

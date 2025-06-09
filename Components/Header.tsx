@@ -7,6 +7,8 @@ import { auth, googleProvider } from '../firebase';
 import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
 import styles from '../Styles/header.module.css';
 import { useRouter } from 'next/navigation';
+import { UserIcon, TargetIcon, LogOutIcon, HomeIcon, BookOpenIcon, InfoIcon, ArrowRightIcon, SparklesIcon } from './Icons';
+import ThemeToggle from './ThemeToggle';
 
 const Header = () => {
   const [user, setUser] = useState<any>(null);
@@ -43,74 +45,99 @@ const Header = () => {
     <header className={styles.header}>
       <div className="page-container d-flex align-items-center justify-content-between w-100">
 
-        {/* Logo */}
-        <div className={styles.logo}>
-          <Link href="/">
-            <img src="/logo.jpg" alt="AgileLinks Logo" className={styles.logoImage} />
-          </Link>
-        </div>
+        {/* Logo & Brand */}
+        <Link href="/" className={`${styles.logo} elasticHover`}>
+          <img src="/logo.jpg" alt="AgileLinks Logo" className={styles.logoImage} />
+          <div>
+            <div className={`${styles.brandName} gradientText`}>AgileLinks</div>
+            <div className={styles.brandTagline}>Personal Growth</div>
+          </div>
+        </Link>
 
         {/* Mobile Menu Toggle */}
-        {mobileMenuOpen ? (
-          <div className={styles.menuToggle} onClick={toggleMobileMenu}>
-            <span style={{ fontSize: '24px', color: '#6366F1' }}>✕</span>
-          </div>
-        ) : (
-          <div className={styles.menuToggle} onClick={toggleMobileMenu}>
-            <div className={styles.bar}></div>
-            <div className={styles.bar}></div>
-            <div className={styles.bar}></div>
-          </div>
-        )}
+        <div 
+          className={`${styles.menuToggle} ${mobileMenuOpen ? styles.open : ''}`} 
+          onClick={toggleMobileMenu}
+        >
+          <div className={styles.bar}></div>
+          <div className={styles.bar}></div>
+          <div className={styles.bar}></div>
+        </div>
 
         {/* Desktop Navigation */}
         <nav className={styles.nav}>
           <ul className={styles.navList}>
-            <li><Link href="/articles">Blog</Link></li>
+            <li><Link href="/">Home</Link></li>
+            <li><Link href="/articles">Articles</Link></li>
+            <li><Link href="/about">About</Link></li>
+            {user && <li><Link href="/profile">Dashboard</Link></li>}
           </ul>
         </nav>
 
         {/* Mobile Dropdown */}
-        <ul className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.open : ''}`}>
+        <div className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.open : ''}`}>
+          {/* Navigation Links */}
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            <li><Link href="/" onClick={() => setMobileMenuOpen(false)}>Home</Link></li>
+            <li><Link href="/articles" onClick={() => setMobileMenuOpen(false)}>Articles</Link></li>
+            <li><Link href="/about" onClick={() => setMobileMenuOpen(false)}>About</Link></li>
+            {user && <li><Link href="/profile" onClick={() => setMobileMenuOpen(false)}>Dashboard</Link></li>}
+          </ul>
+
+          {/* User Section */}
           {!user ? (
             <div className={styles.mobileButtons}>
               <Link href="/login" onClick={() => setMobileMenuOpen(false)} className={styles.login}>
-                Log In
+                <ArrowRightIcon size={16} /> Log In
               </Link>
               <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className={styles.signup}>
-                Sign Up
+                <SparklesIcon size={16} /> Sign Up
               </Link>
             </div>
           ) : (
             <div className={styles.mobileUserInfo}>
-              <Link href="/profile">
-              <img src={user.photoURL} alt="Profile" className={styles.mobileProfilePic} />
+              <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                <img src={user.photoURL} alt="Profile" className={styles.mobileProfilePic} />
               </Link>
-
-              <span className={styles.mobileUserName}>{user.name}</span>
-              <button onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} className={`${styles.button} ${styles.logoutButton}`}>
+              <span className={styles.mobileUserName}>{user.displayName || user.email}</span>
+              <button onClick={() => { handleSignOut(); setMobileMenuOpen(false); }} className={styles.logoutButton}>
                 Sign Out
               </button>
             </div>
           )}
-        </ul>
+        </div>
 
         {/* Desktop CTA */}
         <div className={styles.cta}>
+          <ThemeToggle className={styles.themeToggleHeader} />
+          
           {user ? (
             <div className={styles.userInfo}>
-              <Link href="/profile">
-                {user.photoURL && <img src={user.photoURL} alt="Profile" className={styles.profilePic} />}
-              </Link>
-              <button onClick={handleSignOut} className={`${styles.signOutBtn} ${styles.button}`}>
-                Sign Out
-              </button>
+              <div className={styles.userDropdown}>
+                <img src={user.photoURL} alt="Profile" className={styles.profilePic} />
+                <div className={styles.dropdownContent}>
+                  <Link href="/profile" className={styles.dropdownItem}>
+                    <UserIcon size={16} /> Dashboard
+                  </Link>
+                  <Link href="/profile/companion" className={styles.dropdownItem}>
+                    <TargetIcon size={16} /> Create Plan
+                  </Link>
+                  <div className={styles.dropdownDivider}></div>
+                  <button onClick={handleSignOut} className={`${styles.dropdownItem} ${styles.signOutBtn}`}>
+                    <LogOutIcon size={16} /> Sign Out
+                  </button>
+                </div>
+              </div>
             </div>
           ) : (
-            <div>
-              <Link href="/login" className={`${styles.button} ${styles.loginButton}`}>Log In</Link>
-              <Link href="/signup" className={`${styles.button} ${styles.signupButton}`}>Sign Up</Link>
-            </div>
+            <>
+              <Link href="/login" className={`${styles.button} ${styles.loginButton}`}>
+                Log In
+              </Link>
+              <Link href="/signup" className={`${styles.button} ${styles.signupButton}`}>
+                <SparklesIcon size={16} /> Get Started
+              </Link>
+            </>
           )}
         </div>
 

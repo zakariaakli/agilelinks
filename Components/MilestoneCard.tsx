@@ -1,5 +1,6 @@
 import React from 'react';
 import NotificationPreview from './NotificationPreview';
+import { CheckCircleIcon, ClockIcon, CalendarIcon, AlertTriangleIcon, ZapIcon } from './Icons';
 
 interface Milestone {
   id: string;
@@ -35,10 +36,10 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
 }) => {
   const getStatusIcon = () => {
     switch (status) {
-      case 'completed': return '✅';
-      case 'current': return '🔄';
-      case 'future': return '⏳';
-      default: return '⏳';
+      case 'completed': return <CheckCircleIcon size={16} />;
+      case 'current': return <ClockIcon size={16} />;
+      case 'future': return <CalendarIcon size={16} />;
+      default: return <CalendarIcon size={16} />;
     }
   };
 
@@ -215,7 +216,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
                 gap: '0.5rem',
                 marginBottom: '0.25rem'
               }}>
-                <span>⚠️</span>
+                <AlertTriangleIcon size={16} color="#92400e" />
                 <span style={{
                   fontSize: '0.75rem',
                   fontWeight: '600',
@@ -248,7 +249,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
                 gap: '0.5rem',
                 marginBottom: '0.25rem'
               }}>
-                <span>💪</span>
+                <ZapIcon size={16} color="#047857" />
                 <span style={{
                   fontSize: '0.75rem',
                   fontWeight: '600',

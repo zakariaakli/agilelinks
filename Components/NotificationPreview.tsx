@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { MailIcon, MessageCircleIcon, ArrowRightIcon } from './Icons';
 
 interface Notification {
   id: string;
@@ -115,7 +116,7 @@ const NotificationPreview: React.FC<NotificationPreviewProps> = ({
           alignItems: 'center', 
           gap: '0.5rem'
         }}>
-          <span style={{ fontSize: '1rem' }}>📬</span>
+          <MailIcon size={16} color="#0369a1" />
           <span style={{ 
             fontSize: '0.875rem', 
             fontWeight: '600', 
@@ -165,7 +166,7 @@ const NotificationPreview: React.FC<NotificationPreviewProps> = ({
             gap: '0.5rem',
             marginBottom: '0.5rem'
           }}>
-            <span style={{ fontSize: '0.875rem' }}>💬</span>
+            <MessageCircleIcon size={14} color="#15803d" />
             <span style={{ 
               fontSize: '0.75rem', 
               fontWeight: '600', 
@@ -213,7 +214,7 @@ const NotificationPreview: React.FC<NotificationPreviewProps> = ({
         }}
       >
         <span>View Full Nudge</span>
-        <span>→</span>
+        <ArrowRightIcon size={14} />
       </Link>
     </div>
   );

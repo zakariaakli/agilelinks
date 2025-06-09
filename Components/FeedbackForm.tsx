@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Form, FormGroup, RadioGroup, RadioOption, Textarea, FormButton, Field } from './Form';
+import { CheckCircleIcon } from './Icons';
 import styles from '../Styles/nudge.module.css';
 
 interface Props {
@@ -76,20 +78,24 @@ export default function FeedbackForm({ notifId, existingFeedback }: Props) {
   if (existingFeedback) {
     return (
       <div className={styles.thankYou}>
-        <h2>✅ Thanks for your previous feedback!</h2>
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <CheckCircleIcon size={48} color="var(--color-success-500)" />
+        </div>
+        <h2>Thanks for your previous feedback!</h2>
         <p>You already shared your thoughts on this nudge.</p>
         <div style={{ 
           marginTop: '1rem', 
           padding: '0.75rem', 
-          background: '#f8fafc', 
-          borderRadius: '0.5rem',
-          fontSize: '0.875rem',
-          color: '#374151'
+          background: 'var(--color-neutral-50)', 
+          borderRadius: 'var(--border-radius-lg)',
+          fontSize: 'var(--font-size-sm)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border-primary)'
         }}>
           <strong>Your feedback:</strong> {existingFeedback}
         </div>
-        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '1rem' }}>
-          <a href="/profile" style={{ color: '#6366f1', textDecoration: 'none' }}>
+        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '1rem' }}>
+          <a href="/profile" style={{ color: 'var(--color-primary-500)', textDecoration: 'none' }}>
             ← Back to Profile
           </a>
         </p>
@@ -100,9 +106,12 @@ export default function FeedbackForm({ notifId, existingFeedback }: Props) {
   if (submitted) {
     return (
       <div className={styles.thankYou}>
-        <h2>🎉 Thank you for your feedback!</h2>
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <CheckCircleIcon size={48} color="var(--color-success-500)" />
+        </div>
+        <h2>Thank you for your feedback!</h2>
         <p>Your response helps us improve your experience.</p>
-        <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '1rem' }}>
+        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '1rem' }}>
           Redirecting to your profile in 2 seconds...
         </p>
       </div>
@@ -111,85 +120,51 @@ export default function FeedbackForm({ notifId, existingFeedback }: Props) {
 
   return (
     <div className={styles.feedbackBox}>
-      <div className={styles.feedbackSection}>
-        <p className={styles.feedbackTitle}>How was this nudge for you?</p>
-        <p style={{ 
-          fontSize: '0.875rem', 
-          color: '#6b7280', 
-          marginBottom: '1rem',
-          textAlign: 'center'
-        }}>
-          Please choose one option to help us improve your experience
-        </p>
-        
-        <div className={styles.buttonsGroup}>
-          {feedbackOptions.map((label, idx) => (
-            <button
-              key={idx}
-              type="button"
-              value={label}
-              onClick={() => setFeedback(label)}
-              className={`${styles[`btn${idx + 1}`]} ${feedback === label ? styles.selected : ''}`}
-              style={feedback === label ? { 
-                opacity: 1, 
-                transform: 'scale(1.05)',
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' 
-              } : {}}
-            >
-              {feedback === label && '✓ '}{label}
-            </button>
-          ))}
-        </div>
-
-        {!feedback && (
-          <p style={{ 
-            fontSize: '0.875rem', 
-            color: '#ef4444', 
-            marginTop: '0.5rem',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
-            👆 Please select one of the options above
-          </p>
-        )}
-      </div>
-
-      {feedback && (
-        <div style={{ 
-          marginTop: '1.5rem',
-          padding: '1rem',
-          background: '#f0f9ff',
-          borderRadius: '0.5rem',
-          border: '1px solid #e0f2fe'
-        }}>
-          <p style={{ 
-            fontSize: '0.875rem', 
-            color: '#0369a1', 
-            marginBottom: '0.75rem',
-            fontWeight: '500'
-          }}>
-            Want to tell us more? (Optional)
-          </p>
-          <textarea
-            placeholder="Share any additional thoughts or suggestions..."
-            className={styles.textarea}
-            rows={3}
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            name="note"
-            style={{ marginBottom: '1rem' }}
-          />
-          
-          <button 
-            onClick={handleSubmit}
-            className={styles.btnSubmit} 
-            disabled={isLoading}
-            style={{ width: '100%' }}
+      <Form onSubmit={handleSubmit}>
+        <Field 
+          label="How was this nudge for you?"
+          helperText="Please choose one option to help us improve your experience"
+        >
+          <RadioGroup
+            name="feedback"
+            value={feedback}
+            onChange={setFeedback}
           >
-            {isLoading ? '✉️ Sending...' : '📤 Send Feedback'}
-          </button>
-        </div>
-      )}
+            {feedbackOptions.map((label) => (
+              <RadioOption key={label} value={label}>
+                {label}
+              </RadioOption>
+            ))}
+          </RadioGroup>
+        </Field>
+
+        {feedback && (
+          <Field
+            label="Want to tell us more? (Optional)"
+            helperText="Share any additional thoughts or suggestions..."
+          >
+            <Textarea
+              placeholder="Your additional feedback..."
+              rows={3}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              name="note"
+            />
+          </Field>
+        )}
+
+        {feedback && (
+          <FormButton 
+            type="button"
+            onClick={handleSubmit}
+            loading={isLoading}
+            variant="primary"
+            fullWidth
+          >
+            {isLoading ? 'Sending...' : 'Send Feedback'}
+          </FormButton>
+        )}
+      </Form>
     </div>
   );
 }

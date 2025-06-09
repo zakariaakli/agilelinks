@@ -1,0 +1,352 @@
+/* ==========================================
+   RESPONSIVE SYSTEM - COMPREHENSIVE BREAKPOINTS
+   ========================================== */
+
+/* Responsive Container System */
+.container {
+  width: 100%;
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.containerFluid {
+  width: 100%;
+  padding: 0 var(--space-4);
+}
+
+.containerSm {
+  max-width: var(--container-sm);
+}
+
+.containerMd {
+  max-width: var(--container-md);
+}
+
+.containerLg {
+  max-width: var(--container-lg);
+}
+
+.containerXl {
+  max-width: var(--container-xl);
+}
+
+.container2xl {
+  max-width: var(--container-2xl);
+}
+
+/* ==========================================
+   RESPONSIVE GRID SYSTEM
+   ========================================== */
+
+.grid {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.gridCols1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.gridCols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.gridCols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.gridCols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.gridCols5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.gridCols6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.gridCols12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+
+.gridAutoFit {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.gridAutoFill {
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* Column Spans */
+.colSpan1 { grid-column: span 1 / span 1; }
+.colSpan2 { grid-column: span 2 / span 2; }
+.colSpan3 { grid-column: span 3 / span 3; }
+.colSpan4 { grid-column: span 4 / span 4; }
+.colSpan5 { grid-column: span 5 / span 5; }
+.colSpan6 { grid-column: span 6 / span 6; }
+.colSpanFull { grid-column: 1 / -1; }
+
+/* ==========================================
+   FLEXBOX UTILITIES
+   ========================================== */
+
+.flex { display: flex; }
+.flexCol { flex-direction: column; }
+.flexRow { flex-direction: row; }
+.flexWrap { flex-wrap: wrap; }
+.flexNoWrap { flex-wrap: nowrap; }
+
+/* Justify Content */
+.justifyStart { justify-content: flex-start; }
+.justifyEnd { justify-content: flex-end; }
+.justifyCenter { justify-content: center; }
+.justifyBetween { justify-content: space-between; }
+.justifyAround { justify-content: space-around; }
+.justifyEvenly { justify-content: space-evenly; }
+
+/* Align Items */
+.itemsStart { align-items: flex-start; }
+.itemsEnd { align-items: flex-end; }
+.itemsCenter { align-items: center; }
+.itemsBaseline { align-items: baseline; }
+.itemsStretch { align-items: stretch; }
+
+/* Gap Utilities */
+.gap1 { gap: var(--space-1); }
+.gap2 { gap: var(--space-2); }
+.gap3 { gap: var(--space-3); }
+.gap4 { gap: var(--space-4); }
+.gap6 { gap: var(--space-6); }
+.gap8 { gap: var(--space-8); }
+.gap12 { gap: var(--space-12); }
+.gap16 { gap: var(--space-16); }
+
+/* ==========================================
+   SPACING UTILITIES
+   ========================================== */
+
+/* Margins */
+.m0 { margin: 0; }
+.m1 { margin: var(--space-1); }
+.m2 { margin: var(--space-2); }
+.m3 { margin: var(--space-3); }
+.m4 { margin: var(--space-4); }
+.m6 { margin: var(--space-6); }
+.m8 { margin: var(--space-8); }
+.m12 { margin: var(--space-12); }
+.m16 { margin: var(--space-16); }
+.mAuto { margin: auto; }
+
+/* Margin Top */
+.mt0 { margin-top: 0; }
+.mt1 { margin-top: var(--space-1); }
+.mt2 { margin-top: var(--space-2); }
+.mt3 { margin-top: var(--space-3); }
+.mt4 { margin-top: var(--space-4); }
+.mt6 { margin-top: var(--space-6); }
+.mt8 { margin-top: var(--space-8); }
+.mt12 { margin-top: var(--space-12); }
+.mt16 { margin-top: var(--space-16); }
+
+/* Margin Bottom */
+.mb0 { margin-bottom: 0; }
+.mb1 { margin-bottom: var(--space-1); }
+.mb2 { margin-bottom: var(--space-2); }
+.mb3 { margin-bottom: var(--space-3); }
+.mb4 { margin-bottom: var(--space-4); }
+.mb6 { margin-bottom: var(--space-6); }
+.mb8 { margin-bottom: var(--space-8); }
+.mb12 { margin-bottom: var(--space-12); }
+.mb16 { margin-bottom: var(--space-16); }
+
+/* Padding */
+.p0 { padding: 0; }
+.p1 { padding: var(--space-1); }
+.p2 { padding: var(--space-2); }
+.p3 { padding: var(--space-3); }
+.p4 { padding: var(--space-4); }
+.p6 { padding: var(--space-6); }
+.p8 { padding: var(--space-8); }
+.p12 { padding: var(--space-12); }
+.p16 { padding: var(--space-16); }
+
+/* ==========================================
+   RESPONSIVE BREAKPOINT UTILITIES
+   ========================================== */
+
+/* Small devices (640px and up) */
+@media (min-width: 640px) {
+  .smGridCols1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .smGridCols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .smGridCols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .smGridCols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  
+  .smFlex { display: flex; }
+  .smFlexCol { flex-direction: column; }
+  .smFlexRow { flex-direction: row; }
+  
+  .smJustifyStart { justify-content: flex-start; }
+  .smJustifyCenter { justify-content: center; }
+  .smJustifyBetween { justify-content: space-between; }
+  
+  .smTextLeft { text-align: left; }
+  .smTextCenter { text-align: center; }
+  .smTextRight { text-align: right; }
+  
+  .smHidden { display: none; }
+  .smBlock { display: block; }
+}
+
+/* Medium devices (768px and up) */
+@media (min-width: 768px) {
+  .container { padding: 0 var(--space-6); }
+  
+  .mdGridCols1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .mdGridCols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mdGridCols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .mdGridCols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mdGridCols6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  
+  .mdFlex { display: flex; }
+  .mdFlexCol { flex-direction: column; }
+  .mdFlexRow { flex-direction: row; }
+  
+  .mdJustifyStart { justify-content: flex-start; }
+  .mdJustifyCenter { justify-content: center; }
+  .mdJustifyBetween { justify-content: space-between; }
+  
+  .mdTextLeft { text-align: left; }
+  .mdTextCenter { text-align: center; }
+  .mdTextRight { text-align: right; }
+  
+  .mdHidden { display: none; }
+  .mdBlock { display: block; }
+  .mdInlineFlex { display: inline-flex; }
+}
+
+/* Large devices (1024px and up) */
+@media (min-width: 1024px) {
+  .container { padding: 0 var(--space-8); }
+  
+  .lgGridCols1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .lgGridCols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .lgGridCols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lgGridCols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .lgGridCols5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .lgGridCols6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  
+  .lgFlex { display: flex; }
+  .lgFlexCol { flex-direction: column; }
+  .lgFlexRow { flex-direction: row; }
+  
+  .lgJustifyStart { justify-content: flex-start; }
+  .lgJustifyCenter { justify-content: center; }
+  .lgJustifyBetween { justify-content: space-between; }
+  
+  .lgTextLeft { text-align: left; }
+  .lgTextCenter { text-align: center; }
+  .lgTextRight { text-align: right; }
+  
+  .lgHidden { display: none; }
+  .lgBlock { display: block; }
+}
+
+/* Extra large devices (1280px and up) */
+@media (min-width: 1280px) {
+  .container { padding: 0 var(--space-12); }
+  
+  .xlGridCols1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .xlGridCols2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .xlGridCols3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .xlGridCols4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .xlGridCols5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .xlGridCols6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  
+  .xlHidden { display: none; }
+  .xlBlock { display: block; }
+}
+
+/* ==========================================
+   MOBILE-FIRST VISIBILITY UTILITIES
+   ========================================== */
+
+/* Hide on mobile, show on larger screens */
+.hideOnMobile {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .hideOnMobile {
+    display: block;
+  }
+}
+
+/* Show on mobile only */
+.showOnMobile {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .showOnMobile {
+    display: none;
+  }
+}
+
+/* Hide on desktop, show on mobile */
+.hideOnDesktop {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .hideOnDesktop {
+    display: none;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE TEXT UTILITIES
+   ========================================== */
+
+.textXs { font-size: var(--font-size-xs); }
+.textSm { font-size: var(--font-size-sm); }
+.textBase { font-size: var(--font-size-base); }
+.textLg { font-size: var(--font-size-lg); }
+.textXl { font-size: var(--font-size-xl); }
+.text2xl { font-size: var(--font-size-2xl); }
+.text3xl { font-size: var(--font-size-3xl); }
+.text4xl { font-size: var(--font-size-4xl); }
+
+.textLeft { text-align: left; }
+.textCenter { text-align: center; }
+.textRight { text-align: right; }
+
+.fontLight { font-weight: var(--font-weight-light); }
+.fontNormal { font-weight: var(--font-weight-normal); }
+.fontMedium { font-weight: var(--font-weight-medium); }
+.fontSemibold { font-weight: var(--font-weight-semibold); }
+.fontBold { font-weight: var(--font-weight-bold); }
+
+/* ==========================================
+   RESPONSIVE SPACING ADJUSTMENTS
+   ========================================== */
+
+/* Responsive padding adjustments */
+@media (max-width: 640px) {
+  .responsivePadding {
+    padding: var(--space-4);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .responsivePadding {
+    padding: var(--space-6);
+  }
+}
+
+@media (min-width: 1025px) {
+  .responsivePadding {
+    padding: var(--space-8);
+  }
+}
+
+/* Responsive margin adjustments */
+@media (max-width: 640px) {
+  .responsiveMargin {
+    margin: var(--space-4);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .responsiveMargin {
+    margin: var(--space-6);
+  }
+}
+
+@media (min-width: 1025px) {
+  .responsiveMargin {
+    margin: var(--space-8);
+  }
+}
