@@ -170,7 +170,8 @@ Instructions:
 1. Generate 4-8 specific, actionable milestones
 2. Include personality-specific tips for blind spots and strengths
 3. Adjust timeline based on time pressure preference
-4. Return JSON format with milestones array containing: id, title, description, dueDate, blindSpotTip, strengthHook`;
+4. Create sequential milestones with appropriate start and due dates
+5. Return JSON format with milestones array containing: id, title, description, startDate, dueDate, blindSpotTip, strengthHook`;
 
     await openai.beta.threads.messages.create(thread.id, {
       role: 'user',
@@ -226,6 +227,7 @@ function generateFallbackMilestonesResponse(targetDate: string) {
       id: '1',
       title: 'Research and Planning Phase',
       description: 'Conduct market research and create detailed action plan',
+      startDate: today.toISOString().split('T')[0],
       dueDate: new Date(today.getTime() + quarterSpan).toISOString().split('T')[0],
       blindSpotTip: 'Don\'t get stuck in analysis paralysis',
       strengthHook: 'Use your natural planning abilities'
@@ -234,6 +236,7 @@ function generateFallbackMilestonesResponse(targetDate: string) {
       id: '2',
       title: 'Skill Development',
       description: 'Complete necessary training and skill building activities',
+      startDate: new Date(today.getTime() + quarterSpan).toISOString().split('T')[0],
       dueDate: new Date(today.getTime() + quarterSpan * 2).toISOString().split('T')[0],
       blindSpotTip: 'Set specific learning goals',
       strengthHook: 'Leverage your learning style'
@@ -242,6 +245,7 @@ function generateFallbackMilestonesResponse(targetDate: string) {
       id: '3',
       title: 'Implementation Phase',
       description: 'Execute the main activities towards achieving the goal',
+      startDate: new Date(today.getTime() + quarterSpan * 2).toISOString().split('T')[0],
       dueDate: new Date(today.getTime() + quarterSpan * 3).toISOString().split('T')[0],
       blindSpotTip: 'Stay consistent with daily actions',
       strengthHook: 'Focus on your key strengths'
@@ -250,6 +254,7 @@ function generateFallbackMilestonesResponse(targetDate: string) {
       id: '4',
       title: 'Final Push and Evaluation',
       description: 'Complete final steps and evaluate progress',
+      startDate: new Date(today.getTime() + quarterSpan * 3).toISOString().split('T')[0],
       dueDate: targetDate,
       blindSpotTip: 'Don\'t neglect the final details',
       strengthHook: 'Use your determination to finish strong'

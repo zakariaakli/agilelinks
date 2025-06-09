@@ -32,6 +32,7 @@ interface Milestone {
   id: string;
   title: string;
   description: string;
+  startDate: string;
   dueDate: string;
   completed: boolean;
   blindSpotTip?: string;
@@ -76,6 +77,7 @@ interface OpenAIMilestonesResponse {
     dueDate: string;
     blindSpotTip: string;
     strengthHook: string;
+    startDate: string;
   }[];
 }
 
@@ -259,7 +261,8 @@ const GoalWizard: React.FC = () => {
       dueDate: m.dueDate,
       completed: false,
       blindSpotTip: m.blindSpotTip,
-      strengthHook: m.strengthHook
+      strengthHook: m.strengthHook,
+      startDate: m.startDate
     }));
   } catch (error) {
     console.error('Error calling OpenAI Milestone Generator:', error);
@@ -280,6 +283,7 @@ const GoalWizard: React.FC = () => {
         id: '1',
         title: 'Research and Planning Phase',
         description: 'Conduct market research and create detailed action plan',
+        startDate: today.toISOString().split('T')[0],
         dueDate: new Date(today.getTime() + quarterSpan).toISOString().split('T')[0],
         completed: false
       },
@@ -287,6 +291,7 @@ const GoalWizard: React.FC = () => {
         id: '2',
         title: 'Skill Development',
         description: 'Complete necessary training and skill building activities',
+        startDate: new Date(today.getTime() + quarterSpan).toISOString().split('T')[0],
         dueDate: new Date(today.getTime() + quarterSpan * 2).toISOString().split('T')[0],
         completed: false
       },
@@ -294,6 +299,7 @@ const GoalWizard: React.FC = () => {
         id: '3',
         title: 'Implementation Phase',
         description: 'Execute the main activities towards achieving the goal',
+        startDate: new Date(today.getTime() + quarterSpan * 2).toISOString().split('T')[0],
         dueDate: new Date(today.getTime() + quarterSpan * 3).toISOString().split('T')[0],
         completed: false
       },
@@ -301,6 +307,7 @@ const GoalWizard: React.FC = () => {
         id: '4',
         title: 'Final Push and Evaluation',
         description: 'Complete final steps and evaluate progress',
+        startDate: new Date(today.getTime() + quarterSpan * 3).toISOString().split('T')[0],
         dueDate: targetDate,
         completed: false
       }
@@ -475,10 +482,12 @@ const GoalWizard: React.FC = () => {
   };
 
   const addCustomMilestone = (): void => {
+    const today = new Date();
     const newMilestone: Milestone = {
       id: Date.now().toString(),
       title: 'Custom Milestone',
       description: 'Add your description here',
+      startDate: today.toISOString().split('T')[0],
       dueDate: targetDate,
       completed: false
     };
@@ -795,12 +804,26 @@ const updateUserPlansCount = async (userId: string): Promise<void> => {
                         className={styles.milestoneDescription}
                         rows={2}
                       />
-                      <input
-                        type="date"
-                        value={milestone.dueDate}
-                        onChange={(e) => updateMilestone(milestone.id, 'dueDate', e.target.value)}
-                        className={styles.milestoneDueDate}
-                      />
+                      <div className={styles.milestoneDates}>
+                        <div className={styles.dateField}>
+                          <label className={styles.dateLabel}>Start Date:</label>
+                          <input
+                            type="date"
+                            value={milestone.startDate}
+                            onChange={(e) => updateMilestone(milestone.id, 'startDate', e.target.value)}
+                            className={styles.milestoneStartDate}
+                          />
+                        </div>
+                        <div className={styles.dateField}>
+                          <label className={styles.dateLabel}>Due Date:</label>
+                          <input
+                            type="date"
+                            value={milestone.dueDate}
+                            onChange={(e) => updateMilestone(milestone.id, 'dueDate', e.target.value)}
+                            className={styles.milestoneDueDate}
+                          />
+                        </div>
+                      </div>
 
                       {/* Personality-based tips */}
                       {(milestone.blindSpotTip || milestone.strengthHook) && (

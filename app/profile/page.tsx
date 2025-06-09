@@ -23,6 +23,7 @@ interface Milestone {
   id: string;
   title: string;
   description: string;
+  startDate: string;
   dueDate: string;
   completed: boolean;
   blindSpotTip?: string;

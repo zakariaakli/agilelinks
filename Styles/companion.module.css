@@ -382,9 +382,29 @@
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
 }
 
+.milestoneDates {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.dateField {
+  flex: 1;
+  min-width: 150px;
+}
+
+.dateLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.milestoneStartDate,
 .milestoneDueDate {
   width: 100%;
-  max-width: 200px;
   padding: 0.5rem 0.75rem;
   border: 1px solid #d1d5db;
   border-radius: 0.375rem;
@@ -392,6 +412,7 @@
   background-color: #ffffff;
 }
 
+.milestoneStartDate:focus,
 .milestoneDueDate:focus {
   outline: none;
   border-color: #6366f1;
