@@ -4,10 +4,7 @@
         "path": "/api/generateNudges",
         "schedule": "0 2 * * *"
       },
-      {
-        "path": "/api/weeklyMilestoneReminders", 
-        "schedule": "0 2 * * 1"
-      },
+    
       {
         "path": "/api/sendDailyNudges",
         "schedule": "0 3 * * *"
