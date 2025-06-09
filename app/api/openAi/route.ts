@@ -115,15 +115,19 @@ Examples of good questions:
         .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
         .pop();
 
-      if (lastMessage) {
-        const content = lastMessage.content[0]['text'].value;
-        const questions = content
-          .split('\n')
-          .map(q => q.trim())
-          .filter(q => q.length > 0 && q.includes('?'))
-          .slice(0, 6);
+      if (lastMessage && lastMessage.content && lastMessage.content.length > 0) {
+        // Fix: Properly type check and access the text content
+        const firstContent = lastMessage.content[0];
+        if (firstContent.type === 'text') {
+          const content = firstContent.text.value;
+          const questions = content
+            .split('\n')
+            .map(q => q.trim())
+            .filter(q => q.length > 0 && q.includes('?'))
+            .slice(0, 6);
 
-        return NextResponse.json({ questions });
+          return NextResponse.json({ questions });
+        }
       }
     }
 
@@ -195,14 +199,18 @@ Instructions:
         .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
         .pop();
 
-      if (lastMessage) {
-        const content = lastMessage.content[0]['text'].value;
-        try {
-          const parsedContent = JSON.parse(content);
-          return NextResponse.json(parsedContent);
-        } catch (parseError) {
-          console.error('Error parsing milestone response:', parseError);
-          return generateFallbackMilestonesResponse(body.targetDate);
+      if (lastMessage && lastMessage.content && lastMessage.content.length > 0) {
+        // Fix: Properly type check and access the text content
+        const firstContent = lastMessage.content[0];
+        if (firstContent.type === 'text') {
+          const content = firstContent.text.value;
+          try {
+            const parsedContent = JSON.parse(content);
+            return NextResponse.json(parsedContent);
+          } catch (parseError) {
+            console.error('Error parsing milestone response:', parseError);
+            return generateFallbackMilestonesResponse(body.targetDate);
+          }
         }
       }
     }
