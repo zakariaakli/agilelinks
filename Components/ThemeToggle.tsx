@@ -7,12 +7,11 @@
 
 import React from 'react';
 import { useTheme } from './ThemeProvider';
-import styles from '../Styles/dark-mode.css';
 
 // Sun Icon
 const SunIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
-    className={`${styles.sunIcon} ${className || ''}`}
+    className={`sunIcon ${className || ''}`}
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -28,7 +27,7 @@ const SunIcon: React.FC<{ className?: string }> = ({ className }) => (
 // Moon Icon
 const MoonIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg
-    className={`${styles.moonIcon} ${className || ''}`}
+    className={`moonIcon ${className || ''}`}
     fill="none"
     stroke="currentColor"
     viewBox="0 0 24 24"
@@ -105,7 +104,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     <div className={`flex items-center gap-2 ${className}`}>
       <button
         onClick={toggleTheme}
-        className={`${styles.themeToggle} ${sizeClasses[size]}`}
+        className={`themeToggle ${sizeClasses[size]}`}
         title={`Switch to ${theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'} mode`}
         aria-label={`Current theme: ${getThemeLabel()}. Click to change theme.`}
       >

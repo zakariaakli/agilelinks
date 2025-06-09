@@ -49,14 +49,14 @@ const Header = () => {
         <Link href="/" className={`${styles.logo} elasticHover`}>
           <img src="/logo.jpg" alt="AgileLinks Logo" className={styles.logoImage} />
           <div>
-            <div className={`${styles.brandName} gradientText`}>AgileLinks</div>
-            <div className={styles.brandTagline}>Personal Growth</div>
+            <div className={`${styles.brandName} gradientText`}>Stepiva</div>
+            <div className={styles.brandTagline}>AI Companion</div>
           </div>
         </Link>
 
         {/* Mobile Menu Toggle */}
-        <div 
-          className={`${styles.menuToggle} ${mobileMenuOpen ? styles.open : ''}`} 
+        <div
+          className={`${styles.menuToggle} ${mobileMenuOpen ? styles.open : ''}`}
           onClick={toggleMobileMenu}
         >
           <div className={styles.bar}></div>
@@ -110,7 +110,7 @@ const Header = () => {
         {/* Desktop CTA */}
         <div className={styles.cta}>
           <ThemeToggle className={styles.themeToggleHeader} />
-          
+
           {user ? (
             <div className={styles.userInfo}>
               <div className={styles.userDropdown}>

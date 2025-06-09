@@ -29,12 +29,12 @@ export default function Home() {
       </section>
 
       {/* Articles Section */}
-      <section className="section slideInUp staggerDelay1" style={{ backgroundColor: 'var(--bg-muted)' }}>
+      {/* <section className="section slideInUp staggerDelay1" style={{ backgroundColor: 'var(--bg-muted)' }}>
         <div className="container">
           <h2 className="mb8 textCenter sectionTitle">Insights & Articles</h2>
           <ArticlesPage />
         </div>
-      </section>
+      </section> */}
 
     </div>
   );

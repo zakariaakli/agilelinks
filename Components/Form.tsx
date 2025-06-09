@@ -143,7 +143,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({
   <div className={`${styles.radioGroup} ${className}`} role="radiogroup">
     {React.Children.map(children, (child) => {
       if (React.isValidElement(child) && child.type === RadioOption) {
-        return React.cloneElement(child, { name, selectedValue: value, onChange });
+        return React.cloneElement(child as React.ReactElement<any>, { name, selectedValue: value, onChange });
       }
       return child;
     })}
@@ -271,7 +271,7 @@ export const Field: React.FC<FieldProps> = ({
       {label && <Label required={required}>{label}</Label>}
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child, { variant });
+          return React.cloneElement(child as React.ReactElement<any>, { variant });
         }
         return child;
       })}
