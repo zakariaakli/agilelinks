@@ -1,6 +1,7 @@
 import { db } from '../../../firebase'
-import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
+import { collection, doc, getDoc, getDocs, setDoc, Timestamp } from 'firebase/firestore'
 import { generateNudgeFromAI } from '../../../lib/generateNudgeFromAI'
+import { getDefaultEmailStatus, getDefaultNotificationMeta } from '../../../lib/notificationTracking'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -52,9 +53,12 @@ export async function GET() {
       userId,
       type: typeString,
       prompt,
-      createdAt: new Date(),
+      createdAt: Timestamp.now(),
       read: false,
       feedback: null,
+      // Enhanced tracking fields
+      emailStatus: getDefaultEmailStatus(),
+      notificationMeta: getDefaultNotificationMeta(typeString)
     })
 
     created++

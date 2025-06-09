@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import styles from '../../Styles/profile.module.css';
 import { EnneagramResult } from '../../Models/EnneagramResult';
+import MilestoneCard from '../../Components/MilestoneCard';
 import Link from 'next/link';
 
 interface PlanData {
@@ -30,6 +31,14 @@ interface Milestone {
   strengthHook?: string;
 }
 
+interface Notification {
+  id: string;
+  prompt: string;
+  createdAt: any;
+  feedback?: string | null;
+  type: string;
+}
+
 const enneagramLabels = {
   enneagramType1: 'Type 1 – The Reformer',
   enneagramType2: 'Type 2 – The Helper',
@@ -48,6 +57,8 @@ const ProfilePage = () => {
   const [userPlans, setUserPlans] = useState<PlanData[]>([]);
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [milestoneNotifications, setMilestoneNotifications] = useState<Record<string, Notification | null>>({});
+  const [loadingNotifications, setLoadingNotifications] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -104,6 +115,108 @@ const ProfilePage = () => {
   const togglePlanExpansion = (planId: string) => {
     setExpandedPlan(expandedPlan === planId ? null : planId);
   };
+
+  // Helper function to determine milestone status
+  const getMilestoneStatus = (milestone: Milestone): 'completed' | 'current' | 'future' => {
+    if (milestone.completed) return 'completed';
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const startDate = new Date(milestone.startDate);
+    startDate.setHours(0, 0, 0, 0);
+    
+    const dueDate = new Date(milestone.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    
+    // Current milestone: started but not completed, and due date hasn't passed
+    if (startDate <= today && today <= dueDate) {
+      return 'current';
+    }
+    
+    return 'future';
+  };
+
+  // Fetch latest notification for a milestone
+  const fetchMilestoneNotification = async (userId: string, milestoneId: string): Promise<Notification | null> => {
+    try {
+      const notificationQuery = query(
+        collection(db, 'notifications'),
+        where('userId', '==', userId),
+        where('milestoneId', '==', milestoneId),
+        where('type', '==', 'milestone_reminder'),
+        orderBy('createdAt', 'desc'),
+        limit(1)
+      );
+
+      const querySnapshot = await getDocs(notificationQuery);
+      
+      if (querySnapshot.empty) return null;
+
+      const notificationDoc = querySnapshot.docs[0];
+      return {
+        id: notificationDoc.id,
+        ...notificationDoc.data()
+      } as Notification;
+    } catch (error) {
+      console.error('Error fetching milestone notification:', error);
+      return null;
+    }
+  };
+
+  // Load notifications for current milestones
+  const loadCurrentMilestoneNotifications = async (plans: PlanData[]) => {
+    if (!user) return;
+
+    const currentMilestones: { planId: string; milestone: Milestone }[] = [];
+    
+    // Find all current milestones across all plans
+    plans.forEach(plan => {
+      plan.milestones?.forEach(milestone => {
+        if (getMilestoneStatus(milestone) === 'current') {
+          currentMilestones.push({ planId: plan.id, milestone });
+        }
+      });
+    });
+
+    // Set loading state for all current milestones
+    const loadingState: Record<string, boolean> = {};
+    currentMilestones.forEach(({ milestone }) => {
+      loadingState[milestone.id] = true;
+    });
+    setLoadingNotifications(loadingState);
+
+    // Fetch notifications for each current milestone
+    const notificationPromises = currentMilestones.map(async ({ milestone }) => {
+      const notification = await fetchMilestoneNotification(user.uid, milestone.id);
+      return { milestoneId: milestone.id, notification };
+    });
+
+    try {
+      const results = await Promise.all(notificationPromises);
+      
+      const notifications: Record<string, Notification | null> = {};
+      const finalLoadingState: Record<string, boolean> = {};
+      
+      results.forEach(({ milestoneId, notification }) => {
+        notifications[milestoneId] = notification;
+        finalLoadingState[milestoneId] = false;
+      });
+
+      setMilestoneNotifications(notifications);
+      setLoadingNotifications(finalLoadingState);
+    } catch (error) {
+      console.error('Error loading milestone notifications:', error);
+      setLoadingNotifications({});
+    }
+  };
+
+  // Load notifications when plans change
+  useEffect(() => {
+    if (userPlans.length > 0) {
+      loadCurrentMilestoneNotifications(userPlans);
+    }
+  }, [userPlans, user]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -229,48 +342,22 @@ const ProfilePage = () => {
 
                     <div className={styles.planDetailsSection}>
                       <h4>Milestones ({plan.milestones?.length || 0})</h4>
-                      <div className={styles.milestonesList}>
-                        {plan.milestones?.map((milestone) => (
-                          <div
-                            key={milestone.id}
-                            className={`${styles.milestoneItem} ${
-                              milestone.completed ? styles.milestoneCompleted : ''
-                            }`}
-                          >
-                            <div className={styles.milestoneHeader}>
-                              <span className={styles.milestoneCheckbox}>
-                                {milestone.completed ? '✅' : '⏳'}
-                              </span>
-                              <span className={styles.milestoneTitle}>
-                                {milestone.title}
-                              </span>
-                              <span className={styles.milestoneDueDate}>
-                                {new Date(milestone.dueDate).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className={styles.milestoneDescription}>
-                              {milestone.description}
-                            </p>
+                      <div className={styles.enhancedMilestonesList}>
+                        {plan.milestones?.map((milestone) => {
+                          const status = getMilestoneStatus(milestone);
+                          const notification = status === 'current' ? milestoneNotifications[milestone.id] : undefined;
+                          const isLoadingNotification = loadingNotifications[milestone.id] || false;
 
-                            {/* Personality Tips */}
-                            {(milestone.blindSpotTip || milestone.strengthHook) && (
-                              <div className={styles.personalityTips}>
-                                {milestone.blindSpotTip && (
-                                  <div className={styles.tip}>
-                                    <span className={styles.tipIcon}>⚠️</span>
-                                    <span className={styles.tipText}>{milestone.blindSpotTip}</span>
-                                  </div>
-                                )}
-                                {milestone.strengthHook && (
-                                  <div className={styles.tip}>
-                                    <span className={styles.tipIcon}>💪</span>
-                                    <span className={styles.tipText}>{milestone.strengthHook}</span>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                          return (
+                            <MilestoneCard
+                              key={milestone.id}
+                              milestone={milestone}
+                              status={status}
+                              notification={notification}
+                              isLoadingNotification={isLoadingNotification}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
 

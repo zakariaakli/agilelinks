@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '../../../firebase';
 import { collection, doc, getDocs, query, where, setDoc, Timestamp } from 'firebase/firestore';
 import { generateMilestoneNudgeFromAI } from '../../../lib/generateMilestoneNudgeFromAI';
+import { getDefaultEmailStatus, getDefaultNotificationMeta } from '../../../lib/notificationTracking';
 
 interface Milestone {
   id: string;
@@ -107,7 +108,10 @@ export async function GET() {
                 dueDate: milestone.dueDate,
                 createdAt: Timestamp.now(),
                 read: false,
-                feedback: null
+                feedback: null,
+                // Enhanced tracking fields
+                emailStatus: getDefaultEmailStatus(),
+                notificationMeta: getDefaultNotificationMeta('milestone_reminder')
               });
 
               remindersCreated++;
