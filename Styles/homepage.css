@@ -5,7 +5,129 @@
     color: #111827;
   }
 
-  /* HERO SECTION */
+  /* HERO COACHING SECTION */
+  .hero-coaching-section {
+    position: relative;
+    min-height: 100vh;
+    background-image: url('https://firebasestorage.googleapis.com/v0/b/enneachat-3883f.firebasestorage.app/o/ChatGPT%20Image%2014%20juin%202025%2C%2016_40_45.png?alt=media&token=55d9b0b3-365a-4a3a-ab9b-62e8e217f8e4');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .hero-coaching-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.4) 50%,
+      rgba(0, 0, 0, 0.6) 100%
+    );
+    z-index: 1;
+  }
+
+  .hero-coaching-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .hero-text-container {
+    max-width: 600px;
+    margin-left: 0;
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  .hero-title-accent {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+    color: #e5e7eb;
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .hero-cta-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: flex-start;
+  }
+
+  .hero-cta-button {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+  }
+
+  .hero-cta-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
+    color: white;
+    text-decoration: none;
+  }
+
+  .hero-cta-arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .hero-cta-button:hover .hero-cta-arrow {
+    transform: translateX(4px);
+  }
+
+  .hero-trust-indicator {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .trust-stars {
+    color: #fbbf24;
+    font-size: 1.125rem;
+    letter-spacing: 2px;
+  }
+
+  .trust-text {
+    color: #d1d5db;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  /* LEGACY HERO STYLES (for backward compatibility) */
   .hero-section {
     background-color: #f9fafb;
     padding: 4rem 1rem;
@@ -67,6 +189,45 @@
 
   /* RESPONSIVENESS */
   @media (max-width: 768px) {
+    .hero-coaching-section {
+      min-height: 100vh;
+      background-position: center right;
+    }
+
+    .hero-coaching-content {
+      padding: 1rem;
+    }
+
+    .hero-text-container {
+      max-width: 100%;
+      text-align: center;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 8vw, 3rem);
+      margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 4vw, 1.25rem);
+      margin-bottom: 2rem;
+    }
+
+    .hero-cta-container {
+      align-items: center;
+    }
+
+    .hero-cta-button {
+      padding: 0.875rem 1.5rem;
+      font-size: 1rem;
+    }
+
+    .hero-trust-indicator {
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Legacy responsive styles */
     .hero-section h1 {
       font-size: 2rem;
     }
@@ -77,5 +238,30 @@
 
     .articles-section h2 {
       font-size: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-coaching-section {
+      background-position: 70% center;
+    }
+
+    .hero-coaching-overlay {
+      background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0.6) 50%,
+        rgba(0, 0, 0, 0.7) 100%
+      );
+    }
+
+    .hero-title {
+      font-size: clamp(1.75rem, 9vw, 2.5rem);
+    }
+
+    .hero-cta-button {
+      width: 100%;
+      justify-content: center;
+      padding: 1rem;
     }
   }

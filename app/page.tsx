@@ -6,13 +6,28 @@ import '../Styles/homepage.css';
 export default function Home() {
   return (
     <div className="containerFluid">
-      {/* Hero Section */}
-      <section className="hero heroFull slideInDown">
-        <div className="heroContent textCenter">
-          <h1 className="display-5 fw-bold mb4 fadeIn staggerDelay1">Discover Your Enneagram Type</h1>
-          <p className="lead mb8 fadeIn staggerDelay2">Understand yourself better through intelligent coaching and personalized growth plans.</p>
-          <div className="fadeIn staggerDelay3">
-            <a href="#test" className="button primary pulse">Get Started</a>
+      {/* Hero Section with Coaching Image */}
+      <section className="hero-coaching-section">
+        <div className="hero-coaching-overlay"></div>
+        <div className="hero-coaching-content">
+          <div className="hero-text-container">
+            <h1 className="hero-title fadeIn staggerDelay1">
+              Master Your Mind.<br />
+              <span className="hero-title-accent">Master Your Goals.</span>
+            </h1>
+            <p className="hero-subtitle fadeIn staggerDelay2">
+              Just like a coach guides players to focus on what matters, Stepiva helps you understand yourself better through intelligent coaching and personalized growth plans to achieve your goals
+            </p>
+            <div className="hero-cta-container fadeIn staggerDelay3">
+              <a href="#test" className="hero-cta-button">
+                Start Your Journey
+                <span className="hero-cta-arrow">→</span>
+              </a>
+              <div className="hero-trust-indicator">
+                <div className="trust-stars">★★★★★</div>
+                <span className="trust-text">Trusted by goal achievers</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
