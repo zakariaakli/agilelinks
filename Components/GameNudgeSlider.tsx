@@ -28,10 +28,22 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   const [showCelebration, setShowCelebration] = useState(false);
   const [floatingHearts, setFloatingHearts] = useState<Array<{id: number, x: number, y: number}>>([]);
   const [shakeAnimation, setShakeAnimation] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
   const heartCounter = useRef(0);
+
+  // Check if mobile on mount
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Gamification calculations
   const reactedCount = notifications.filter(n => n.feedback).length;
@@ -227,8 +239,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
     <div style={{
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       borderRadius: '1rem',
-      padding: 'clamp(1rem, 3vw, 1.5rem)',
-      marginTop: '1rem',
+      padding: isMobile ? 'clamp(0.75rem, 2vw, 1rem)' : 'clamp(1rem, 3vw, 1.5rem)',
+      marginTop: isMobile ? '0.75rem' : '1rem',
       color: 'white',
       position: 'relative',
       overflow: 'hidden',
@@ -362,13 +374,16 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         style={{
           background: 'rgba(255,255,255,0.95)',
           borderRadius: '0.75rem',
-          padding: 'clamp(1rem, 3vw, 1.5rem)',
+          padding: 'clamp(0.75rem, 2vw, 1.5rem)',
           color: '#1a1a1a',
           transform: isAnimating ? 'scale(0.98)' : 'scale(1)',
           transition: 'transform 0.3s ease',
           cursor: 'grab',
-          userSelect: 'none'
+          userSelect: 'none',
+          // Mobile optimization
+          minHeight: window.innerWidth <= 768 ? 'auto' : undefined
         }}
+        className="game-nudge-card"
       >
         {/* Content Header */}
         <div style={{
@@ -403,21 +418,43 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         <div style={{
           fontSize: 'clamp(0.875rem, 2.5vw, 1rem)',
           lineHeight: '1.5',
-          marginBottom: '1.5rem',
+          marginBottom: isMobile ? '1rem' : '1.5rem',
           color: '#2d3748',
           wordBreak: 'break-word'
         }}>
-          {currentNotification.prompt}
+          {isMobile && currentNotification.prompt.length > 150 ? (
+            <>
+              {isExpanded ? currentNotification.prompt : `${currentNotification.prompt.substring(0, 150)}...`}
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                style={{
+                  display: 'block',
+                  marginTop: '0.5rem',
+                  background: 'none',
+                  border: 'none',
+                  color: '#667eea',
+                  fontSize: '0.875rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                {isExpanded ? 'Show less' : 'Read more'}
+              </button>
+            </>
+          ) : (
+            currentNotification.prompt
+          )}
         </div>
 
         {/* Existing Reaction */}
         {hasReacted && (
           <div style={{
             background: '#f0fdf4',
-            border: '2px solid #22c55e',
+            border: isMobile ? '1px solid #22c55e' : '2px solid #22c55e',
             borderRadius: '0.5rem',
-            padding: '1rem',
-            marginBottom: '1rem'
+            padding: isMobile ? '0.75rem' : '1rem',
+            marginBottom: isMobile ? '0.75rem' : '1rem'
           }}>
             <div style={{
               display: 'flex',
@@ -425,10 +462,11 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
               gap: '0.5rem',
               marginBottom: '0.5rem'
             }}>
-              <span style={{ fontSize: '1.25rem' }}>💬</span>
+              <span style={{ fontSize: isMobile ? '1rem' : '1.25rem' }}>💬</span>
               <span style={{
                 fontWeight: 'bold',
-                color: '#15803d'
+                color: '#15803d',
+                fontSize: isMobile ? '0.875rem' : '1rem'
               }}>
                 Your Reaction:
               </span>
@@ -436,7 +474,9 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
             <p style={{
               margin: 0,
               fontStyle: 'italic',
-              color: '#166534'
+              color: '#166534',
+              fontSize: isMobile ? '0.875rem' : '1rem',
+              lineHeight: isMobile ? '1.4' : '1.5'
             }}>
               "{currentNotification.feedback}"
             </p>
@@ -447,27 +487,43 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         {!hasReacted && (
           <div style={{
             background: '#fef3c7',
-            border: '2px solid #f59e0b',
+            border: isMobile ? '1px solid #f59e0b' : '2px solid #f59e0b',
             borderRadius: '0.5rem',
-            padding: '1rem',
-            marginBottom: '1rem',
+            padding: isMobile ? '0.75rem' : '1rem',
+            marginBottom: isMobile ? '0.75rem' : '1rem',
             textAlign: 'center'
           }}>
-            <div style={{
-              fontSize: 'clamp(0.875rem, 2.2vw, 1rem)',
-              fontWeight: 'bold',
-              color: '#92400e',
-              marginBottom: '0.5rem'
-            }}>
-              💭 Share your thoughts
-            </div>
-            <p style={{
-              margin: 0,
-              fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
-              color: '#a0522d'
-            }}>
-              Click below to give feedback and keep your streak going!
-            </p>
+            {isMobile ? (
+              <div style={{
+                fontSize: '0.875rem',
+                fontWeight: 'bold',
+                color: '#92400e',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}>
+                💭 Tap to share feedback
+              </div>
+            ) : (
+              <>
+                <div style={{
+                  fontSize: 'clamp(0.875rem, 2.2vw, 1rem)',
+                  fontWeight: 'bold',
+                  color: '#92400e',
+                  marginBottom: '0.5rem'
+                }}>
+                  💭 Share your thoughts
+                </div>
+                <p style={{
+                  margin: 0,
+                  fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
+                  color: '#a0522d'
+                }}>
+                  Click below to give feedback and keep your streak going!
+                </p>
+              </>
+            )}
           </div>
         )}
 
@@ -530,12 +586,20 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
           flex: 1,
           padding: '0 0.5rem'
         }}>
-          <div style={{ marginBottom: '0.25rem' }}>
-            💡 Swipe left/right to navigate
-          </div>
-          <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>
-            Or use ←/→ keys • Double-tap for celebration
-          </div>
+          {isMobile ? (
+            <div style={{ fontSize: '0.75rem' }}>
+              💡 Swipe to navigate
+            </div>
+          ) : (
+            <>
+              <div style={{ marginBottom: '0.25rem' }}>
+                💡 Swipe left/right to navigate
+              </div>
+              <div style={{ fontSize: '0.65rem', opacity: 0.7 }}>
+                Or use ←/→ keys • Double-tap for celebration
+              </div>
+            </>
+          )}
         </div>
 
         <button
@@ -652,6 +716,26 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
           0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
           70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
           100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+          .game-nudge-card {
+            min-height: auto !important;
+            max-height: 75vh;
+            overflow-y: auto;
+          }
+          
+          /* Reduce vertical spacing on mobile */
+          .game-nudge-card > div {
+            margin-bottom: 0.75rem !important;
+          }
+          
+          /* Make navigation more touch-friendly */
+          .game-nudge-card button {
+            min-height: 44px !important;
+            min-width: 44px !important;
+          }
         }
       `}</style>
     </div>

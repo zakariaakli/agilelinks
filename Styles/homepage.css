@@ -191,7 +191,9 @@
   @media (max-width: 768px) {
     .hero-coaching-section {
       min-height: 100vh;
-      background-position: center right;
+      background-position: center center;
+      background-size: contain;
+      background-color: #1a1a1a;
     }
 
     .hero-coaching-content {
@@ -243,7 +245,9 @@
 
   @media (max-width: 480px) {
     .hero-coaching-section {
-      background-position: 70% center;
+      background-position: center center;
+      background-size: contain;
+      background-color: #1a1a1a;
     }
 
     .hero-coaching-overlay {

@@ -27,6 +27,19 @@ interface GamificationSystemProps {
 }
 
 const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, className = '' }) => {
+  const [isMobile, setIsMobile] = React.useState(false);
+  const [isStatsExpanded, setIsStatsExpanded] = React.useState(false);
+  const [isAchievementsExpanded, setIsAchievementsExpanded] = React.useState(false);
+
+  // Check if mobile on mount
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Calculate user level based on total activity
   const calculateLevel = (stats: UserStats) => {
@@ -135,37 +148,70 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
   return (
     <div className={`gamification-system ${className}`}>
 
+      {/* Mobile Stats Header */}
+      {isMobile && (
+        <div 
+          onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+          style={{
+            background: 'var(--bg-primary)',
+            border: '1px solid var(--color-primary-200)',
+            borderRadius: 'var(--border-radius-lg)',
+            padding: '1rem',
+            marginBottom: '1rem',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <TrophyIcon size={20} color="var(--color-primary-600)" />
+            <div>
+              <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                Level {userLevel} • {completionRate}% Complete
+              </div>
+              <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                {unlockedAchievements.length} achievements unlocked
+              </div>
+            </div>
+          </div>
+          <div style={{ color: 'var(--color-primary-600)' }}>
+            {isStatsExpanded ? '▼' : '▶'}
+          </div>
+        </div>
+      )}
+
       {/* Progress Stats Grid */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-        gap: '1rem',
-        marginBottom: '1.5rem'
+        display: isMobile && !isStatsExpanded ? 'none' : 'grid',
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(140px, 1fr))',
+        gap: isMobile ? '0.75rem' : '1rem',
+        marginBottom: isMobile ? '1rem' : '1.5rem'
       }}>
         <div style={{
           background: 'var(--bg-primary)',
-          border: '2px solid var(--color-success-200)',
+          border: isMobile ? '1px solid var(--color-success-200)' : '2px solid var(--color-success-200)',
           borderRadius: 'var(--border-radius-lg)',
-          padding: '1.25rem',
+          padding: isMobile ? '0.875rem' : '1.25rem',
           textAlign: 'center',
           boxShadow: 'var(--shadow-sm)'
         }}>
           <div style={{ 
             color: 'var(--color-success-600)', 
-            fontSize: '1.5rem', 
+            fontSize: isMobile ? '1.25rem' : '1.5rem', 
             marginBottom: '0.5rem' 
           }}>
             ✅
           </div>
           <div style={{ 
-            fontSize: '1.5rem', 
+            fontSize: isMobile ? '1.25rem' : '1.5rem', 
             fontWeight: 'var(--font-weight-bold)',
             color: 'var(--text-primary)'
           }}>
             {userStats.completedMilestones}
           </div>
           <div style={{ 
-            fontSize: '0.875rem', 
+            fontSize: isMobile ? '0.75rem' : '0.875rem', 
             color: 'var(--text-secondary)',
             marginTop: '0.25rem'
           }}>
@@ -275,27 +321,67 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
         padding: '1.5rem',
         marginBottom: '1.5rem'
       }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.5rem',
-          marginBottom: '1rem'
-        }}>
-          <TrophyIcon size={20} color="var(--color-warning-600)" />
-          <h3 style={{
-            margin: 0,
-            fontSize: '1.125rem',
-            fontWeight: 'var(--font-weight-bold)',
-            color: 'var(--text-primary)'
+        {/* Mobile Achievements Header */}
+        {isMobile ? (
+          <div 
+            onClick={() => setIsAchievementsExpanded(!isAchievementsExpanded)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '1rem',
+              cursor: 'pointer'
+            }}
+          >
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}>
+              <TrophyIcon size={20} color="var(--color-warning-600)" />
+              <div>
+                <div style={{
+                  fontSize: '1rem',
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: 'var(--text-primary)'
+                }}>
+                  Achievements
+                </div>
+                <div style={{
+                  fontSize: '0.875rem',
+                  color: 'var(--text-secondary)'
+                }}>
+                  {unlockedAchievements.length}/{achievements.length} unlocked
+                </div>
+              </div>
+            </div>
+            <div style={{ color: 'var(--color-primary-600)' }}>
+              {isAchievementsExpanded ? '▼' : '▶'}
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1rem'
           }}>
-            Learning Milestones ({unlockedAchievements.length}/{achievements.length})
-          </h3>
-        </div>
+            <TrophyIcon size={20} color="var(--color-warning-600)" />
+            <h3 style={{
+              margin: 0,
+              fontSize: '1.125rem',
+              fontWeight: 'var(--font-weight-bold)',
+              color: 'var(--text-primary)'
+            }}>
+              Learning Milestones ({unlockedAchievements.length}/{achievements.length})
+            </h3>
+          </div>
+        )}
 
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem'
+          display: isMobile && !isAchievementsExpanded ? 'none' : 'grid',
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(auto-fit, minmax(200px, 1fr))',
+          gap: isMobile ? '0.75rem' : '1rem'
         }}>
           {achievements.slice(0, 6).map((achievement) => (
             <div
@@ -305,10 +391,10 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
                   ? 'var(--bg-primary)' 
                   : 'var(--bg-tertiary)',
                 border: achievement.unlocked 
-                  ? '2px solid var(--color-success-400)' 
+                  ? (isMobile ? '1px solid var(--color-success-400)' : '2px solid var(--color-success-400)') 
                   : '1px solid var(--border-color)',
                 borderRadius: 'var(--border-radius-lg)',
-                padding: '1rem',
+                padding: isMobile ? '0.75rem' : '1rem',
                 textAlign: 'center',
                 opacity: achievement.unlocked ? 1 : 0.7,
                 boxShadow: achievement.unlocked ? 'var(--shadow-md)' : 'var(--shadow-sm)',
@@ -316,14 +402,14 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
               }}
             >
               <div style={{
-                fontSize: '2rem',
+                fontSize: isMobile ? '1.5rem' : '2rem',
                 marginBottom: '0.5rem',
                 filter: achievement.unlocked ? 'none' : 'grayscale(100%)'
               }}>
                 {achievement.icon}
               </div>
               <div style={{
-                fontSize: '0.875rem',
+                fontSize: isMobile ? '0.75rem' : '0.875rem',
                 fontWeight: 'var(--font-weight-semibold)',
                 color: achievement.unlocked ? 'var(--text-primary)' : 'var(--text-secondary)',
                 marginBottom: '0.25rem'

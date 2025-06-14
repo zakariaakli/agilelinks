@@ -34,6 +34,18 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
   notifications = [],
   isLoadingNotification = false
 }) => {
+  const [isMobile, setIsMobile] = React.useState(false);
+  const [isExpanded, setIsExpanded] = React.useState(false);
+
+  // Check if mobile on mount
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const getStatusIcon = () => {
     switch (status) {
       case 'completed': return <CheckCircleIcon size={16} />;
@@ -97,8 +109,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         background: statusStyles.background,
         border: statusStyles.border,
         borderRadius: '0.75rem',
-        padding: '1.25rem',
-        marginBottom: '1rem',
+        padding: isMobile ? '1rem' : '1.25rem',
+        marginBottom: isMobile ? '0.75rem' : '1rem',
         position: 'relative',
         transition: 'all 0.2s ease',
         boxShadow: status === 'current' 
@@ -109,24 +121,24 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
       {/* Status Badge */}
       <div style={{
         position: 'absolute',
-        top: '1rem',
-        right: '1rem',
+        top: isMobile ? '0.75rem' : '1rem',
+        right: isMobile ? '0.75rem' : '1rem',
         background: status === 'current' ? '#3b82f6' : 
                    status === 'completed' ? '#22c55e' : '#6b7280',
         color: 'white',
-        padding: '0.25rem 0.75rem',
+        padding: isMobile ? '0.2rem 0.5rem' : '0.25rem 0.75rem',
         borderRadius: '9999px',
-        fontSize: '0.75rem',
+        fontSize: isMobile ? '0.65rem' : '0.75rem',
         fontWeight: '600'
       }}>
         {getStatusIcon()} {getStatusLabel()}
       </div>
 
       {/* Milestone Header */}
-      <div style={{ marginRight: '6rem' }}>
+      <div style={{ marginRight: isMobile ? '4rem' : '6rem' }}>
         <h4 style={{
           color: statusStyles.titleColor,
-          fontSize: '1.125rem',
+          fontSize: isMobile ? '1rem' : '1.125rem',
           fontWeight: '600',
           margin: '0 0 0.5rem 0',
           lineHeight: '1.4'
@@ -136,12 +148,35 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
 
         <p style={{
           color: status === 'future' ? '#9ca3af' : '#6b7280',
-          fontSize: '0.875rem',
+          fontSize: isMobile ? '0.8rem' : '0.875rem',
           lineHeight: '1.5',
           margin: '0 0 1rem 0',
           fontStyle: status === 'future' ? 'italic' : 'normal'
         }}>
-          {status === 'future' && '📋 Planned: '}{milestone.description}
+          {status === 'future' && '📋 Planned: '}
+          {isMobile && milestone.description.length > 100 ? (
+            <>
+              {isExpanded ? milestone.description : `${milestone.description.substring(0, 100)}...`}
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                style={{
+                  display: 'block',
+                  marginTop: '0.25rem',
+                  background: 'none',
+                  border: 'none',
+                  color: statusStyles.titleColor,
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  textDecoration: 'underline'
+                }}
+              >
+                {isExpanded ? 'Show less' : 'Read more'}
+              </button>
+            </>
+          ) : (
+            milestone.description
+          )}
         </p>
       </div>
 
@@ -149,17 +184,17 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
       <div style={{
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gap: '1rem',
-        marginBottom: status === 'current' ? '1rem' : '0'
+        gap: isMobile ? '0.5rem' : '1rem',
+        marginBottom: status === 'current' ? (isMobile ? '0.75rem' : '1rem') : '0'
       }}>
         <div style={{
           background: 'rgba(255, 255, 255, 0.7)',
-          padding: '0.75rem',
+          padding: isMobile ? '0.5rem' : '0.75rem',
           borderRadius: '0.5rem',
           textAlign: 'center'
         }}>
           <div style={{
-            fontSize: '0.75rem',
+            fontSize: isMobile ? '0.65rem' : '0.75rem',
             color: '#6b7280',
             fontWeight: '500',
             marginBottom: '0.25rem'
@@ -167,7 +202,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
             Start Date
           </div>
           <div style={{
-            fontSize: '0.875rem',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
             color: '#111827',
             fontWeight: '600'
           }}>
@@ -177,12 +212,12 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
 
         <div style={{
           background: 'rgba(255, 255, 255, 0.7)',
-          padding: '0.75rem',
+          padding: isMobile ? '0.5rem' : '0.75rem',
           borderRadius: '0.5rem',
           textAlign: 'center'
         }}>
           <div style={{
-            fontSize: '0.75rem',
+            fontSize: isMobile ? '0.65rem' : '0.75rem',
             color: '#6b7280',
             fontWeight: '500',
             marginBottom: '0.25rem'
@@ -190,7 +225,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
             Due Date
           </div>
           <div style={{
-            fontSize: '0.875rem',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
             color: '#111827',
             fontWeight: '600'
           }}>
@@ -201,12 +236,12 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
 
       {/* Personality Tips - Only show for current milestones */}
       {status === 'current' && (milestone.blindSpotTip || milestone.strengthHook) && (
-        <div style={{ marginBottom: '1rem' }}>
+        <div style={{ marginBottom: isMobile ? '0.75rem' : '1rem' }}>
           {milestone.blindSpotTip && (
             <div style={{
               background: '#fef3c7',
               border: '1px solid #f59e0b',
-              padding: '0.75rem',
+              padding: isMobile ? '0.5rem' : '0.75rem',
               borderRadius: '0.5rem',
               marginBottom: '0.5rem'
             }}>
@@ -218,7 +253,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
               }}>
                 <AlertTriangleIcon size={16} color="#92400e" />
                 <span style={{
-                  fontSize: '0.75rem',
+                  fontSize: isMobile ? '0.65rem' : '0.75rem',
                   fontWeight: '600',
                   color: '#92400e'
                 }}>
@@ -226,7 +261,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
                 </span>
               </div>
               <p style={{
-                fontSize: '0.875rem',
+                fontSize: isMobile ? '0.75rem' : '0.875rem',
                 color: '#78350f',
                 margin: 0,
                 lineHeight: '1.4'
@@ -240,7 +275,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
             <div style={{
               background: '#d1fae5',
               border: '1px solid #10b981',
-              padding: '0.75rem',
+              padding: isMobile ? '0.5rem' : '0.75rem',
               borderRadius: '0.5rem'
             }}>
               <div style={{
@@ -251,7 +286,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
               }}>
                 <ZapIcon size={16} color="#047857" />
                 <span style={{
-                  fontSize: '0.75rem',
+                  fontSize: isMobile ? '0.65rem' : '0.75rem',
                   fontWeight: '600',
                   color: '#047857'
                 }}>
@@ -259,7 +294,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
                 </span>
               </div>
               <p style={{
-                fontSize: '0.875rem',
+                fontSize: isMobile ? '0.75rem' : '0.875rem',
                 color: '#065f46',
                 margin: 0,
                 lineHeight: '1.4'
@@ -276,7 +311,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         <div>
           <div style={{
             borderTop: '1px solid rgba(59, 130, 246, 0.2)',
-            paddingTop: '1rem'
+            paddingTop: isMobile ? '0.75rem' : '1rem'
           }}>
             <GameNudgeSlider 
               notifications={notifications}
