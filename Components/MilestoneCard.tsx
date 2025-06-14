@@ -1,5 +1,5 @@
 import React from 'react';
-import NotificationPreview from './NotificationPreview';
+import GameNudgeSlider from './GameNudgeSlider';
 import { CheckCircleIcon, ClockIcon, CalendarIcon, AlertTriangleIcon, ZapIcon } from './Icons';
 
 interface Milestone {
@@ -24,14 +24,14 @@ interface Notification {
 interface MilestoneCardProps {
   milestone: Milestone;
   status: 'completed' | 'current' | 'future';
-  notification?: Notification | null;
+  notifications?: Notification[];
   isLoadingNotification?: boolean;
 }
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({ 
   milestone, 
   status, 
-  notification,
+  notifications = [],
   isLoadingNotification = false
 }) => {
   const getStatusIcon = () => {
@@ -271,16 +271,18 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         </div>
       )}
 
-      {/* Current Milestone: Show Latest Notification */}
+      {/* Current Milestone: Show Gamified Nudge Slider */}
       {status === 'current' && (
         <div>
           <div style={{
             borderTop: '1px solid rgba(59, 130, 246, 0.2)',
             paddingTop: '1rem'
           }}>
-            <NotificationPreview 
-              notification={notification || null}
+            <GameNudgeSlider 
+              notifications={notifications}
               isLoading={isLoadingNotification}
+              milestoneStartDate={milestone.startDate}
+              milestoneDueDate={milestone.dueDate}
             />
           </div>
         </div>

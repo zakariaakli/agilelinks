@@ -500,3 +500,73 @@ export const SparklesIcon: React.FC<IconProps> = ({ size = 24, className = '', c
     <path d="M4.222 19.778c.39-.39.39-1.024 0-1.414s-1.024-.39-1.414 0-.39 1.024 0 1.414 1.024.39 1.414 0z" />
   </svg>
 );
+
+export const ChevronDownIcon: React.FC<IconProps> = ({ size = 24, className = '', color = 'currentColor', strokeWidth = 2 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <polyline points="6,9 12,15 18,9" />
+  </svg>
+);
+
+export const ChevronUpIcon: React.FC<IconProps> = ({ size = 24, className = '', color = 'currentColor', strokeWidth = 2 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <polyline points="18,15 12,9 6,15" />
+  </svg>
+);
+
+// Gamification Icons
+export const TrophyIcon: React.FC<IconProps> = ({ size = 24, className = '', color = 'currentColor', strokeWidth = 2 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+    <path d="M7 4v13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4" />
+    <path d="M7 4h10l-1-1H8l-1 1z" />
+    <path d="M5 8H3a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2h2" />
+    <path d="M19 8h2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-2" />
+  </svg>
+);
+
+export const FireIcon: React.FC<IconProps> = ({ size = 24, className = '', color = 'currentColor', strokeWidth = 2 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={strokeWidth}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+  </svg>
+);

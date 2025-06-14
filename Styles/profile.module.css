@@ -40,9 +40,18 @@
 .email {
   text-align: center;
   color: var(--text-secondary);
-  margin-bottom: var(--space-10);
+  margin-bottom: var(--space-6);
   font-size: var(--font-size-lg);
   animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+/* Gamification Sections */
+.gamificationSection {
+  margin-bottom: var(--space-8);
+}
+
+.challengesSection {
+  margin-bottom: var(--space-8);
 }
 
 .sectionTitle {

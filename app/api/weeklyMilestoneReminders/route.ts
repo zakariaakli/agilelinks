@@ -27,16 +27,24 @@ interface PlanData {
   createdAt: any;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     console.log('🔄 Starting weekly milestone reminder check...');
-    
+
+    // Debug mode - check for debug parameter to bypass date checks
+    const { searchParams } = new URL(request.url);
+    const debugMode = searchParams.get('debug') === 'true';
+
+    if (debugMode) {
+      console.log('🐛 DEBUG MODE ENABLED - Bypassing date checks for testing');
+    }
+
     // Get all active plans
     const plansQuery = query(
       collection(db, 'plans'),
       where('status', '==', 'active')
     );
-    
+
     const plansSnapshot = await getDocs(plansQuery);
     let remindersCreated = 0;
     const today = new Date();
@@ -45,7 +53,7 @@ export async function GET() {
     for (const planDoc of plansSnapshot.docs) {
       const planData = planDoc.data() as PlanData;
       const planId = planDoc.id;
-      
+
       console.log(`📋 Checking plan ${planId} for user ${planData.userId}`);
 
       // Check each milestone in the plan
@@ -63,25 +71,34 @@ export async function GET() {
 
         // Check if milestone is currently active (startDate <= today <= dueDate and not completed)
         const isCurrentMilestone = startDate <= today && today <= dueDate;
-        
+
         if (isCurrentMilestone) {
           console.log(`📋 Current milestone found: ${milestone.title} (${milestone.startDate} to ${milestone.dueDate})`);
 
           // Check if we already sent a reminder for this milestone recently (within last 7 days)
-          const lastWeek = new Date();
-          lastWeek.setDate(lastWeek.getDate() - 7);
+          // Skip this check in debug mode
+          let shouldCreateReminder = false;
+          
+          if (debugMode) {
+            console.log(`🐛 DEBUG: Bypassing date check for milestone: ${milestone.title}`);
+            shouldCreateReminder = true;
+          } else {
+            const lastWeek = new Date();
+            lastWeek.setDate(lastWeek.getDate() - 7);
 
-          const existingRemindersQuery = query(
-            collection(db, 'notifications'),
-            where('userId', '==', planData.userId),
-            where('milestoneId', '==', milestone.id),
-            where('createdAt', '>=', Timestamp.fromDate(lastWeek))
-          );
+            const existingRemindersQuery = query(
+              collection(db, 'notifications'),
+              where('userId', '==', planData.userId),
+              where('milestoneId', '==', milestone.id),
+              where('createdAt', '>=', Timestamp.fromDate(lastWeek))
+            );
 
-          const existingReminders = await getDocs(existingRemindersQuery);
+            const existingReminders = await getDocs(existingRemindersQuery);
+            shouldCreateReminder = existingReminders.empty;
+          }
 
-          // If no recent reminder exists, create one
-          if (existingReminders.empty) {
+          // If no recent reminder exists (or debug mode), create one
+          if (shouldCreateReminder) {
             console.log(`📬 Creating weekly reminder for current milestone: ${milestone.title}`);
 
             // Generate AI-powered nudge message
@@ -94,7 +111,7 @@ export async function GET() {
             if (nudgeMessage) {
               // Create notification document
               const notificationRef = doc(collection(db, 'notifications'));
-              
+
               await setDoc(notificationRef, {
                 userId: planData.userId,
                 type: 'milestone_reminder',
@@ -120,18 +137,20 @@ export async function GET() {
               console.log(`⚠️ Failed to generate nudge for milestone: ${milestone.title}`);
             }
           } else {
-            console.log(`⏭️ Recent reminder already exists for milestone: ${milestone.title}`);
+            if (!debugMode) {
+              console.log(`⏭️ Recent reminder already exists for milestone: ${milestone.title}`);
+            }
           }
         }
       }
     }
 
     console.log(`✅ Weekly milestone reminder check completed. Created ${remindersCreated} reminders.`);
-    
-    return NextResponse.json({ 
-      status: 'success', 
+
+    return NextResponse.json({
+      status: 'success',
       remindersCreated,
-      message: `Successfully created ${remindersCreated} milestone reminders` 
+      message: `Successfully created ${remindersCreated} milestone reminders`
     });
 
   } catch (error) {
