@@ -67,6 +67,8 @@ interface User {
 
 interface OpenAIQuestionsResponse {
   questions: string[];
+  isPersonalized?: boolean;
+  personalizationLevel?: 'ai-enhanced' | 'standard' | 'fallback' | 'error-fallback';
 }
 
 interface OpenAIMilestonesResponse {
@@ -148,6 +150,7 @@ const GoalWizard: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
   const [hasTimePressure, setHasTimePressure] = useState<boolean>(false);
+  const [personalizationInfo, setPersonalizationInfo] = useState<{isPersonalized: boolean, level: string}>({isPersonalized: false, level: 'standard'});
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -170,26 +173,22 @@ const GoalWizard: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
-  // Get dominant Enneagram type
+  // Get dominant Enneagram type from summary
   const getDominantEnneagramType = (): string => {
-    if (!enneagramResult) return '1';
+    if (!enneagramResult || !enneagramResult.summary) return '1';
 
-    let maxScore = 0;
-    let dominantType = '1';
-
-    for (let i = 1; i <= 9; i++) {
-      const score = enneagramResult[`enneagramType${i}` as keyof EnneagramResult] as number;
-      if (score > maxScore) {
-        maxScore = score;
-        dominantType = i.toString();
-      }
+    // Extract Enneagram type number from summary text
+    const typeMatch = enneagramResult.summary.match(/enneagram type (\d+)/i);
+    if (typeMatch) {
+      return typeMatch[1];
     }
 
-    return dominantType;
+    // Fallback to '1' if no type found in summary
+    return '1';
   };
 
   // Call OpenAI Assistant
- const callOpenAIAssistant = async (objective: string, personalitySummary: string): Promise<string[]> => {
+ const callOpenAIAssistant = async (objective: string, personalitySummary: string): Promise<{questions: string[], personalizationInfo: {isPersonalized: boolean, level: string}}> => {
   try {
     console.log(personalitySummary)
     const response = await fetch('/api/openAi/?type=questions', { // Add query parameter
@@ -208,16 +207,28 @@ const GoalWizard: React.FC = () => {
     }
 
     const data: OpenAIQuestionsResponse = await response.json();
-    return data.questions;
+    return {
+      questions: data.questions,
+      personalizationInfo: {
+        isPersonalized: data.isPersonalized || false,
+        level: data.personalizationLevel || 'fallback'
+      }
+    };
   } catch (error) {
     console.error('Error calling OpenAI Assistant:', error);
     // Fallback to default questions if API call fails
-    return [
-      'What specific skills do you need to develop to achieve this goal?',
-      'What resources or support do you currently have available?',
-      'What potential obstacles do you anticipate?',
-      'How will you measure success?'
-    ];
+    return {
+      questions: [
+        'What specific skills do you need to develop to achieve this goal?',
+        'What resources or support do you currently have available?',
+        'What potential obstacles do you anticipate?',
+        'How will you measure success?'
+      ],
+      personalizationInfo: {
+        isPersonalized: false,
+        level: 'error-fallback'
+      }
+    };
   }
 };
 
@@ -335,10 +346,13 @@ const GoalWizard: React.FC = () => {
 
     try {
       let questionsArray: string[] = [];
+      let personalizationData = {isPersonalized: false, level: 'standard'};
 
       if (enneagramResult && enneagramResult.summary) {
         // Call OpenAI Assistant with user's goal and personality summary
-        questionsArray = await callOpenAIAssistant(goal, enneagramResult.summary);
+        const result = await callOpenAIAssistant(goal, enneagramResult.summary);
+        questionsArray = result.questions;
+        personalizationData = result.personalizationInfo;
       } else {
         // Fallback to default questions if no personality data
         questionsArray = [
@@ -347,7 +361,11 @@ const GoalWizard: React.FC = () => {
           'What potential obstacles do you anticipate?',
           'How will you measure success?'
         ];
+        personalizationData = {isPersonalized: false, level: 'no-personality-data'};
       }
+
+      // Update personalization info state
+      setPersonalizationInfo(personalizationData);
 
       // Convert to ClarifyingQuestion format
       const questions: ClarifyingQuestion[] = questionsArray.map((question, index) => ({
@@ -367,6 +385,7 @@ const GoalWizard: React.FC = () => {
         { id: '4', question: 'How will you measure success?', answer: '' },
       ];
       setClarifyingQuestions(fallbackQuestions);
+      setPersonalizationInfo({isPersonalized: false, level: 'error'});
     } finally {
       setIsLoading(false);
     }
@@ -732,7 +751,25 @@ const updateUserPlansCount = async (userId: string): Promise<void> => {
         return (
           <div className={styles.section}>
             <h2 className={styles.subtitle}>Clarifying Questions</h2>
-            {enneagramResult && (
+
+            {/* Gamified Personalization Indicator */}
+            {personalizationInfo.isPersonalized && personalizationInfo.level === 'ai-enhanced' && (
+              <div className={styles.personalizationBadge}>
+                <div className={styles.personalizationIcon}>
+                  ✨
+                </div>
+                <div className={styles.personalizationContent}>
+                  <div className={styles.personalizationTitle}>
+                    AI-Enhanced Questions
+                  </div>
+                  <div className={styles.personalizationDescription}>
+                    These questions are personalized for your profile and personality type to help you craft the most adequate milestones to achieve your goal.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {enneagramResult && !personalizationInfo.isPersonalized && (
               <p className={styles.personalizedNote}>
                 These questions are personalized based on your personality profile and goal.
               </p>
@@ -932,7 +969,7 @@ const updateUserPlansCount = async (userId: string): Promise<void> => {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>🧠 Goal Setting Wizard</h1>
+        <h1 className={styles.title}>🧠 Goal Setting Wizard</h1>
 
       <div className={styles.stepIndicator}>
         {['Goal Entry', 'Review', 'Questions', 'Milestones', 'Confirm'].map((step, index) => (

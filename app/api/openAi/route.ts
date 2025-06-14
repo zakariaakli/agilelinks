@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
+import { db } from '../../../firebase-admin.js';
 
 interface RequestBody {
   objective: string;
@@ -67,30 +68,60 @@ async function handleQuestionsRequest(body: RequestBody) {
   }
 
   try {
+    console.log('=== PERSONALIZATION DEBUG ===');
+    console.log('personalitySummary received:', personalitySummary);
+
+    // Extract Enneagram type number from personalitySummary
+    let enneagramTypeNumber = '';
+    if (personalitySummary) {
+      const typeMatch = personalitySummary.match(/enneagram type (\d+)/i);
+      if (typeMatch) {
+        enneagramTypeNumber = typeMatch[1];
+        console.log('Extracted Enneagram type number:', enneagramTypeNumber);
+      } else {
+        console.log('No Enneagram type number found in personalitySummary');
+      }
+    } else {
+      console.log('No personalitySummary provided');
+    }
+
+    // Query personalization data from Firebase
+    let personalizationSummary = '';
+    if (enneagramTypeNumber) {
+      try {
+        console.log('Querying Firebase for type:', enneagramTypeNumber);
+        const personalizationQuery = await db
+          .collection('personalization')
+          .where('topic', '==', 'question')
+          .where('type', '==', enneagramTypeNumber)
+          .limit(1)
+          .get();
+
+        console.log('Firebase query results:', !personalizationQuery.empty ? 'Found data' : 'No data found');
+
+        if (!personalizationQuery.empty) {
+          const doc = personalizationQuery.docs[0];
+          personalizationSummary = doc.data().summary || '';
+          console.log('Retrieved personalization summary:', personalizationSummary);
+        }
+      } catch (firebaseError) {
+        console.error('Error fetching personalization data:', firebaseError);
+        // Continue without personalization if Firebase query fails
+      }
+    } else {
+      console.log('Skipping Firebase query - no Enneagram type number extracted');
+    }
+
+    console.log('Final personalizationSummary to send to Assistant:', personalizationSummary);
+    console.log('=== END PERSONALIZATION DEBUG ===');
+
     // Your existing question generation logic here...
     const thread = await openai.beta.threads.create();
 
-    const systemPrompt = `You are a goal-setting coach assistant. Your task is to generate 4-6 personalized clarifying questions that will help the user create a more specific and actionable plan for their goal.
-
-Context:
+    const systemPrompt = `Context:
 - User's Goal: ${objective}
 ${personalitySummary ? `- User's Personality Profile: ${personalitySummary}` : ''}
-
-Instructions:
-1. Generate 4-6 thoughtful questions that will help clarify the goal
-2. Questions should be specific, actionable, and relevant to the stated objective
-3. If personality information is provided, tailor questions to that personality type
-4. Focus on practical aspects like skills needed, resources, obstacles, timeline, and success metrics
-5. Make questions open-ended to encourage detailed responses
-6. Return ONLY the questions, one per line, without numbering or bullet points
-
-Examples of good questions:
-- What specific skills do you need to develop to achieve this goal?
-- What resources or support do you currently have available?
-- What potential obstacles do you anticipate and how might you overcome them?
-- How will you measure progress and success along the way?
-- What would achieving this goal mean for your personal or professional life?
-- What is your backup plan if your primary approach doesn't work?`;
+${personalizationSummary ? `- Type Characteristics regarding questions to ask: ${personalizationSummary}` : ''}`;
 
     await openai.beta.threads.messages.create(thread.id, {
       role: 'user',
@@ -126,7 +157,11 @@ Examples of good questions:
             .filter(q => q.length > 0 && q.includes('?'))
             .slice(0, 6);
 
-          return NextResponse.json({ questions });
+          return NextResponse.json({
+            questions,
+            isPersonalized: !!personalizationSummary,
+            personalizationLevel: personalizationSummary ? 'ai-enhanced' : 'standard'
+          });
         }
       }
     }
@@ -139,7 +174,11 @@ Examples of good questions:
       'How will you measure success and track your progress?'
     ];
 
-    return NextResponse.json({ questions: fallbackQuestions });
+    return NextResponse.json({
+      questions: fallbackQuestions,
+      isPersonalized: false,
+      personalizationLevel: 'fallback'
+    });
 
   } catch (error) {
     console.error('Error calling OpenAI Questions Assistant:', error);
@@ -149,7 +188,11 @@ Examples of good questions:
       'What potential obstacles do you anticipate?',
       'How will you measure success and track your progress?'
     ];
-    return NextResponse.json({ questions: fallbackQuestions });
+    return NextResponse.json({
+      questions: fallbackQuestions,
+      isPersonalized: false,
+      personalizationLevel: 'error-fallback'
+    });
   }
 }
 
