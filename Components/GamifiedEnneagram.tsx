@@ -31,9 +31,9 @@ const typeEmojis = {
   enneagramType9: '☮️',
 };
 
-const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({ 
-  enneagramResult, 
-  className = '' 
+const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
+  enneagramResult,
+  className = ''
 }) => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
@@ -122,7 +122,7 @@ const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
           background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%)',
           pointerEvents: 'none'
         }} />
-        
+
         <div style={{
           textAlign: 'center',
           position: 'relative',
@@ -140,7 +140,7 @@ const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
             <TrophyIcon size={32} color="#FFD700" />
             Your Personality Profile
           </h2>
-          
+
           {/* Top 3 Podium */}
           <div style={{
             display: 'flex',
@@ -206,7 +206,7 @@ const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
                   fontWeight: 'bold',
                   color: 'white'
                 }}>
-                  👑
+                  
                 </div>
               </div>
               <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Dominant</div>
@@ -251,7 +251,7 @@ const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
           const colors = getRankColors(rank);
           const score = value as number;
           const isSelected = selectedType === key;
-          
+
           return (
             <div
               key={key}
@@ -390,7 +390,7 @@ const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
           background: 'radial-gradient(circle at 70% 20%, rgba(255,255,255,0.1) 0%, transparent 50%)',
           pointerEvents: 'none'
         }} />
-        
+
         <div style={{
           position: 'relative',
           zIndex: 1
@@ -410,7 +410,7 @@ const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
               Your Personality Insights
             </h3>
           </div>
-          
+
           <div style={{
             background: 'rgba(255,255,255,0.15)',
             borderRadius: '0.75rem',
@@ -427,52 +427,7 @@ const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
             </p>
           </div>
 
-          {/* Achievement-style stats */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: '1rem',
-            marginTop: '1.5rem'
-          }}>
-            <div style={{
-              textAlign: 'center',
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: '0.5rem',
-              padding: '1rem'
-            }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎯</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                {enneagramLabels[topType[0] as keyof typeof enneagramLabels].split('–')[1].trim()}
-              </div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Primary Type</div>
-            </div>
-            
-            <div style={{
-              textAlign: 'center',
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: '0.5rem',
-              padding: '1rem'
-            }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📊</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                {topType[1]}%
-              </div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Dominance Score</div>
-            </div>
-            
-            <div style={{
-              textAlign: 'center',
-              background: 'rgba(255,255,255,0.1)',
-              borderRadius: '0.5rem',
-              padding: '1rem'
-            }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🎪</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>
-                {typeEntries.filter(([, score]) => (score as number) >= 40).length}
-              </div>
-              <div style={{ fontSize: '0.875rem', opacity: 0.9 }}>Strong Types</div>
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -487,7 +442,7 @@ const GamifiedEnneagram: React.FC<GamifiedEnneagramProps> = ({
             transform: translateY(0);
           }
         }
-        
+
         .gamified-enneagram div:hover {
           transition: all 0.3s ease;
         }
