@@ -202,7 +202,13 @@ export const getFirebaseUsageStats = async (
       if (!operationBreakdown[collection]) {
         operationBreakdown[collection] = { reads: 0, writes: 0, deletes: 0, cost: 0 };
       }
-      operationBreakdown[collection][data.operation] += data.documentCount || 0;
+      if (data.operation === 'read') {
+        operationBreakdown[collection].reads += data.documentCount || 0;
+      } else if (data.operation === 'write') {
+        operationBreakdown[collection].writes += data.documentCount || 0;
+      } else if (data.operation === 'delete') {
+        operationBreakdown[collection].deletes += data.documentCount || 0;
+      }
       operationBreakdown[collection].cost += data.cost || 0;
       
       // User breakdown

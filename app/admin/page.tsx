@@ -53,6 +53,8 @@ const AdminDashboard: React.FC = () => {
     operationBreakdown: {},
     userBreakdown: {}
   });
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [apiResults, setApiResults] = useState<{ [key: string]: any }>({});
 
   const ADMIN_EMAIL = 'zakaria.akli.ensa@gmail.com';
 
@@ -228,7 +230,13 @@ const AdminDashboard: React.FC = () => {
         if (!operationBreakdown[collectionName]) {
           operationBreakdown[collectionName] = { reads: 0, writes: 0, deletes: 0, cost: 0 };
         }
-        operationBreakdown[collectionName][data.operation] += data.documentCount || 0;
+        if (data.operation === 'reads') {
+          operationBreakdown[collectionName].reads += data.documentCount || 0;
+        } else if (data.operation === 'writes') {
+          operationBreakdown[collectionName].writes += data.documentCount || 0;
+        } else if (data.operation === 'deletes') {
+          operationBreakdown[collectionName].deletes += data.documentCount || 0;
+        }
         operationBreakdown[collectionName].cost += data.cost || 0;
         
         // User breakdown
@@ -293,6 +301,52 @@ const AdminDashboard: React.FC = () => {
     return displayNames[functionName] || functionName;
   };
 
+  const apiEndpoints = [
+    { name: 'Weekly Milestone Reminders', endpoint: '/api/weeklyMilestoneReminders', method: 'POST' },
+    { name: 'Send Daily Nudges', endpoint: '/api/sendDailyNudges', method: 'POST' },
+    { name: 'Generate Nudges', endpoint: '/api/generateNudges', method: 'POST' },
+    { name: 'Test Milestone Reminder', endpoint: '/api/testMilestoneReminder', method: 'POST' },
+    { name: 'Test Firebase Tracking', endpoint: '/api/test-firebase-tracking', method: 'GET' },
+    { name: 'Test Tracking', endpoint: '/api/test-tracking', method: 'GET' },
+    { name: 'Track OpenAI Usage', endpoint: '/api/track-openai-usage', method: 'GET' }
+  ];
+
+  const callApi = async (endpoint: string, method: string, name: string) => {
+    try {
+      setApiResults(prev => ({ ...prev, [name]: { loading: true } }));
+      
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const data = await response.json();
+      
+      setApiResults(prev => ({
+        ...prev,
+        [name]: {
+          loading: false,
+          success: response.ok,
+          status: response.status,
+          data: data,
+          timestamp: new Date().toLocaleString()
+        }
+      }));
+    } catch (error) {
+      setApiResults(prev => ({
+        ...prev,
+        [name]: {
+          loading: false,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          timestamp: new Date().toLocaleString()
+        }
+      }));
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -334,8 +388,73 @@ const AdminDashboard: React.FC = () => {
         <p className={styles.subtitle}>OpenAI Token Usage & Cost Monitoring</p>
       </div>
 
-      {/* Filters */}
-      <div className={styles.filters}>
+      {/* Tab Navigation */}
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tab} ${activeTab === 'dashboard' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('dashboard')}
+        >
+          📊 Dashboard
+        </button>
+        <button
+          className={`${styles.tab} ${activeTab === 'api-testing' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('api-testing')}
+        >
+          🚀 API Testing
+        </button>
+      </div>
+
+      {activeTab === 'api-testing' ? (
+        /* API Testing Tab */
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>🚀 API Testing Panel</h2>
+          <p className={styles.subtitle}>Test all available API endpoints with one click</p>
+          
+          <div className={styles.apiGrid}>
+            {apiEndpoints.map((api) => (
+              <div key={api.name} className={styles.apiCard}>
+                <div className={styles.apiCardHeader}>
+                  <h3>{api.name}</h3>
+                  <span className={styles.method}>{api.method}</span>
+                </div>
+                <div className={styles.apiCardBody}>
+                  <p className={styles.endpoint}>{api.endpoint}</p>
+                  <button
+                    className={styles.apiButton}
+                    onClick={() => callApi(api.endpoint, api.method, api.name)}
+                    disabled={apiResults[api.name]?.loading}
+                  >
+                    {apiResults[api.name]?.loading ? '⏳ Testing...' : '🚀 Test API'}
+                  </button>
+                  
+                  {apiResults[api.name] && !apiResults[api.name].loading && (
+                    <div className={`${styles.apiResult} ${apiResults[api.name].success ? styles.success : styles.error}`}>
+                      <div className={styles.resultHeader}>
+                        <span className={styles.status}>
+                          {apiResults[api.name].success ? '✅ Success' : '❌ Error'} 
+                          ({apiResults[api.name].status || 'N/A'})
+                        </span>
+                        <span className={styles.timestamp}>{apiResults[api.name].timestamp}</span>
+                      </div>
+                      <pre className={styles.resultData}>
+                        {JSON.stringify(
+                          apiResults[api.name].data || apiResults[api.name].error, 
+                          null, 
+                          2
+                        )}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Dashboard Tab */
+        <>
+          {/* Filters */}
+          <div className={styles.filters}>
         <div className={styles.filterGroup}>
           <label htmlFor="function-select">Function:</label>
           <select
@@ -583,6 +702,8 @@ const AdminDashboard: React.FC = () => {
           <p className={styles.note}>Showing first 100 records. Use filters to narrow down results.</p>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 };

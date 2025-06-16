@@ -27,7 +27,7 @@ interface PlanData {
   createdAt: any;
 }
 
-export async function GET(request: Request) {
+async function processWeeklyMilestoneReminders(request: Request) {
   try {
     console.log('🔄 Starting weekly milestone reminder check...');
 
@@ -56,6 +56,12 @@ export async function GET(request: Request) {
 
       console.log(`📋 Checking plan ${planId} for user ${planData.userId}`);
 
+      // Special admin override for zakaria.akli.ensa@gmail.com
+      const isAdminUser = planData.userId === 'CN3zNBjcyZTvzGpaAo3ro0C4eOl1';
+      if (isAdminUser) {
+        console.log(`👑 Admin user detected - bypassing all date conditions for ${planData.userId}`);
+      }
+
       // Check each milestone in the plan
       for (const milestone of planData.milestones || []) {
         // Skip completed milestones
@@ -70,17 +76,18 @@ export async function GET(request: Request) {
         startDate.setHours(0, 0, 0, 0); // Set to start of day for comparison
 
         // Check if milestone is currently active (startDate <= today <= dueDate and not completed)
-        const isCurrentMilestone = startDate <= today && today <= dueDate;
+        // For admin user, bypass date checks completely
+        const isCurrentMilestone = isAdminUser || startDate <= today && today <= dueDate;
 
         if (isCurrentMilestone) {
           console.log(`📋 Current milestone found: ${milestone.title} (${milestone.startDate} to ${milestone.dueDate})`);
 
           // Check if we already sent a reminder for this milestone recently (within last 7 days)
-          // Skip this check in debug mode
+          // Skip this check in debug mode or for admin user
           let shouldCreateReminder = false;
-          
-          if (debugMode) {
-            console.log(`🐛 DEBUG: Bypassing date check for milestone: ${milestone.title}`);
+
+          if (debugMode || isAdminUser) {
+            console.log(`🐛 ${isAdminUser ? 'ADMIN USER' : 'DEBUG'}: Bypassing date check for milestone: ${milestone.title}`);
             shouldCreateReminder = true;
           } else {
             const lastWeek = new Date();
@@ -97,7 +104,7 @@ export async function GET(request: Request) {
             shouldCreateReminder = existingReminders.empty;
           }
 
-          // If no recent reminder exists (or debug mode), create one
+          // If no recent reminder exists (or debug mode/admin user), create one
           if (shouldCreateReminder) {
             console.log(`📬 Creating weekly reminder for current milestone: ${milestone.title}`);
 
@@ -137,7 +144,7 @@ export async function GET(request: Request) {
               console.log(`⚠️ Failed to generate nudge for milestone: ${milestone.title}`);
             }
           } else {
-            if (!debugMode) {
+            if (!debugMode && !isAdminUser) {
               console.log(`⏭️ Recent reminder already exists for milestone: ${milestone.title}`);
             }
           }
@@ -160,4 +167,12 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
+}
+
+export async function GET(request: Request) {
+  return processWeeklyMilestoneReminders(request);
+}
+
+export async function POST(request: Request) {
+  return processWeeklyMilestoneReminders(request);
 }
