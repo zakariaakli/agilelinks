@@ -1,7 +1,7 @@
 import { OpenAI } from 'openai';
+import { logTokenUsage } from './simpleTracker';
 
-
-export async function generateNudgeFromAI(input: { type: string, summary: string }) {
+export async function generateNudgeFromAI(input: { type: string, summary: string }, userEmail?: string) {
 
 const openai = new OpenAI({ apiKey: process.env.NEXT_PUBLIC_REACT_APP_OPENAI_API_KEY })
   try {
@@ -20,11 +20,23 @@ Summary: ${input.summary}`
     })
 
     let status = 'queued'
+    let finalResult: any = null;
     while (status !== 'completed') {
-      const result = await openai.beta.threads.runs.retrieve(thread.id, run.id)
-      status = result.status
+      finalResult = await openai.beta.threads.runs.retrieve(thread.id, run.id)
+      status = finalResult.status
       if (status === 'failed') throw new Error('Run failed')
       await new Promise(r => setTimeout(r, 1000))
+    }
+
+    // Track token usage for daily nudge generation
+    if (userEmail) {
+      try {
+        console.log('🔍 Tracking daily nudge generation tokens...');
+        await logTokenUsage('openai_daily_nudges', userEmail, 200); // Estimated tokens
+        console.log('✅ Successfully tracked daily nudge tokens');
+      } catch (trackingError) {
+        console.warn('⚠️ Could not track daily nudge tokens:', trackingError);
+      }
     }
 
     const messages = await openai.beta.threads.messages.list(thread.id)

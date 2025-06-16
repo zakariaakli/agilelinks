@@ -130,6 +130,41 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
     }
 
     setIsWaiting(false);
+
+    // Track token usage for Enneagram chat conversation
+    if (response.status === 'completed' && user) {
+      try {
+        console.log('🔍 Tracking Enneagram chat conversation tokens...');
+        
+        // Estimate tokens since Assistant API doesn't always return usage
+        const estimatedTokens = (message || input).length * 0.25 + 150; // Rough estimation
+        
+        const trackingResponse = await fetch('/api/track-openai-usage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${await user.getIdToken()}`
+          },
+          body: JSON.stringify({
+            functionName: 'enneagram_chat_conversation',
+            model: 'gpt-4', // Assistant API typically uses GPT-4
+            promptTokens: Math.floor(estimatedTokens * 0.7),
+            completionTokens: Math.floor(estimatedTokens * 0.3),
+            totalTokens: Math.floor(estimatedTokens),
+            requestData: { 
+              userMessage: (message || input).substring(0, 100) + '...',
+              assistantId: process.env.NEXT_PUBLIC_REACT_APP_ASSISTANT_ID
+            }
+          })
+        });
+        
+        if (trackingResponse.ok) {
+          console.log('✅ Successfully tracked Enneagram chat tokens');
+        }
+      } catch (trackingError) {
+        console.warn('⚠️ Could not track Enneagram chat tokens:', trackingError);
+      }
+    }
     const messageList = await openai.beta.threads.messages.list(thread.id);
     const lastMessage = messageList.data
       .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
@@ -172,6 +207,40 @@ const Chat: React.FC<ChatProps> = ({ setAssessmentResult, setResultData }) => {
           ],
           response_format: zodResponseFormat(EnneagramResult, 'result'),
         });
+        
+        // Track token usage for Enneagram result parsing
+        if (completion.usage && user) {
+          try {
+            console.log('🔍 Tracking Enneagram result parsing tokens...');
+            
+            // Send token usage to our tracking API
+            const trackingResponse = await fetch('/api/track-openai-usage', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${await user.getIdToken()}`
+              },
+              body: JSON.stringify({
+                functionName: 'enneagram_result_parsing',
+                model: 'gpt-4o-2024-08-06',
+                promptTokens: completion.usage.prompt_tokens,
+                completionTokens: completion.usage.completion_tokens,
+                totalTokens: completion.usage.total_tokens,
+                requestData: { 
+                  systemPrompt: 'extract enneagram ratings',
+                  userContent: lastContent.substring(0, 200) + '...' 
+                }
+              })
+            });
+            
+            if (trackingResponse.ok) {
+              console.log('✅ Successfully tracked Enneagram parsing tokens');
+            }
+          } catch (trackingError) {
+            console.warn('⚠️ Could not track Enneagram parsing tokens:', trackingError);
+          }
+        }
+        
         const event = completion.choices[0].message.parsed;
         try {
           setAssessmentResult(event);

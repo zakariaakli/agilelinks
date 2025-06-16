@@ -1,6 +1,7 @@
 import { OpenAI } from 'openai';
 import { db } from '../firebase';
 import { doc, getDoc, collection, query, where, limit, getDocs, orderBy } from 'firebase/firestore';
+import { trackTokenUsage } from './tokenTracker';
 
 interface Milestone {
   id: string;
@@ -36,7 +37,7 @@ interface AssistantInput {
   userFeedback: string;
 }
 
-export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudgeInput) {
+export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudgeInput, userEmail?: string) {
   const openai = new OpenAI({
     apiKey: process.env.NEXT_PUBLIC_REACT_APP_OPENAI_API_KEY
   });
@@ -166,10 +167,11 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
     let status = 'queued';
     let attempts = 0;
     const maxAttempts = 30; // 30 seconds timeout
+    let finalResult: any = null;
 
     while (status !== 'completed' && attempts < maxAttempts) {
-      const result = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-      status = result.status;
+      finalResult = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      status = finalResult.status;
 
       if (status === 'failed') {
         console.error('OpenAI run failed for milestone nudge generation');
@@ -178,6 +180,23 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
 
       await new Promise(resolve => setTimeout(resolve, 1000));
       attempts++;
+    }
+
+    // Track token usage if user email is provided and result has usage data
+    if (userEmail && finalResult && finalResult.usage) {
+      try {
+        await trackTokenUsage({
+          userId: input.userId,
+          userEmail,
+          functionName: 'openai_nudges',
+          model: 'gpt-4', // Assistant API typically uses GPT-4
+          promptTokens: finalResult.usage.prompt_tokens || 0,
+          completionTokens: finalResult.usage.completion_tokens || 0,
+          requestData: assistantInput
+        });
+      } catch (trackingError) {
+        console.error('Error tracking token usage for nudge generation:', trackingError);
+      }
     }
 
     if (status !== 'completed') {

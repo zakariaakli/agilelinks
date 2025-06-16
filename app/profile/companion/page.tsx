@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../../firebase';; // Adjust path as needed
 import styles from '../../../Styles/companion.module.css';
@@ -60,10 +60,7 @@ interface EnneagramResult {
   email: string;
 }
 
-interface User {
-  uid: string;
-  email: string | null;
-}
+// Using FirebaseUser from firebase/auth instead of custom User interface
 
 interface OpenAIQuestionsResponse {
   questions: string[];
@@ -147,7 +144,7 @@ const GoalWizard: React.FC = () => {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<FirebaseUser | null>(null);
   const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
   const [hasTimePressure, setHasTimePressure] = useState<boolean>(false);
   const [personalizationInfo, setPersonalizationInfo] = useState<{isPersonalized: boolean, level: string}>({isPersonalized: false, level: 'standard'});
@@ -191,10 +188,23 @@ const GoalWizard: React.FC = () => {
  const callOpenAIAssistant = async (objective: string, personalitySummary: string): Promise<{questions: string[], personalizationInfo: {isPersonalized: boolean, level: string}}> => {
   try {
     console.log(personalitySummary)
+    
+    // Get auth token for API tracking
+    let authHeader = {};
+    if (user) {
+      try {
+        const token = await user.getIdToken();
+        authHeader = { 'Authorization': `Bearer ${token}` };
+      } catch (tokenError) {
+        console.warn('Could not get auth token for API tracking:', tokenError);
+      }
+    }
+    
     const response = await fetch('/api/openAi/?type=questions', { // Add query parameter
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader
       },
       body: JSON.stringify({
         objective,
@@ -250,10 +260,22 @@ const GoalWizard: React.FC = () => {
 
     console.log('Sending milestone generation payload:', payload);
 
+    // Get auth token for API tracking
+    let authHeader = {};
+    if (user) {
+      try {
+        const token = await user.getIdToken();
+        authHeader = { 'Authorization': `Bearer ${token}` };
+      } catch (tokenError) {
+        console.warn('Could not get auth token for API tracking:', tokenError);
+      }
+    }
+
     const response = await fetch('/api/openAi/?type=milestones', { // Add query parameter
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...authHeader
       },
       body: JSON.stringify(payload),
     });

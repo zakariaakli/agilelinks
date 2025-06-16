@@ -3,6 +3,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 import { db } from '../../../firebase-admin.js';
+import { trackAPICall } from '../../../lib/tokenTracker';
+import { logTokenUsage } from '../../../lib/simpleTracker';
+import { auth } from 'firebase-admin';
 
 interface RequestBody {
   objective: string;
@@ -30,6 +33,27 @@ const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_REACT_APP_OPENAI_API_KEY,
 });
 
+// Helper function to get user from Firebase Auth token
+async function getUserFromRequest(request: NextRequest): Promise<{ userId: string; userEmail: string } | null> {
+  try {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.split('Bearer ')[1];
+    const decodedToken = await auth().verifyIdToken(token);
+    
+    return {
+      userId: decodedToken.uid,
+      userEmail: decodedToken.email || 'unknown@example.com'
+    };
+  } catch (error) {
+    console.error('Error verifying auth token:', error);
+    return null;
+  }
+}
+
 // Replace your existing POST function with this:
 export async function POST(request: NextRequest) {
   try {
@@ -37,10 +61,13 @@ export async function POST(request: NextRequest) {
     const url = new URL(request.url);
     const assistantType = url.searchParams.get('type') || 'questions';
 
+    // Get user information (optional - will proceed without if not available)
+    const userInfo = await getUserFromRequest(request);
+
     if (assistantType === 'questions') {
-      return await handleQuestionsRequest(body);
+      return await handleQuestionsRequest(body, userInfo);
     } else if (assistantType === 'milestones') {
-      return await handleMilestonesRequest(body);
+      return await handleMilestonesRequest(body, userInfo);
     } else {
       return NextResponse.json(
         { error: 'Invalid assistant type' },
@@ -57,7 +84,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Keep your existing handleQuestionsRequest logic (rename your current logic to this function)
-async function handleQuestionsRequest(body: RequestBody) {
+async function handleQuestionsRequest(body: RequestBody, userInfo: { userId: string; userEmail: string } | null) {
   const { objective, personalitySummary } = body;
 
   if (!objective) {
@@ -146,6 +173,16 @@ ${personalizationSummary ? `- Type Characteristics regarding questions to ask: $
         .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
         .pop();
 
+      // Simple tracking that should definitely work
+      try {
+        console.log('🔥 Attempting simple tracking for questions...');
+        const userEmail = userInfo?.userEmail || 'anonymous@example.com';
+        await logTokenUsage('openai_questions', userEmail, 300);
+        console.log('✅ Simple tracking successful for questions');
+      } catch (trackingError) {
+        console.error('❌ Simple tracking failed:', trackingError);
+      }
+
       if (lastMessage && lastMessage.content && lastMessage.content.length > 0) {
         // Fix: Properly type check and access the text content
         const firstContent = lastMessage.content[0];
@@ -197,7 +234,7 @@ ${personalizationSummary ? `- Type Characteristics regarding questions to ask: $
 }
 
 // Add this new function for milestone generation
-async function handleMilestonesRequest(body: MilestoneRequestBody) {
+async function handleMilestonesRequest(body: MilestoneRequestBody, userInfo: { userId: string; userEmail: string } | null) {
   try {
     const thread = await openai.beta.threads.create();
 
@@ -242,16 +279,39 @@ Instructions:
         .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
         .pop();
 
+      // Simple tracking that should definitely work
+      try {
+        console.log('🔥 Attempting simple tracking for milestones...');
+        const userEmail = userInfo?.userEmail || 'anonymous@example.com';
+        await logTokenUsage('openai_milestones', userEmail, 500);
+        console.log('✅ Simple tracking successful for milestones');
+      } catch (trackingError) {
+        console.error('❌ Simple tracking failed:', trackingError);
+      }
+
       if (lastMessage && lastMessage.content && lastMessage.content.length > 0) {
         // Fix: Properly type check and access the text content
         const firstContent = lastMessage.content[0];
         if (firstContent.type === 'text') {
           const content = firstContent.text.value;
           try {
-            const parsedContent = JSON.parse(content);
+            // Clean the content - remove markdown code blocks if present
+            let cleanContent = content.trim();
+            
+            // Remove ```json and ``` if present
+            if (cleanContent.startsWith('```json')) {
+              cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            } else if (cleanContent.startsWith('```')) {
+              cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            }
+            
+            console.log('🧹 Cleaned content for parsing:', cleanContent.substring(0, 200) + '...');
+            
+            const parsedContent = JSON.parse(cleanContent);
             return NextResponse.json(parsedContent);
           } catch (parseError) {
             console.error('Error parsing milestone response:', parseError);
+            console.log('📝 Raw content that failed to parse:', content.substring(0, 500));
             return generateFallbackMilestonesResponse(body.targetDate);
           }
         }

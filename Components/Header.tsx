@@ -122,6 +122,11 @@ const Header = () => {
                   <Link href="/profile/companion" className={styles.dropdownItem}>
                     <TargetIcon size={16} /> Create Plan
                   </Link>
+                  {user.email === 'zakaria.akli.ensa@gmail.com' && (
+                    <Link href="/admin" className={styles.dropdownItem}>
+                      <span style={{ fontSize: '16px' }}>🔧</span> Admin Dashboard
+                    </Link>
+                  )}
                   <div className={styles.dropdownDivider}></div>
                   <button onClick={handleSignOut} className={`${styles.dropdownItem} ${styles.signOutBtn}`}>
                     <LogOutIcon size={16} /> Sign Out
