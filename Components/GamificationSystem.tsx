@@ -40,32 +40,32 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
+
   // Calculate user level based on total activity
   const calculateLevel = (stats: UserStats) => {
-    const totalXP = 
-      (stats.completedMilestones * 100) + 
-      (stats.totalNudgeResponses * 25) + 
-      (stats.nudgeStreak * 10) + 
+    const totalXP =
+      (stats.completedMilestones * 100) +
+      (stats.totalNudgeResponses * 25) +
+      (stats.nudgeStreak * 10) +
       (stats.totalPlans * 200) +
       (stats.daysActive * 5);
-    
+
     return Math.floor(totalXP / 500) + 1; // Level up every 500 XP
   };
 
   const calculateXPForNextLevel = (stats: UserStats) => {
     const currentLevel = calculateLevel(stats);
-    const totalXP = 
-      (stats.completedMilestones * 100) + 
-      (stats.totalNudgeResponses * 25) + 
-      (stats.nudgeStreak * 10) + 
+    const totalXP =
+      (stats.completedMilestones * 100) +
+      (stats.totalNudgeResponses * 25) +
+      (stats.nudgeStreak * 10) +
       (stats.totalPlans * 200) +
       (stats.daysActive * 5);
     const xpForCurrentLevel = (currentLevel - 1) * 500;
     const xpForNextLevel = currentLevel * 500;
     const currentLevelProgress = totalXP - xpForCurrentLevel;
     const progressPercentage = (currentLevelProgress / 500) * 100;
-    
+
     return {
       currentXP: currentLevelProgress,
       neededXP: 500 - currentLevelProgress,
@@ -150,7 +150,7 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
 
       {/* Mobile Stats Header */}
       {isMobile && (
-        <div 
+        <div
           onClick={() => setIsStatsExpanded(!isStatsExpanded)}
           style={{
             background: 'var(--bg-primary)',
@@ -196,22 +196,22 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
           textAlign: 'center',
           boxShadow: 'var(--shadow-sm)'
         }}>
-          <div style={{ 
-            color: 'var(--color-success-600)', 
-            fontSize: isMobile ? '1.25rem' : '1.5rem', 
-            marginBottom: '0.5rem' 
+          <div style={{
+            color: 'var(--color-success-600)',
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
+            marginBottom: '0.5rem'
           }}>
             ✅
           </div>
-          <div style={{ 
-            fontSize: isMobile ? '1.25rem' : '1.5rem', 
+          <div style={{
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
             fontWeight: 'var(--font-weight-bold)',
             color: 'var(--text-primary)'
           }}>
             {userStats.completedMilestones}
           </div>
-          <div style={{ 
-            fontSize: isMobile ? '0.75rem' : '0.875rem', 
+          <div style={{
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
             color: 'var(--text-secondary)',
             marginTop: '0.25rem'
           }}>
@@ -227,22 +227,22 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
           textAlign: 'center',
           boxShadow: 'var(--shadow-sm)'
         }}>
-          <div style={{ 
-            color: 'var(--color-warning-600)', 
-            fontSize: '1.5rem', 
-            marginBottom: '0.5rem' 
+          <div style={{
+            color: 'var(--color-warning-600)',
+            fontSize: '1.5rem',
+            marginBottom: '0.5rem'
           }}>
             🔥
           </div>
-          <div style={{ 
-            fontSize: '1.5rem', 
+          <div style={{
+            fontSize: '1.5rem',
             fontWeight: 'var(--font-weight-bold)',
             color: 'var(--text-primary)'
           }}>
             {userStats.nudgeStreak}
           </div>
-          <div style={{ 
-            fontSize: '0.875rem', 
+          <div style={{
+            fontSize: '0.875rem',
             color: 'var(--text-secondary)',
             marginTop: '0.25rem'
           }}>
@@ -258,22 +258,22 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
           textAlign: 'center',
           boxShadow: 'var(--shadow-sm)'
         }}>
-          <div style={{ 
-            color: 'var(--color-primary-600)', 
-            fontSize: '1.5rem', 
-            marginBottom: '0.5rem' 
+          <div style={{
+            color: 'var(--color-primary-600)',
+            fontSize: '1.5rem',
+            marginBottom: '0.5rem'
           }}>
             📊
           </div>
-          <div style={{ 
-            fontSize: '1.5rem', 
+          <div style={{
+            fontSize: '1.5rem',
             fontWeight: 'var(--font-weight-bold)',
             color: 'var(--text-primary)'
           }}>
             {completionRate}%
           </div>
-          <div style={{ 
-            fontSize: '0.875rem', 
+          <div style={{
+            fontSize: '0.875rem',
             color: 'var(--text-secondary)',
             marginTop: '0.25rem'
           }}>
@@ -289,22 +289,22 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
           textAlign: 'center',
           boxShadow: 'var(--shadow-sm)'
         }}>
-          <div style={{ 
-            color: 'var(--color-secondary-600)', 
-            fontSize: '1.5rem', 
-            marginBottom: '0.5rem' 
+          <div style={{
+            color: 'var(--color-secondary-600)',
+            fontSize: '1.5rem',
+            marginBottom: '0.5rem'
           }}>
             📋
           </div>
-          <div style={{ 
-            fontSize: '1.5rem', 
+          <div style={{
+            fontSize: '1.5rem',
             fontWeight: 'var(--font-weight-bold)',
             color: 'var(--text-primary)'
           }}>
             {userStats.totalPlans}
           </div>
-          <div style={{ 
-            fontSize: '0.875rem', 
+          <div style={{
+            fontSize: '0.875rem',
             color: 'var(--text-secondary)',
             marginTop: '0.25rem'
           }}>
@@ -323,7 +323,7 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
       }}>
         {/* Mobile Achievements Header */}
         {isMobile ? (
-          <div 
+          <div
             onClick={() => setIsAchievementsExpanded(!isAchievementsExpanded)}
             style={{
               display: 'flex',
@@ -387,11 +387,11 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
             <div
               key={achievement.id}
               style={{
-                background: achievement.unlocked 
-                  ? 'var(--bg-primary)' 
+                background: achievement.unlocked
+                  ? 'var(--bg-primary)'
                   : 'var(--bg-tertiary)',
-                border: achievement.unlocked 
-                  ? (isMobile ? '1px solid var(--color-success-400)' : '2px solid var(--color-success-400)') 
+                border: achievement.unlocked
+                  ? (isMobile ? '1px solid var(--color-success-400)' : '2px solid var(--color-success-400)')
                   : '1px solid var(--border-color)',
                 borderRadius: 'var(--border-radius-lg)',
                 padding: isMobile ? '0.75rem' : '1rem',
@@ -423,7 +423,7 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
               }}>
                 {achievement.description}
               </div>
-              
+
               {!achievement.unlocked && achievement.maxProgress && (
                 <div style={{
                   background: '#e5e7eb',
@@ -441,7 +441,7 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
                   }} />
                 </div>
               )}
-              
+
               {achievement.unlocked && (
                 <div style={{
                   display: 'flex',
@@ -465,61 +465,17 @@ const GamificationSystem: React.FC<GamificationSystemProps> = ({ userStats, clas
         </div>
       </div>
 
-      {/* Daily Challenge Preview */}
-      <div style={{
-        background: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
-        borderRadius: '1rem',
-        padding: '1.5rem',
-        color: 'white',
-        textAlign: 'center'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '0.5rem',
-          marginBottom: '1rem'
-        }}>
-          <ZapIcon size={20} />
-          <h3 style={{
-            margin: 0,
-            fontSize: '1.125rem',
-            fontWeight: 'bold'
-          }}>
-            Today's Challenge
-          </h3>
-        </div>
-        
-        <div style={{
-          fontSize: '1rem',
-          marginBottom: '1rem',
-          opacity: 0.95
-        }}>
-          Complete one milestone task and give feedback on a nudge to earn bonus XP!
-        </div>
-        
-        <div style={{
-          background: 'rgba(255,255,255,0.2)',
-          borderRadius: '0.5rem',
-          padding: '0.75rem',
-          fontSize: '0.875rem',
-          fontWeight: 'bold'
-        }}>
-          🎁 Reward: +50 XP Bonus
-        </div>
-      </div>
-
       <style jsx>{`
         .gamification-system {
           position: relative;
         }
-        
+
         @keyframes pulse {
           0% { transform: scale(1); }
           50% { transform: scale(1.05); }
           100% { transform: scale(1); }
         }
-        
+
         @keyframes glow {
           0% { box-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
           50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }

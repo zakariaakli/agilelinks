@@ -59,7 +59,7 @@ const ProfilePage = () => {
   const [user, setUser] = useState<any>(null);
   const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
   const [userPlans, setUserPlans] = useState<PlanData[]>([]);
-  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
+  const [expandedPlans, setExpandedPlans] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [milestoneNotifications, setMilestoneNotifications] = useState<Record<string, Notification[]>>({});
   const [loadingNotifications, setLoadingNotifications] = useState<Record<string, boolean>>({});
@@ -117,27 +117,35 @@ const ProfilePage = () => {
   };
 
   const togglePlanExpansion = (planId: string) => {
-    setExpandedPlan(expandedPlan === planId ? null : planId);
+    setExpandedPlans(prev => {
+      const newSet = new Set();
+      // If clicking on already expanded plan, collapse it (empty set)
+      // If clicking on different plan, expand only that one
+      if (!prev.has(planId)) {
+        newSet.add(planId);
+      }
+      return newSet;
+    });
   };
 
   // Helper function to determine milestone status
   const getMilestoneStatus = (milestone: Milestone): 'completed' | 'current' | 'future' => {
     if (milestone.completed) return 'completed';
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const startDate = new Date(milestone.startDate);
     startDate.setHours(0, 0, 0, 0);
-    
+
     const dueDate = new Date(milestone.dueDate);
     dueDate.setHours(0, 0, 0, 0);
-    
+
     // Current milestone: started but not completed, and due date hasn't passed
     if (startDate <= today && today <= dueDate) {
       return 'current';
     }
-    
+
     return 'future';
   };
 
@@ -153,7 +161,7 @@ const ProfilePage = () => {
       );
 
       const querySnapshot = await getDocs(notificationQuery);
-      
+
       if (querySnapshot.empty) return [];
 
       return querySnapshot.docs.map(doc => ({
@@ -171,7 +179,7 @@ const ProfilePage = () => {
     if (!user) return;
 
     const currentMilestones: { planId: string; milestone: Milestone }[] = [];
-    
+
     // Find all current milestones across all plans
     plans.forEach(plan => {
       plan.milestones?.forEach(milestone => {
@@ -196,10 +204,10 @@ const ProfilePage = () => {
 
     try {
       const results = await Promise.all(notificationPromises);
-      
+
       const notifications: Record<string, Notification[]> = {};
       const finalLoadingState: Record<string, boolean> = {};
-      
+
       results.forEach(({ milestoneId, notifications: milestoneNotifs }) => {
         notifications[milestoneId] = milestoneNotifs;
         finalLoadingState[milestoneId] = false;
@@ -249,21 +257,21 @@ const ProfilePage = () => {
     const allMilestones = userPlans.flatMap(plan => plan.milestones || []);
     const completedMilestones = allMilestones.filter(m => m.completed).length;
     const totalMilestones = allMilestones.length;
-    
+
     // Calculate nudge streak and responses from milestone notifications
     let totalNudgeResponses = 0;
     let nudgeStreak = 0;
-    
+
     Object.values(milestoneNotifications).forEach(notifications => {
       totalNudgeResponses += notifications.filter(n => n.feedback).length;
       // Simple streak calculation - could be more sophisticated
       const recentResponses = notifications.filter(n => n.feedback).length;
       nudgeStreak = Math.max(nudgeStreak, recentResponses);
     });
-    
+
     // Simple days active calculation - could be based on actual user activity
     const daysActive = userPlans.length > 0 ? Math.max(1, Math.floor(Math.random() * 30) + 1) : 0;
-    
+
     return {
       totalPlans,
       completedMilestones,
@@ -284,9 +292,8 @@ const ProfilePage = () => {
     <div className={`${styles.profileContainer} container my20`}>
       <div className={`${styles.profileHeader} slideInDown`}>
         <h1 className={styles.profileTitle}>Welcome back, {user.displayName}</h1>
-        <p className={styles.email}>{user.email}</p>
       </div>
-      
+
       {/* Gamification Dashboard */}
       <section className={`${styles.gamificationSection} section slideInUp staggerDelay1`}>
         <GamificationSystem userStats={userStats} className="mb8" />
@@ -296,8 +303,8 @@ const ProfilePage = () => {
       <section className={`${styles.plansSection} section slideInUp staggerDelay3`}>
         <div className={`${styles.plansSectionHeader} flex justifyBetween itemsCenter mb6`}>
           <h2 className={styles.sectionTitle}>Your Plans</h2>
-          <LinkButton 
-            href="/profile/companion" 
+          <LinkButton
+            href="/profile/companion"
             variant="primary"
             icon={<PlusIcon size={16} />}
             className={`${styles.createPlanLink} pulse`}
@@ -309,8 +316,8 @@ const ProfilePage = () => {
         {userPlans.length > 0 ? (
           <div className={`${styles.plansGrid} gridAutoFit gapLg`}>
             {userPlans.map((plan, index) => (
-              <div 
-                key={plan.id} 
+              <div
+                key={plan.id}
                 className={`${styles.planCard} scaleHover slideInUp`}
                 style={{ animationDelay: `${0.1 * (index + 2)}s` }}
               >
@@ -363,12 +370,12 @@ const ProfilePage = () => {
                   </div>
 
                   <div className={styles.expandIcon}>
-                    {expandedPlan === plan.id ? '▼' : '▶'}
+                    {expandedPlans.has(plan.id) ? '▼' : '▶'}
                   </div>
                 </div>
 
                 {/* Plan Details (Expandable) */}
-                {expandedPlan === plan.id && (
+                {expandedPlans.has(plan.id) && (
                   <div className={styles.planDetails}>
                     <div className={styles.planDetailsSection}>
                       <h4>Full Goal Description</h4>
@@ -429,19 +436,19 @@ const ProfilePage = () => {
                     </div>
 
                     <div className={styles.planActions}>
-                      <LinkButton 
-                        href="#" 
-                        variant="ghost" 
-                        size="sm" 
+                      <LinkButton
+                        href="#"
+                        variant="ghost"
+                        size="sm"
                         icon={<EditIcon size={14} />}
                         className={styles.editPlanButton}
                       >
                         Edit Plan
                       </LinkButton>
-                      <LinkButton 
-                        href="#" 
-                        variant="primary" 
-                        size="sm" 
+                      <LinkButton
+                        href="#"
+                        variant="primary"
+                        size="sm"
                         icon={<EyeIcon size={14} />}
                         className={styles.viewPlanButton}
                       >
@@ -460,8 +467,8 @@ const ProfilePage = () => {
             </div>
             <h3 className="mb4">No plans yet!</h3>
             <p className="mb8">Create your first goal-oriented plan to get started on your journey.</p>
-            <LinkButton 
-              href="/profile/companion" 
+            <LinkButton
+              href="/profile/companion"
               variant="primary"
               size="lg"
               icon={<PlusIcon size={20} />}

@@ -237,11 +237,11 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
 
   return (
     <div style={{
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      borderRadius: '1rem',
-      padding: isMobile ? 'clamp(0.75rem, 2vw, 1rem)' : 'clamp(1rem, 3vw, 1.5rem)',
-      marginTop: isMobile ? '0.75rem' : '1rem',
-      color: 'white',
+      background: isMobile ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      borderRadius: isMobile ? '0' : '1rem',
+      padding: isMobile ? '0' : 'clamp(1rem, 3vw, 1.5rem)',
+      marginTop: isMobile ? '0.5rem' : '1rem',
+      color: isMobile ? '#333' : 'white',
       position: 'relative',
       overflow: 'hidden',
       transform: shakeAnimation ? 'translateX(-2px)' : 'translateX(0)',
@@ -293,9 +293,13 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '1rem',
+        marginBottom: isMobile ? '0.75rem' : '1rem',
         flexWrap: 'wrap',
-        gap: '0.5rem'
+        gap: '0.5rem',
+        padding: isMobile ? '0.75rem 1rem' : '0',
+        background: isMobile ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'transparent',
+        borderRadius: isMobile ? '0.75rem' : '0',
+        color: isMobile ? 'white' : 'inherit'
       }}>
         <div style={{
           display: 'flex',
@@ -311,7 +315,7 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
           </span>
           {streakCount > 0 && (
             <div style={{
-              background: '#ff6b6b',
+              background: isMobile ? 'rgba(255,255,255,0.2)' : '#ff6b6b',
               padding: '0.25rem 0.5rem',
               borderRadius: '1rem',
               fontSize: '0.75rem',
@@ -324,7 +328,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         </div>
         <div style={{
           textAlign: 'right',
-          fontSize: '0.75rem'
+          fontSize: '0.75rem',
+          opacity: isMobile ? 0.9 : 1
         }}>
           <div>{reactedCount}/{totalCount} completed • {completionRate}%</div>
         </div>
@@ -372,16 +377,17 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         onTouchEnd={handleTouchEnd}
         onDoubleClick={handleCelebration}
         style={{
-          background: 'rgba(255,255,255,0.95)',
-          borderRadius: '0.75rem',
-          padding: 'clamp(0.75rem, 2vw, 1.5rem)',
+          background: isMobile ? '#f8f9fa' : 'rgba(255,255,255,0.95)',
+          borderRadius: isMobile ? '0.5rem' : '0.75rem',
+          padding: isMobile ? '1rem' : 'clamp(0.75rem, 2vw, 1.5rem)',
           color: '#1a1a1a',
           transform: isAnimating ? 'scale(0.98)' : 'scale(1)',
           transition: 'transform 0.3s ease',
           cursor: 'grab',
           userSelect: 'none',
-          // Mobile optimization
-          minHeight: window.innerWidth <= 768 ? 'auto' : undefined
+          marginTop: isMobile ? '0.75rem' : '0',
+          border: isMobile ? '1px solid #e5e7eb' : 'none',
+          boxShadow: isMobile ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
         }}
         className="game-nudge-card"
       >
@@ -450,10 +456,11 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         {/* Existing Reaction */}
         {hasReacted && (
           <div style={{
-            background: '#f0fdf4',
-            border: isMobile ? '1px solid #22c55e' : '2px solid #22c55e',
-            borderRadius: '0.5rem',
-            padding: isMobile ? '0.75rem' : '1rem',
+            background: isMobile ? 'transparent' : '#f0fdf4',
+            border: isMobile ? 'none' : '2px solid #22c55e',
+            borderLeft: isMobile ? '3px solid #22c55e' : 'none',
+            borderRadius: isMobile ? '0' : '0.5rem',
+            padding: isMobile ? '0.5rem 0 0.5rem 0.75rem' : '1rem',
             marginBottom: isMobile ? '0.75rem' : '1rem'
           }}>
             <div style={{

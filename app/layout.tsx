@@ -6,6 +6,7 @@ import Seo from "../Components/Seo";
 import Header from "../Components/Header";
 import Footer from "../Components/Footer";
 import ThemeProvider from "../Components/ThemeProvider";
+import CookieConsent from "../Components/CookieConsent";
 
 // app/layout.tsx
 export const metadata = {
@@ -43,6 +44,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>

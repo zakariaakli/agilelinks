@@ -17,9 +17,9 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, 
-    var(--color-primary-500) 0%, 
-    var(--color-secondary-500) 50%, 
+  background: linear-gradient(90deg,
+    var(--color-primary-500) 0%,
+    var(--color-secondary-500) 50%,
     var(--color-accent-500) 100%
   );
 }
@@ -180,9 +180,9 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(99, 102, 241, 0.05) 50%, 
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(99, 102, 241, 0.05) 50%,
     transparent 100%
   );
   transition: var(--transition-all);
@@ -219,6 +219,7 @@
 
 .plansGrid {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 20px;
 }
 
@@ -240,8 +241,8 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, 
-    var(--color-primary-500) 0%, 
+  background: linear-gradient(90deg,
+    var(--color-primary-500) 0%,
     var(--color-secondary-500) 100%
   );
   transform: scaleX(0);
@@ -326,13 +327,15 @@
   right: 20px;
   color: #6B7280;
   font-size: 1.2rem;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
 }
 
 .planDetails {
   padding: 0 20px 20px;
   border-top: 1px solid #E5E7EB;
   background: #F9FAFB;
+  animation: expandPlan 0.3s ease-out;
+  transform-origin: top;
 }
 
 .planDetailsSection {
@@ -344,7 +347,7 @@
   font-size: 1rem;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 
 .fullGoalText {
@@ -384,7 +387,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .milestoneItem {
@@ -594,6 +597,19 @@
   }
 }
 
+@keyframes expandPlan {
+  from {
+    opacity: 0;
+    transform: scaleY(0.8);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+    max-height: 1000px;
+  }
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -639,9 +655,9 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.2) 50%, 
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
     transparent 100%
   );
   transition: var(--transition-all);
@@ -665,8 +681,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, 
-    rgba(99, 102, 241, 0.1) 0%, 
+  background: linear-gradient(135deg,
+    rgba(99, 102, 241, 0.1) 0%,
     rgba(16, 185, 129, 0.1) 100%
   );
   opacity: 0;
@@ -688,7 +704,7 @@
     margin: var(--space-5) auto;
     padding: var(--space-5) var(--space-4);
   }
-  
+
   .profileTitle {
     font-size: var(--font-size-3xl);
   }
