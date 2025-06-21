@@ -114,7 +114,7 @@ async function handleQuestionsRequest(body: RequestBody, userInfo: { userId: str
 
     // Query personalization data from Firebase
     let personalizationSummary = '';
-    if (enneagramTypeNumber) {
+    if (enneagramTypeNumber && db) {
       try {
         console.log('Querying Firebase for type:', enneagramTypeNumber);
         const personalizationQuery = await db

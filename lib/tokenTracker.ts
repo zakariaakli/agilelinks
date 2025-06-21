@@ -55,6 +55,12 @@ export const trackTokenUsage = async (data: {
   responseData?: any;
 }): Promise<void> => {
   try {
+    // Skip tracking if Firebase is not initialized
+    if (!db) {
+      console.warn('⚠️ Firebase not initialized, skipping token tracking');
+      return;
+    }
+
     const totalTokens = data.promptTokens + data.completionTokens;
     const cost = calculateCost(data.model, data.promptTokens, data.completionTokens);
 
@@ -150,6 +156,17 @@ export const getUserTokenStats = async (
   functionBreakdown: { [key: string]: { cost: number; tokens: number; count: number } };
 }> => {
   try {
+    // Return empty stats if Firebase is not initialized
+    if (!db) {
+      console.warn('⚠️ Firebase not initialized, returning empty token usage stats');
+      return {
+        totalCost: 0,
+        totalTokens: 0,
+        requestCount: 0,
+        functionBreakdown: {}
+      };
+    }
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 

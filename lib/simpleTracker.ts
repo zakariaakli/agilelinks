@@ -9,6 +9,12 @@ export const logTokenUsage = async (
   try {
     console.log('🔥 Simple tracking attempt:', { functionName, userEmail, estimatedTokens });
     
+    // Skip tracking if Firebase is not initialized
+    if (!db) {
+      console.warn('⚠️ Firebase not initialized, skipping simple tracking');
+      return null;
+    }
+    
     const docData = {
       userId: 'simple-user',
       userEmail,

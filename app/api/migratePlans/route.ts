@@ -15,7 +15,7 @@ interface PlanData {
   createdAt: any;
 }
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     console.log('🔄 Starting migration of existing plans to add nudgeFrequency field...');
 

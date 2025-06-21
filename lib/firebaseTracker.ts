@@ -52,6 +52,12 @@ export const trackFirebaseUsage = async (data: {
   functionName?: string;
 }): Promise<void> => {
   try {
+    // Skip tracking if Firebase is not initialized (e.g., during build)
+    if (!db) {
+      console.warn('⚠️ Firebase not initialized, skipping usage tracking');
+      return;
+    }
+
     const cost = calculateFirebaseCost(data.operation, data.documentCount);
     
     const usageData: FirebaseUsageData = {
@@ -163,6 +169,19 @@ export const getFirebaseUsageStats = async (
   userBreakdown: { [userEmail: string]: { operations: number; cost: number } };
 }> => {
   try {
+    // Return empty stats if Firebase is not initialized
+    if (!db) {
+      console.warn('⚠️ Firebase not initialized, returning empty usage stats');
+      return {
+        totalCost: 0,
+        totalReads: 0,
+        totalWrites: 0,
+        totalDeletes: 0,
+        operationBreakdown: {},
+        userBreakdown: {}
+      };
+    }
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     

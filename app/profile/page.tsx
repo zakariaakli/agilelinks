@@ -118,7 +118,7 @@ const ProfilePage = () => {
 
   const togglePlanExpansion = (planId: string) => {
     setExpandedPlans(prev => {
-      const newSet = new Set();
+      const newSet = new Set<string>();
       // If clicking on already expanded plan, collapse it (empty set)
       // If clicking on different plan, expand only that one
       if (!prev.has(planId)) {
