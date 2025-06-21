@@ -12,6 +12,7 @@ interface PlanData {
   goal: string;
   targetDate: string;
   hasTimePressure: boolean;
+  nudgeFrequency: 'daily' | 'weekly';
   clarifyingQuestions: ClarifyingQuestion[];
   milestones: Milestone[];
   createdAt: any; // Will be server timestamp
@@ -147,6 +148,7 @@ const GoalWizard: React.FC = () => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
   const [hasTimePressure, setHasTimePressure] = useState<boolean>(false);
+  const [nudgeFrequency, setNudgeFrequency] = useState<'daily' | 'weekly'>('weekly');
   const [personalizationInfo, setPersonalizationInfo] = useState<{isPersonalized: boolean, level: string}>({isPersonalized: false, level: 'standard'});
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -573,6 +575,7 @@ const GoalWizard: React.FC = () => {
       goal,
       targetDate,
       hasTimePressure,
+      nudgeFrequency,
       clarifyingQuestions,
       milestones,
       createdAt: serverTimestamp(),
@@ -737,6 +740,45 @@ const updateUserPlansCount = async (userId: string): Promise<void> => {
                 </label>
               </div>
             </div>
+
+            <div className={styles.section}>
+              <h2 className={styles.subtitle}>Reminder Frequency</h2>
+              <p className={styles.helperText}>
+                Choose how often you'd like to receive milestone reminders to stay on track:
+              </p>
+              <div className={styles.nudgeSelection}>
+                <label className={styles.nudgeOption}>
+                  <input
+                    type="radio"
+                    name="nudgeFrequency"
+                    value="daily"
+                    checked={nudgeFrequency === 'daily'}
+                    onChange={() => setNudgeFrequency('daily')}
+                  />
+                  <div className={styles.nudgeOptionContent}>
+                    <span className={styles.nudgeOptionTitle}>Daily Reminders</span>
+                    <span className={styles.nudgeOptionDescription}>
+                      Get daily check-ins for active milestones to maintain momentum
+                    </span>
+                  </div>
+                </label>
+                <label className={styles.nudgeOption}>
+                  <input
+                    type="radio"
+                    name="nudgeFrequency"
+                    value="weekly"
+                    checked={nudgeFrequency === 'weekly'}
+                    onChange={() => setNudgeFrequency('weekly')}
+                  />
+                  <div className={styles.nudgeOptionContent}>
+                    <span className={styles.nudgeOptionTitle}>Weekly Reminders</span>
+                    <span className={styles.nudgeOptionDescription}>
+                      Receive weekly progress updates for a balanced approach
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
           </>
         );
 
@@ -757,6 +799,8 @@ const updateUserPlansCount = async (userId: string): Promise<void> => {
               <p>{new Date(targetDate).toLocaleDateString()}</p>
               <h3>Timeline Preference:</h3>
               <p>{hasTimePressure ? 'Accelerated (time pressure)' : 'Normal pace'}</p>
+              <h3>Reminder Frequency:</h3>
+              <p>{nudgeFrequency === 'daily' ? 'Daily reminders' : 'Weekly reminders'}</p>
               {enneagramResult && (
                 <>
                   <h3>Personality Insight:</h3>
@@ -960,6 +1004,11 @@ const updateUserPlansCount = async (userId: string): Promise<void> => {
               <div className={styles.summarySection}>
                 <h3>Target Date:</h3>
                 <p>{new Date(targetDate).toLocaleDateString()}</p>
+              </div>
+
+              <div className={styles.summarySection}>
+                <h3>Reminder Frequency:</h3>
+                <p>{nudgeFrequency === 'daily' ? 'Daily reminders' : 'Weekly reminders'}</p>
               </div>
 
               <div className={styles.summarySection}>

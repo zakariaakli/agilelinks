@@ -22,14 +22,15 @@ interface PlanData {
   goal: string;
   targetDate: string;
   hasTimePressure: boolean;
+  nudgeFrequency?: 'daily' | 'weekly'; // Optional for backward compatibility
   milestones: Milestone[];
   status: 'active' | 'completed' | 'paused';
   createdAt: any;
 }
 
-async function processWeeklyMilestoneReminders(request: Request) {
+async function processMilestoneReminders(request: Request) {
   try {
-    console.log('🔄 Starting weekly milestone reminder check...');
+    console.log('🔄 Starting milestone reminder check...');
 
     // Debug mode - check for debug parameter to bypass date checks
     const { searchParams } = new URL(request.url);
@@ -55,6 +56,10 @@ async function processWeeklyMilestoneReminders(request: Request) {
       const planId = planDoc.id;
 
       console.log(`📋 Checking plan ${planId} for user ${planData.userId}`);
+
+      // Get plan's nudge frequency preference (default to weekly for backward compatibility)
+      const nudgeFrequency = planData.nudgeFrequency || 'weekly';
+      console.log(`📅 Plan nudge frequency: ${nudgeFrequency}${!planData.nudgeFrequency ? ' (default - plan needs migration)' : ''}`);
 
       // Special admin override for zakaria.akli.ensa@gmail.com
       const isAdminUser = planData.userId === 'CN3zNBjcyZTvzGpaAo3ro0C4eOl1';
@@ -82,7 +87,8 @@ async function processWeeklyMilestoneReminders(request: Request) {
         if (isCurrentMilestone) {
           console.log(`📋 Current milestone found: ${milestone.title} (${milestone.startDate} to ${milestone.dueDate})`);
 
-          // Check if we already sent a reminder for this milestone recently (within last 7 days)
+          // Check if we already sent a reminder for this milestone recently
+          // Daily: within last 1 day, Weekly: within last 7 days
           // Skip this check in debug mode or for admin user
           let shouldCreateReminder = false;
 
@@ -90,14 +96,18 @@ async function processWeeklyMilestoneReminders(request: Request) {
             console.log(`🐛 ${isAdminUser ? 'ADMIN USER' : 'DEBUG'}: Bypassing date check for milestone: ${milestone.title}`);
             shouldCreateReminder = true;
           } else {
-            const lastWeek = new Date();
-            lastWeek.setDate(lastWeek.getDate() - 7);
+            // Calculate the lookback period based on nudge frequency
+            const lookbackDays = nudgeFrequency === 'daily' ? 1 : 7;
+            const lookbackDate = new Date();
+            lookbackDate.setDate(lookbackDate.getDate() - lookbackDays);
+
+            console.log(`🔍 Checking for existing reminders within last ${lookbackDays} day(s) for milestone: ${milestone.title}`);
 
             const existingRemindersQuery = query(
               collection(db, 'notifications'),
               where('userId', '==', planData.userId),
               where('milestoneId', '==', milestone.id),
-              where('createdAt', '>=', Timestamp.fromDate(lastWeek))
+              where('createdAt', '>=', Timestamp.fromDate(lookbackDate))
             );
 
             const existingReminders = await getDocs(existingRemindersQuery);
@@ -106,7 +116,7 @@ async function processWeeklyMilestoneReminders(request: Request) {
 
           // If no recent reminder exists (or debug mode/admin user), create one
           if (shouldCreateReminder) {
-            console.log(`📬 Creating weekly reminder for current milestone: ${milestone.title}`);
+            console.log(`📬 Creating ${nudgeFrequency} reminder for current milestone: ${milestone.title}`);
 
             // Generate AI-powered nudge message
             const nudgeMessage = await generateMilestoneNudgeFromAI({
@@ -139,7 +149,7 @@ async function processWeeklyMilestoneReminders(request: Request) {
               });
 
               remindersCreated++;
-              console.log(`✅ Weekly reminder created for milestone: ${milestone.title}`);
+              console.log(`✅ ${nudgeFrequency.charAt(0).toUpperCase() + nudgeFrequency.slice(1)} reminder created for milestone: ${milestone.title}`);
             } else {
               console.log(`⚠️ Failed to generate nudge for milestone: ${milestone.title}`);
             }
@@ -152,7 +162,7 @@ async function processWeeklyMilestoneReminders(request: Request) {
       }
     }
 
-    console.log(`✅ Weekly milestone reminder check completed. Created ${remindersCreated} reminders.`);
+    console.log(`✅ Milestone reminder check completed. Created ${remindersCreated} reminders.`);
 
     return NextResponse.json({
       status: 'success',
@@ -161,7 +171,7 @@ async function processWeeklyMilestoneReminders(request: Request) {
     });
 
   } catch (error) {
-    console.error('❌ Error in weekly milestone reminders:', error);
+    console.error('❌ Error in milestone reminders:', error);
     return NextResponse.json(
       { status: 'error', message: 'Failed to process milestone reminders', error: String(error) },
       { status: 500 }
@@ -170,9 +180,9 @@ async function processWeeklyMilestoneReminders(request: Request) {
 }
 
 export async function GET(request: Request) {
-  return processWeeklyMilestoneReminders(request);
+  return processMilestoneReminders(request);
 }
 
 export async function POST(request: Request) {
-  return processWeeklyMilestoneReminders(request);
+  return processMilestoneReminders(request);
 }
