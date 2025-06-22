@@ -230,14 +230,6 @@ async function processMilestoneReminders(request: Request) {
   try {
     console.log('🔄 Starting milestone reminder check...');
 
-    // Debug mode - check for debug parameter to bypass date checks
-    const { searchParams } = new URL(request.url);
-    const debugMode = searchParams.get('debug') === 'true';
-
-    if (debugMode) {
-      console.log('🐛 DEBUG MODE ENABLED - Bypassing date checks for testing');
-    }
-
     // Get all active plans
     const plansQuery = query(
       collection(db, 'plans'),
@@ -259,12 +251,6 @@ async function processMilestoneReminders(request: Request) {
       const nudgeFrequency = planData.nudgeFrequency || 'weekly';
       console.log(`📅 Plan nudge frequency: ${nudgeFrequency}${!planData.nudgeFrequency ? ' (default - plan needs migration)' : ''}`);
 
-      // Special admin override for zakaria.akli.ensa@gmail.com
-      const isAdminUser = planData.userId === 'CN3zNBjcyZTvzGpaAo3ro0C4eOl1';
-      if (isAdminUser) {
-        console.log(`👑 Admin user detected - bypassing all date conditions for ${planData.userId}`);
-      }
-
       // Check each milestone in the plan
       for (const milestone of planData.milestones || []) {
         // Skip completed milestones
@@ -279,40 +265,32 @@ async function processMilestoneReminders(request: Request) {
         startDate.setHours(0, 0, 0, 0); // Set to start of day for comparison
 
         // Check if milestone is currently active (startDate <= today <= dueDate and not completed)
-        // For admin user, bypass date checks completely
-        const isCurrentMilestone = isAdminUser || startDate <= today && today <= dueDate;
+        const isCurrentMilestone = startDate <= today && today <= dueDate;
 
         if (isCurrentMilestone) {
           console.log(`📋 Current milestone found: ${milestone.title} (${milestone.startDate} to ${milestone.dueDate})`);
 
           // Check if we already sent a reminder for this milestone recently
           // Daily: within last 1 day, Weekly: within last 7 days
-          // Skip this check in debug mode or for admin user
-          let shouldCreateReminder = false;
+          
+          // Calculate the lookback period based on nudge frequency
+          const lookbackDays = nudgeFrequency === 'daily' ? 1 : 7;
+          const lookbackDate = new Date();
+          lookbackDate.setDate(lookbackDate.getDate() - lookbackDays);
 
-          if (debugMode || isAdminUser) {
-            console.log(`🐛 ${isAdminUser ? 'ADMIN USER' : 'DEBUG'}: Bypassing date check for milestone: ${milestone.title}`);
-            shouldCreateReminder = true;
-          } else {
-            // Calculate the lookback period based on nudge frequency
-            const lookbackDays = nudgeFrequency === 'daily' ? 1 : 7;
-            const lookbackDate = new Date();
-            lookbackDate.setDate(lookbackDate.getDate() - lookbackDays);
+          console.log(`🔍 Checking for existing reminders within last ${lookbackDays} day(s) for milestone: ${milestone.title}`);
 
-            console.log(`🔍 Checking for existing reminders within last ${lookbackDays} day(s) for milestone: ${milestone.title}`);
+          const existingRemindersQuery = query(
+            collection(db, 'notifications'),
+            where('userId', '==', planData.userId),
+            where('milestoneId', '==', milestone.id),
+            where('createdAt', '>=', Timestamp.fromDate(lookbackDate))
+          );
 
-            const existingRemindersQuery = query(
-              collection(db, 'notifications'),
-              where('userId', '==', planData.userId),
-              where('milestoneId', '==', milestone.id),
-              where('createdAt', '>=', Timestamp.fromDate(lookbackDate))
-            );
+          const existingReminders = await getDocs(existingRemindersQuery);
+          const shouldCreateReminder = existingReminders.empty;
 
-            const existingReminders = await getDocs(existingRemindersQuery);
-            shouldCreateReminder = existingReminders.empty;
-          }
-
-          // If no recent reminder exists (or debug mode/admin user), create one
+          // If no recent reminder exists, create one
           if (shouldCreateReminder) {
             console.log(`📬 Queuing ${nudgeFrequency} reminder for current milestone: ${milestone.title}`);
 
@@ -349,9 +327,7 @@ async function processMilestoneReminders(request: Request) {
 
             console.log(`✅ ${nudgeFrequency.charAt(0).toUpperCase() + nudgeFrequency.slice(1)} reminder queued for background processing: ${milestone.title}`);
           } else {
-            if (!debugMode && !isAdminUser) {
-              console.log(`⏭️ Recent reminder already exists for milestone: ${milestone.title}`);
-            }
+            console.log(`⏭️ Recent reminder already exists for milestone: ${milestone.title}`);
           }
         }
       }
