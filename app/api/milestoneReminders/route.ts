@@ -4,6 +4,143 @@ import { collection, doc, getDocs, query, where, setDoc, Timestamp } from 'fireb
 import { generateMilestoneNudgeFromAI } from '../../../lib/generateMilestoneNudgeFromAI';
 import { getDefaultEmailStatus, getDefaultNotificationMeta } from '../../../lib/notificationTracking';
 
+/**
+ * TIMEOUT FIX: Async AI Processing Function
+ * 
+ * This function handles AI generation in the background to avoid Vercel's 10-second timeout.
+ * It runs asynchronously after the main API response is sent, ensuring users only see
+ * the final AI-generated notification (no placeholder notifications).
+ * 
+ * @param notificationData - The notification data to process
+ * @param aiInput - Input parameters for AI generation
+ */
+async function processAIInBackground(
+  notificationData: {
+    userId: string;
+    planId: string;
+    milestoneId: string;
+    milestoneTitle: string;
+    blindSpotTip: string | null;
+    strengthHook: string | null;
+    startDate: string;
+    dueDate: string;
+  },
+  aiInput: {
+    milestone: Milestone;
+    goalContext: string;
+    userId: string;
+  }
+) {
+  try {
+    console.log(`🤖 [BACKGROUND] Starting AI generation for milestone: ${notificationData.milestoneTitle}`);
+    
+    // Generate AI-powered nudge message (this can take 10-30 seconds)
+    const aiNudgeMessage = await generateMilestoneNudgeFromAI(aiInput);
+    
+    if (aiNudgeMessage) {
+      // Create the final notification with AI-generated content
+      // User will only see this notification, not any placeholder
+      const notificationRef = doc(collection(db, 'notifications'));
+      
+      await setDoc(notificationRef, {
+        ...notificationData,
+        prompt: aiNudgeMessage,
+        createdAt: Timestamp.now(),
+        read: false,
+        feedback: null,
+        // Enhanced tracking fields
+        emailStatus: getDefaultEmailStatus(),
+        notificationMeta: getDefaultNotificationMeta('milestone_reminder')
+      });
+      
+      console.log(`✅ [BACKGROUND] AI notification created successfully for milestone: ${notificationData.milestoneTitle}`);
+    } else {
+      // Fallback: create notification with basic message if AI fails
+      console.log(`⚠️ [BACKGROUND] AI generation failed, creating fallback notification for: ${notificationData.milestoneTitle}`);
+      
+      const today = new Date();
+      const startDate = new Date(aiInput.milestone.startDate);
+      const dueDate = new Date(aiInput.milestone.dueDate);
+      const daysInProgress = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      const fallbackMessage = generateFallbackNudge(aiInput.milestone, daysInProgress, daysRemaining);
+      
+      const notificationRef = doc(collection(db, 'notifications'));
+      await setDoc(notificationRef, {
+        ...notificationData,
+        prompt: fallbackMessage,
+        createdAt: Timestamp.now(),
+        read: false,
+        feedback: null,
+        emailStatus: getDefaultEmailStatus(),
+        notificationMeta: getDefaultNotificationMeta('milestone_reminder')
+      });
+    }
+    
+  } catch (error) {
+    console.error(`❌ [BACKGROUND] Failed to process AI generation for milestone ${notificationData.milestoneTitle}:`, error);
+    
+    // Create fallback notification even if everything fails
+    try {
+      const today = new Date();
+      const startDate = new Date(aiInput.milestone.startDate);
+      const dueDate = new Date(aiInput.milestone.dueDate);
+      const daysInProgress = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      
+      const fallbackMessage = generateFallbackNudge(aiInput.milestone, daysInProgress, daysRemaining);
+      
+      const notificationRef = doc(collection(db, 'notifications'));
+      await setDoc(notificationRef, {
+        ...notificationData,
+        prompt: fallbackMessage,
+        createdAt: Timestamp.now(),
+        read: false,
+        feedback: null,
+        emailStatus: getDefaultEmailStatus(),
+        notificationMeta: getDefaultNotificationMeta('milestone_reminder')
+      });
+      
+      console.log(`🆘 [BACKGROUND] Fallback notification created after error for: ${notificationData.milestoneTitle}`);
+    } catch (fallbackError) {
+      console.error(`💥 [BACKGROUND] Critical error - could not create any notification:`, fallbackError);
+    }
+  }
+}
+
+/**
+ * Generates a simple fallback nudge message when AI is unavailable
+ * This ensures users always get a notification even if AI fails
+ */
+function generateFallbackNudge(milestone: Milestone, daysInProgress: number, daysRemaining: number): string {
+  const encouragements = [
+    "You're making great progress!",
+    "Keep up the momentum!",
+    "You've got this - stay focused!",
+    "Every step forward counts!",
+    "You're on the right track!"
+  ];
+
+  const randomEncouragement = encouragements[Math.floor(Math.random() * encouragements.length)];
+
+  let message = `Week ${Math.ceil(daysInProgress / 7)} of your "${milestone.title}" milestone! ${randomEncouragement} You have ${daysRemaining} days remaining to achieve this goal.`;
+
+  // Add blind spot tip if available
+  if (milestone.blindSpotTip) {
+    message += ` Keep in mind: ${milestone.blindSpotTip}`;
+  }
+
+  // Add strength hook if available
+  if (milestone.strengthHook) {
+    message += ` Leverage your strength: ${milestone.strengthHook}`;
+  }
+
+  message += " What's one key action you can take this week to move closer to completion?";
+
+  return message;
+}
+
 interface Milestone {
   id: string;
   title: string;
@@ -28,6 +165,23 @@ interface PlanData {
   createdAt: any;
 }
 
+/**
+ * MAIN MILESTONE REMINDERS PROCESSOR
+ * 
+ * This function processes milestone reminders for all active plans.
+ * TIMEOUT FIX: Returns response immediately (under 10s) while AI processing
+ * continues in the background to avoid Vercel serverless timeouts.
+ * 
+ * How it works:
+ * 1. Scans all active plans for current milestones
+ * 2. Checks if reminders are needed (based on frequency and existing reminders)
+ * 3. Queues AI generation tasks for background processing
+ * 4. Returns 200 response immediately
+ * 5. AI processing continues asynchronously and creates notifications when done
+ * 
+ * @param request - HTTP request object
+ * @returns NextResponse with immediate status
+ */
 async function processMilestoneReminders(request: Request) {
   try {
     console.log('🔄 Starting milestone reminder check...');
@@ -116,43 +270,40 @@ async function processMilestoneReminders(request: Request) {
 
           // If no recent reminder exists (or debug mode/admin user), create one
           if (shouldCreateReminder) {
-            console.log(`📬 Creating ${nudgeFrequency} reminder for current milestone: ${milestone.title}`);
+            console.log(`📬 Queuing ${nudgeFrequency} reminder for current milestone: ${milestone.title}`);
 
-            // Generate AI-powered nudge message
-            const nudgeMessage = await generateMilestoneNudgeFromAI({
+            // TIMEOUT FIX: Instead of waiting for AI generation (which can take 10-30 seconds),
+            // we immediately count this as a reminder being created and process AI in background.
+            // The user will only see the final notification when AI processing completes.
+            remindersCreated++;
+            
+            // Prepare notification data structure
+            const notificationData = {
+              userId: planData.userId,
+              type: 'milestone_reminder' as const,
+              planId: planId,
+              milestoneId: milestone.id,
+              milestoneTitle: milestone.title,
+              blindSpotTip: milestone.blindSpotTip || null,
+              strengthHook: milestone.strengthHook || null,
+              startDate: milestone.startDate,
+              dueDate: milestone.dueDate,
+            };
+
+            // Prepare AI input parameters
+            const aiInput = {
               milestone,
               goalContext: planData.goal,
               userId: planData.userId
+            };
+
+            // Process AI generation in background (non-blocking)
+            // This will create the actual notification after AI completes
+            processAIInBackground(notificationData, aiInput).catch(error => {
+              console.error(`❌ [MAIN] Background processing failed for milestone ${milestone.title}:`, error);
             });
 
-            if (nudgeMessage) {
-              // Create notification document
-              const notificationRef = doc(collection(db, 'notifications'));
-
-              await setDoc(notificationRef, {
-                userId: planData.userId,
-                type: 'milestone_reminder',
-                planId: planId,
-                milestoneId: milestone.id,
-                milestoneTitle: milestone.title,
-                prompt: nudgeMessage,
-                blindSpotTip: milestone.blindSpotTip || null,
-                strengthHook: milestone.strengthHook || null,
-                startDate: milestone.startDate,
-                dueDate: milestone.dueDate,
-                createdAt: Timestamp.now(),
-                read: false,
-                feedback: null,
-                // Enhanced tracking fields
-                emailStatus: getDefaultEmailStatus(),
-                notificationMeta: getDefaultNotificationMeta('milestone_reminder')
-              });
-
-              remindersCreated++;
-              console.log(`✅ ${nudgeFrequency.charAt(0).toUpperCase() + nudgeFrequency.slice(1)} reminder created for milestone: ${milestone.title}`);
-            } else {
-              console.log(`⚠️ Failed to generate nudge for milestone: ${milestone.title}`);
-            }
+            console.log(`✅ ${nudgeFrequency.charAt(0).toUpperCase() + nudgeFrequency.slice(1)} reminder queued for background processing: ${milestone.title}`);
           } else {
             if (!debugMode && !isAdminUser) {
               console.log(`⏭️ Recent reminder already exists for milestone: ${milestone.title}`);
@@ -162,12 +313,15 @@ async function processMilestoneReminders(request: Request) {
       }
     }
 
-    console.log(`✅ Milestone reminder check completed. Created ${remindersCreated} reminders.`);
+    console.log(`✅ Milestone reminder check completed. Queued ${remindersCreated} reminders for background processing.`);
 
+    // TIMEOUT FIX: Return response immediately to avoid Vercel timeout
+    // The actual notifications will be created by background AI processing
     return NextResponse.json({
       status: 'success',
-      remindersCreated,
-      message: `Successfully created ${remindersCreated} milestone reminders`
+      remindersQueued: remindersCreated,
+      message: `Successfully queued ${remindersCreated} milestone reminders for AI processing`,
+      note: 'Notifications will appear after AI generation completes in background'
     });
 
   } catch (error) {
@@ -179,10 +333,20 @@ async function processMilestoneReminders(request: Request) {
   }
 }
 
+/**
+ * GET endpoint for milestone reminders
+ * Used by scheduled cron jobs and manual triggers
+ * Returns immediately to avoid timeouts while processing continues in background
+ */
 export async function GET(request: Request) {
   return processMilestoneReminders(request);
 }
 
+/**
+ * POST endpoint for milestone reminders  
+ * Used for webhook triggers and API calls
+ * Returns immediately to avoid timeouts while processing continues in background
+ */
 export async function POST(request: Request) {
   return processMilestoneReminders(request);
 }
