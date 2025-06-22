@@ -3,6 +3,7 @@ import { db } from '../../../firebase';
 import { collection, doc, getDocs, query, where, setDoc, Timestamp } from 'firebase/firestore';
 import { generateMilestoneNudgeFromAI } from '../../../lib/generateMilestoneNudgeFromAI';
 import { getDefaultEmailStatus, getDefaultNotificationMeta } from '../../../lib/notificationTracking';
+import { sendMilestoneEmail } from '../../../lib/sendMilestoneEmail';
 
 /**
  * TIMEOUT FIX: Async AI Processing Function
@@ -54,6 +55,21 @@ async function processAIInBackground(
       });
       
       console.log(`✅ [BACKGROUND] AI notification created successfully for milestone: ${notificationData.milestoneTitle}`);
+      
+      // INTEGRATED EMAIL SYSTEM: Send email immediately after notification creation
+      // This ensures users get notified as soon as their milestone reminder is ready
+      console.log(`📧 [BACKGROUND] Attempting to send email for notification: ${notificationRef.id}`);
+      try {
+        await sendMilestoneEmail(notificationRef.id, notificationData.userId, {
+          prompt: aiNudgeMessage,
+          milestoneTitle: notificationData.milestoneTitle,
+          blindSpotTip: notificationData.blindSpotTip,
+          strengthHook: notificationData.strengthHook
+        });
+      } catch (emailError) {
+        console.error(`❌ [BACKGROUND] Email sending failed for notification ${notificationRef.id}:`, emailError);
+        // Don't throw - email failure shouldn't break notification creation
+      }
     } else {
       // Fallback: create notification with basic message if AI fails
       console.log(`⚠️ [BACKGROUND] AI generation failed, creating fallback notification for: ${notificationData.milestoneTitle}`);
@@ -76,6 +92,20 @@ async function processAIInBackground(
         emailStatus: getDefaultEmailStatus(),
         notificationMeta: getDefaultNotificationMeta('milestone_reminder')
       });
+      
+      // INTEGRATED EMAIL SYSTEM: Send email for AI failure fallback notification
+      console.log(`📧 [BACKGROUND] Attempting to send email for AI-failure fallback notification: ${notificationRef.id}`);
+      try {
+        await sendMilestoneEmail(notificationRef.id, notificationData.userId, {
+          prompt: fallbackMessage,
+          milestoneTitle: notificationData.milestoneTitle,
+          blindSpotTip: notificationData.blindSpotTip,
+          strengthHook: notificationData.strengthHook
+        });
+      } catch (emailError) {
+        console.error(`❌ [BACKGROUND] Email sending failed for AI-failure fallback notification ${notificationRef.id}:`, emailError);
+        // Don't throw - email failure shouldn't break notification creation
+      }
     }
     
   } catch (error) {
@@ -103,6 +133,20 @@ async function processAIInBackground(
       });
       
       console.log(`🆘 [BACKGROUND] Fallback notification created after error for: ${notificationData.milestoneTitle}`);
+      
+      // INTEGRATED EMAIL SYSTEM: Send email for critical error fallback notification
+      console.log(`📧 [BACKGROUND] Attempting to send email for critical-error fallback notification: ${notificationRef.id}`);
+      try {
+        await sendMilestoneEmail(notificationRef.id, notificationData.userId, {
+          prompt: fallbackMessage,
+          milestoneTitle: notificationData.milestoneTitle,
+          blindSpotTip: notificationData.blindSpotTip,
+          strengthHook: notificationData.strengthHook
+        });
+      } catch (emailError) {
+        console.error(`❌ [BACKGROUND] Email sending failed for critical-error fallback notification ${notificationRef.id}:`, emailError);
+        // Don't throw - this is already the final fallback
+      }
     } catch (fallbackError) {
       console.error(`💥 [BACKGROUND] Critical error - could not create any notification:`, fallbackError);
     }

@@ -302,12 +302,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const apiEndpoints = [
-    { name: 'Weekly Milestone Reminders', endpoint: '/api/weeklyMilestoneReminders', method: 'POST' },
-    { name: 'Send Daily Nudges', endpoint: '/api/sendDailyNudges', method: 'POST' },
-    { name: 'Generate Nudges', endpoint: '/api/generateNudges', method: 'POST' },
-    { name: 'Test Milestone Reminder', endpoint: '/api/testMilestoneReminder', method: 'POST' },
-    { name: 'Test Firebase Tracking', endpoint: '/api/test-firebase-tracking', method: 'GET' },
-    { name: 'Test Tracking', endpoint: '/api/test-tracking', method: 'GET' },
+    { name: 'Milestone Reminders (with Email)', endpoint: '/api/milestoneReminders', method: 'POST' },
     { name: 'Track OpenAI Usage', endpoint: '/api/track-openai-usage', method: 'GET' }
   ];
 
