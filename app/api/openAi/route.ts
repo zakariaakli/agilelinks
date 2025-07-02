@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 import { db } from '../../../firebase-admin.js';
+import { trackFirebaseQuery } from '../../../lib/firebaseTracker';
 import { trackAPICall } from '../../../lib/tokenTracker';
 import { logTokenUsage } from '../../../lib/simpleTracker';
 import { auth } from 'firebase-admin';
@@ -123,6 +124,14 @@ async function handleQuestionsRequest(body: RequestBody, userInfo: { userId: str
           .where('type', '==', enneagramTypeNumber)
           .limit(1)
           .get();
+
+        // Track the Firebase query manually since it's a complex query
+        await trackFirebaseQuery('read', 'personalization', personalizationQuery.size, {
+          userId: userInfo?.userId,
+          userEmail: userInfo?.userEmail,
+          source: 'openai_api',
+          functionName: 'get_personalization_data_for_questions'
+        });
 
         console.log('Firebase query results:', !personalizationQuery.empty ? 'Found data' : 'No data found');
 

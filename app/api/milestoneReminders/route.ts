@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '../../../firebase';
-import { collection, doc, getDocs, query, where, setDoc, Timestamp } from 'firebase/firestore';
+import { collection, doc, getDocs, query, where, setDoc, Timestamp, getDoc } from 'firebase/firestore';
 import { generateMilestoneNudgeFromAI } from '../../../lib/generateMilestoneNudgeFromAI';
 import { getDefaultEmailStatus, getDefaultNotificationMeta } from '../../../lib/notificationTracking';
 import { sendMilestoneEmail } from '../../../lib/sendMilestoneEmail';
+import { trackFirebaseRead, trackFirebaseWrite } from '../../../lib/firebaseTracker';
 
 /**
  * TIMEOUT FIX: Async AI Processing Function
@@ -11,6 +12,11 @@ import { sendMilestoneEmail } from '../../../lib/sendMilestoneEmail';
  * This function handles AI generation in the background to avoid Vercel's 10-second timeout.
  * It runs asynchronously after the main API response is sent, ensuring users only see
  * the final AI-generated notification (no placeholder notifications).
+ * 
+ * COST MONITORING: This function includes comprehensive tracking of:
+ * - OpenAI API usage (tokens and costs)
+ * - Firebase operations (reads/writes and costs)
+ * - User-specific cost attribution
  * 
  * @param notificationData - The notification data to process
  * @param aiInput - Input parameters for AI generation
@@ -35,8 +41,34 @@ async function processAIInBackground(
   try {
     console.log(`🤖 [BACKGROUND] Starting AI generation for milestone: ${notificationData.milestoneTitle}`);
     
+    // COST MONITORING: Get user email for cost tracking
+    let userEmail = 'unknown@system.com'; // Default fallback
+    try {
+      const userDocRef = doc(db, 'users', notificationData.userId);
+      const userDoc = await getDoc(userDocRef);
+      
+      // Track Firebase read operation
+      await trackFirebaseRead(
+        'users',
+        1,
+        notificationData.userId,
+        userEmail,
+        'server',
+        'milestone_reminders_user_lookup'
+      );
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        userEmail = userData.email || userData.userEmail || userEmail;
+        console.log(`📧 [COST-TRACKING] Retrieved user email for cost attribution: ${userEmail}`);
+      }
+    } catch (userLookupError) {
+      console.error('❌ [COST-TRACKING] Failed to get user email for tracking:', userLookupError);
+    }
+    
     // Generate AI-powered nudge message (this can take 10-30 seconds)
-    const aiNudgeMessage = await generateMilestoneNudgeFromAI(aiInput);
+    // COST MONITORING: Pass userEmail for OpenAI cost tracking
+    const aiNudgeMessage = await generateMilestoneNudgeFromAI(aiInput, userEmail);
     
     if (aiNudgeMessage) {
       // Create the final notification with AI-generated content
@@ -53,6 +85,16 @@ async function processAIInBackground(
         emailStatus: getDefaultEmailStatus(),
         notificationMeta: getDefaultNotificationMeta('milestone_reminder')
       });
+      
+      // COST MONITORING: Track Firebase write operation
+      await trackFirebaseWrite(
+        'notifications',
+        1,
+        notificationData.userId,
+        userEmail,
+        'server',
+        'milestone_reminders_create_notification'
+      );
       
       console.log(`✅ [BACKGROUND] AI notification created successfully for milestone: ${notificationData.milestoneTitle}`);
       
@@ -93,6 +135,16 @@ async function processAIInBackground(
         notificationMeta: getDefaultNotificationMeta('milestone_reminder')
       });
       
+      // COST MONITORING: Track Firebase write operation for fallback
+      await trackFirebaseWrite(
+        'notifications',
+        1,
+        notificationData.userId,
+        userEmail,
+        'server',
+        'milestone_reminders_fallback_notification'
+      );
+      
       // INTEGRATED EMAIL SYSTEM: Send email for AI failure fallback notification
       console.log(`📧 [BACKGROUND] Attempting to send email for AI-failure fallback notification: ${notificationRef.id}`);
       try {
@@ -131,6 +183,17 @@ async function processAIInBackground(
         emailStatus: getDefaultEmailStatus(),
         notificationMeta: getDefaultNotificationMeta('milestone_reminder')
       });
+      
+      // COST MONITORING: Track Firebase write operation for critical fallback
+      // Use fallback email since userEmail may not be accessible in this catch block
+      await trackFirebaseWrite(
+        'notifications',
+        1,
+        notificationData.userId,
+        'unknown@critical-fallback.com',
+        'server',
+        'milestone_reminders_critical_fallback'
+      );
       
       console.log(`🆘 [BACKGROUND] Fallback notification created after error for: ${notificationData.milestoneTitle}`);
       
@@ -226,7 +289,7 @@ interface PlanData {
  * @param request - HTTP request object
  * @returns NextResponse with immediate status
  */
-async function processMilestoneReminders(request: Request) {
+async function processMilestoneReminders(_request: Request) {
   try {
     console.log('🔄 Starting milestone reminder check...');
 
@@ -237,6 +300,17 @@ async function processMilestoneReminders(request: Request) {
     );
 
     const plansSnapshot = await getDocs(plansQuery);
+    
+    // COST MONITORING: Track Firebase read operation for plans query
+    await trackFirebaseRead(
+      'plans',
+      plansSnapshot.docs.length,
+      'system',
+      'system@milestone-scheduler.com',
+      'server',
+      'milestone_reminders_plans_query'
+    );
+    
     let remindersCreated = 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Set to start of day for comparison
@@ -288,6 +362,17 @@ async function processMilestoneReminders(request: Request) {
           );
 
           const existingReminders = await getDocs(existingRemindersQuery);
+          
+          // COST MONITORING: Track Firebase read operation for existing reminders check
+          await trackFirebaseRead(
+            'notifications',
+            existingReminders.docs.length,
+            planData.userId,
+            'user@checking-reminders.com', // Will be updated with actual email in background
+            'server',
+            'milestone_reminders_check_existing'
+          );
+          
           const shouldCreateReminder = existingReminders.empty;
 
           // If no recent reminder exists, create one

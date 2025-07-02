@@ -1,5 +1,20 @@
-import { db } from '../firebase-admin';
-import { trackFirebaseQuery } from './firebaseTracker';
+import { db } from '../firebase';
+import { 
+  collection, 
+  doc, 
+  getDocs, 
+  getDoc, 
+  addDoc, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  orderBy, 
+  limit,
+  QuerySnapshot,
+  DocumentSnapshot
+} from 'firebase/firestore';
 
 interface TrackingContext {
   userId?: string;
@@ -8,19 +23,50 @@ interface TrackingContext {
   functionName?: string;
 }
 
-// Tracked Firestore operations that automatically log usage
-export class TrackedFirestore {
+// Client-side tracking function - sends data to server
+const trackFirebaseOperation = async (
+  operation: 'read' | 'write' | 'delete',
+  collectionName: string,
+  documentCount: number,
+  context: TrackingContext = {}
+) => {
+  try {
+    // Skip tracking during server-side rendering/static generation
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    // Send tracking data to server endpoint
+    await fetch('/api/track-firebase-usage', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        operation,
+        collection: collectionName,
+        documentCount,
+        ...context,
+        timestamp: new Date().toISOString()
+      })
+    });
+  } catch (error) {
+    console.warn('Failed to track Firebase operation:', error);
+  }
+};
+
+// Client-side TrackedFirestore that works with Firebase v9+ SDK
+export class TrackedFirestoreClient {
   
   // Tracked collection reference
   static collection(collectionPath: string) {
     return {
       // Tracked add operation
       add: async (data: any, context: TrackingContext = {}) => {
-        if (!db) throw new Error('Firebase Admin not initialized');
-        const result = await db.collection(collectionPath).add(data);
+        const result = await addDoc(collection(db, collectionPath), data);
         
         // Track the write operation
-        await trackFirebaseQuery('write', collectionPath, 1, {
+        await trackFirebaseOperation('write', collectionPath, 1, {
           ...context,
           functionName: context.functionName || 'firestore_add'
         });
@@ -30,11 +76,10 @@ export class TrackedFirestore {
       
       // Tracked get operation (for entire collection)
       get: async (context: TrackingContext = {}) => {
-        if (!db) throw new Error('Firebase Admin not initialized');
-        const snapshot = await db.collection(collectionPath).get();
+        const snapshot = await getDocs(collection(db, collectionPath));
         
         // Track the read operation
-        await trackFirebaseQuery('read', collectionPath, snapshot.size, {
+        await trackFirebaseOperation('read', collectionPath, snapshot.size, {
           ...context,
           functionName: context.functionName || 'firestore_collection_get'
         });
@@ -44,15 +89,13 @@ export class TrackedFirestore {
       
       // Tracked where query
       where: (field: string, operator: any, value: any) => {
-        if (!db) throw new Error('Firebase Admin not initialized');
-        const query = db.collection(collectionPath).where(field, operator, value);
-        
         return {
           get: async (context: TrackingContext = {}) => {
-            const snapshot = await query.get();
+            const q = query(collection(db, collectionPath), where(field, operator, value));
+            const snapshot = await getDocs(q);
             
             // Track the read operation
-            await trackFirebaseQuery('read', collectionPath, snapshot.size, {
+            await trackFirebaseOperation('read', collectionPath, snapshot.size, {
               ...context,
               functionName: context.functionName || 'firestore_where_query'
             });
@@ -61,13 +104,16 @@ export class TrackedFirestore {
           },
           
           orderBy: (field: string, direction?: 'asc' | 'desc') => {
-            const orderedQuery = query.orderBy(field, direction);
-            
             return {
               get: async (context: TrackingContext = {}) => {
-                const snapshot = await orderedQuery.get();
+                const q = query(
+                  collection(db, collectionPath), 
+                  where(field, operator, value),
+                  orderBy(field, direction)
+                );
+                const snapshot = await getDocs(q);
                 
-                await trackFirebaseQuery('read', collectionPath, snapshot.size, {
+                await trackFirebaseOperation('read', collectionPath, snapshot.size, {
                   ...context,
                   functionName: context.functionName || 'firestore_ordered_query'
                 });
@@ -76,13 +122,17 @@ export class TrackedFirestore {
               },
               
               limit: (limitCount: number) => {
-                const limitedQuery = orderedQuery.limit(limitCount);
-                
                 return {
                   get: async (context: TrackingContext = {}) => {
-                    const snapshot = await limitedQuery.get();
+                    const q = query(
+                      collection(db, collectionPath),
+                      where(field, operator, value),
+                      orderBy(field, direction),
+                      limit(limitCount)
+                    );
+                    const snapshot = await getDocs(q);
                     
-                    await trackFirebaseQuery('read', collectionPath, snapshot.size, {
+                    await trackFirebaseOperation('read', collectionPath, snapshot.size, {
                       ...context,
                       functionName: context.functionName || 'firestore_limited_query'
                     });
@@ -95,13 +145,16 @@ export class TrackedFirestore {
           },
           
           limit: (limitCount: number) => {
-            const limitedQuery = query.limit(limitCount);
-            
             return {
               get: async (context: TrackingContext = {}) => {
-                const snapshot = await limitedQuery.get();
+                const q = query(
+                  collection(db, collectionPath),
+                  where(field, operator, value),
+                  limit(limitCount)
+                );
+                const snapshot = await getDocs(q);
                 
-                await trackFirebaseQuery('read', collectionPath, snapshot.size, {
+                await trackFirebaseOperation('read', collectionPath, snapshot.size, {
                   ...context,
                   functionName: context.functionName || 'firestore_limited_where_query'
                 });
@@ -115,14 +168,12 @@ export class TrackedFirestore {
       
       // Tracked orderBy
       orderBy: (field: string, direction?: 'asc' | 'desc') => {
-        if (!db) throw new Error('Firebase Admin not initialized');
-        const query = db.collection(collectionPath).orderBy(field, direction);
-        
         return {
           get: async (context: TrackingContext = {}) => {
-            const snapshot = await query.get();
+            const q = query(collection(db, collectionPath), orderBy(field, direction));
+            const snapshot = await getDocs(q);
             
-            await trackFirebaseQuery('read', collectionPath, snapshot.size, {
+            await trackFirebaseOperation('read', collectionPath, snapshot.size, {
               ...context,
               functionName: context.functionName || 'firestore_orderby_query'
             });
@@ -131,13 +182,16 @@ export class TrackedFirestore {
           },
           
           limit: (limitCount: number) => {
-            const limitedQuery = query.limit(limitCount);
-            
             return {
               get: async (context: TrackingContext = {}) => {
-                const snapshot = await limitedQuery.get();
+                const q = query(
+                  collection(db, collectionPath),
+                  orderBy(field, direction),
+                  limit(limitCount)
+                );
+                const snapshot = await getDocs(q);
                 
-                await trackFirebaseQuery('read', collectionPath, snapshot.size, {
+                await trackFirebaseOperation('read', collectionPath, snapshot.size, {
                   ...context,
                   functionName: context.functionName || 'firestore_ordered_limited_query'
                 });
@@ -156,13 +210,12 @@ export class TrackedFirestore {
     return {
       // Tracked get operation
       get: async (context: TrackingContext = {}) => {
-        if (!db) throw new Error('Firebase Admin not initialized');
-        const snapshot = await db.doc(documentPath).get();
+        const snapshot = await getDoc(doc(db, documentPath));
         
         // Extract collection name from path
         const collectionName = documentPath.split('/')[0];
         
-        await trackFirebaseQuery('read', collectionName, snapshot.exists ? 1 : 0, {
+        await trackFirebaseOperation('read', collectionName, snapshot.exists() ? 1 : 0, {
           ...context,
           functionName: context.functionName || 'firestore_doc_get'
         });
@@ -172,12 +225,11 @@ export class TrackedFirestore {
       
       // Tracked set operation
       set: async (data: any, context: TrackingContext = {}) => {
-        if (!db) throw new Error('Firebase Admin not initialized');
-        const result = await db.doc(documentPath).set(data);
+        const result = await setDoc(doc(db, documentPath), data);
         
         const collectionName = documentPath.split('/')[0];
         
-        await trackFirebaseQuery('write', collectionName, 1, {
+        await trackFirebaseOperation('write', collectionName, 1, {
           ...context,
           functionName: context.functionName || 'firestore_doc_set'
         });
@@ -187,12 +239,11 @@ export class TrackedFirestore {
       
       // Tracked update operation
       update: async (data: any, context: TrackingContext = {}) => {
-        if (!db) throw new Error('Firebase Admin not initialized');
-        const result = await db.doc(documentPath).update(data);
+        const result = await updateDoc(doc(db, documentPath), data);
         
         const collectionName = documentPath.split('/')[0];
         
-        await trackFirebaseQuery('write', collectionName, 1, {
+        await trackFirebaseOperation('write', collectionName, 1, {
           ...context,
           functionName: context.functionName || 'firestore_doc_update'
         });
@@ -202,12 +253,11 @@ export class TrackedFirestore {
       
       // Tracked delete operation
       delete: async (context: TrackingContext = {}) => {
-        if (!db) throw new Error('Firebase Admin not initialized');
-        const result = await db.doc(documentPath).delete();
+        const result = await deleteDoc(doc(db, documentPath));
         
         const collectionName = documentPath.split('/')[0];
         
-        await trackFirebaseQuery('delete', collectionName, 1, {
+        await trackFirebaseOperation('delete', collectionName, 1, {
           ...context,
           functionName: context.functionName || 'firestore_doc_delete'
         });
@@ -220,23 +270,23 @@ export class TrackedFirestore {
 
 // Convenience functions for common operations
 export const trackedAdd = async (
-  collection: string,
+  collectionPath: string,
   data: any,
   context: TrackingContext = {}
 ) => {
-  return TrackedFirestore.collection(collection).add(data, context);
+  return TrackedFirestoreClient.collection(collectionPath).add(data, context);
 };
 
 export const trackedGet = async (
-  collection: string,
+  collectionPath: string,
   context: TrackingContext = {}
 ) => {
-  return TrackedFirestore.collection(collection).get(context);
+  return TrackedFirestoreClient.collection(collectionPath).get(context);
 };
 
 export const trackedDocGet = async (
   documentPath: string,
   context: TrackingContext = {}
 ) => {
-  return TrackedFirestore.doc(documentPath).get(context);
+  return TrackedFirestoreClient.doc(documentPath).get(context);
 };

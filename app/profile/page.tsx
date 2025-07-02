@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import { TrackedFirestoreClient } from '../../lib/trackedFirestoreClient';
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import styles from '../../Styles/profile.module.css';
 import { EnneagramResult } from '../../Models/EnneagramResult';
 import MilestoneCard from '../../Components/MilestoneCard';
@@ -80,11 +81,16 @@ const ProfilePage = () => {
 
   const loadUserProfile = async (userId: string) => {
     try {
-      const userDocRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userDocRef);
+      const userDoc = await TrackedFirestoreClient.doc(`users/${userId}`).get({
+        userId,
+        userEmail: user?.email || undefined,
+        source: 'profile_page',
+        functionName: 'load_user_profile'
+      });
+      
       if (userDoc.exists()) {
         const data = userDoc.data();
-        setEnneagramResult(data.enneagramResult as EnneagramResult);
+        setEnneagramResult(data?.enneagramResult as EnneagramResult);
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -93,16 +99,18 @@ const ProfilePage = () => {
 
   const loadUserPlans = async (userId: string) => {
     try {
-      const plansQuery = query(
-        collection(db, 'plans'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc'),
-        limit(10)
-      );
+      const querySnapshot = await TrackedFirestoreClient.collection('plans')
+        .where('userId', '==', userId)
+        .orderBy('createdAt', 'desc')
+        .limit(10)
+        .get({
+          userId,
+          userEmail: user?.email || undefined,
+          source: 'profile_page',
+          functionName: 'load_user_plans'
+        });
 
-      const querySnapshot = await getDocs(plansQuery);
       const plans: PlanData[] = [];
-
       querySnapshot.forEach((doc) => {
         plans.push({
           id: doc.id,
@@ -152,15 +160,30 @@ const ProfilePage = () => {
   // Fetch ALL notifications for a milestone
   const fetchMilestoneNotifications = async (userId: string, milestoneId: string): Promise<Notification[]> => {
     try {
-      const notificationQuery = query(
+      // Need to build complex query step by step for multiple where clauses
+      const q = query(
         collection(db, 'notifications'),
         where('userId', '==', userId),
         where('milestoneId', '==', milestoneId),
         where('type', '==', 'milestone_reminder'),
         orderBy('createdAt', 'desc')
       );
-
-      const querySnapshot = await getDocs(notificationQuery);
+      const querySnapshot = await getDocs(q);
+      
+      // Track the read operation manually since complex queries need custom handling
+      await fetch('/api/track-firebase-usage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operation: 'read',
+          collection: 'notifications',
+          documentCount: querySnapshot.size,
+          userId,
+          userEmail: user?.email || undefined,
+          source: 'profile_page',
+          functionName: 'fetch_milestone_notifications'
+        })
+      }).catch(console.warn);
 
       if (querySnapshot.empty) return [];
 

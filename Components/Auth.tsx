@@ -5,7 +5,7 @@ import styles from '../Styles/auth.module.css';
 import { useRouter, usePathname } from 'next/navigation';
 import { auth, googleProvider, db } from '../firebase';
 import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { TrackedFirestoreClient } from '../lib/trackedFirestoreClient';
 import Link from 'next/link';
 
 const Auth = () => {
@@ -21,18 +21,36 @@ const Auth = () => {
       const userTestResult = localStorage.getItem('userTestResult');
       if (userTestResult) {
         const parsedResult = JSON.parse(userTestResult);
-        await setDoc(doc(db, 'users', result.user.uid), { enneagramResult: parsedResult, name:result.user.displayName, email:
-        result.user.email  }, { merge: true });
+        await TrackedFirestoreClient.doc(`users/${result.user.uid}`).set({
+          enneagramResult: parsedResult,
+          name: result.user.displayName,
+          email: result.user.email
+        }, {
+          userId: result.user.uid,
+          userEmail: result.user.email || undefined,
+          source: 'auth_component',
+          functionName: 'save_enneagram_result_on_signup'
+        });
         localStorage.removeItem('userTestResult');
       }
 
       const user = result.user;
-      const userDocRef = doc(db, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
+      const userDoc = await TrackedFirestoreClient.doc(`users/${user.uid}`).get({
+        userId: user.uid,
+        userEmail: user.email || undefined,
+        source: 'auth_component',
+        functionName: 'check_user_exists_on_signin'
+      });
+      
       if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
+        await TrackedFirestoreClient.doc(`users/${user.uid}`).set({
           name: user.displayName,
           email: user.email,
+        }, {
+          userId: user.uid,
+          userEmail: user.email || undefined,
+          source: 'auth_component',
+          functionName: 'create_user_on_signin'
         });
       }
 
@@ -49,7 +67,14 @@ const Auth = () => {
         if (storedResult) {
           try {
             const enneagramResult = JSON.parse(storedResult);
-            await setDoc(doc(db, 'users', user.uid), { enneagramResult }, { merge: true });
+            await TrackedFirestoreClient.doc(`users/${user.uid}`).set({
+              enneagramResult
+            }, {
+              userId: user.uid,
+              userEmail: user.email || undefined,
+              source: 'auth_component',
+              functionName: 'save_enneagram_result_on_auth_change'
+            });
             localStorage.removeItem('userTestResult');
           } catch (error) {
             console.error('Error saving stored result after login:', error);

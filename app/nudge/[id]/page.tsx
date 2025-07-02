@@ -1,6 +1,7 @@
 import React from 'react';
 import { db } from '../../../firebase';
-import { doc, getDoc, getDocs, collection, updateDoc, Timestamp } from 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore';
+import { TrackedFirestoreClient } from '../../../lib/trackedFirestoreClient';
 import Script from 'next/script';
 import styles from '../../../Styles/nudge.module.css';
 import FeedbackForm from '../../../Components/FeedbackForm';
@@ -54,8 +55,10 @@ interface PlanData {
 
 const fetchNudge = async (id: string): Promise<NotificationData | null> => {
   try {
-    const ref = doc(collection(db, 'notifications'), id);
-    const snap = await getDoc(ref);
+    const snap = await TrackedFirestoreClient.doc(`notifications/${id}`).get({
+      source: 'nudge_page',
+      functionName: 'fetch_nudge_notification'
+    });
     if (!snap.exists()) return null;
 
     const data = snap.data() as EnhancedNotification;
@@ -98,7 +101,10 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
     };
 
     // Mark notification as read
-    await updateDoc(ref, { read: true });
+    await TrackedFirestoreClient.doc(`notifications/${id}`).update({ read: true }, {
+      source: 'nudge_page',
+      functionName: 'mark_notification_as_read'
+    });
 
     return notificationData;
   } catch (error) {
@@ -109,8 +115,10 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
 
 const fetchPlanData = async (planId: string): Promise<PlanData | null> => {
   try {
-    const planRef = doc(collection(db, 'plans'), planId);
-    const planSnap = await getDoc(planRef);
+    const planSnap = await TrackedFirestoreClient.doc(`plans/${planId}`).get({
+      source: 'nudge_page',
+      functionName: 'fetch_plan_data_for_milestone'
+    });
     if (!planSnap.exists()) return null;
 
     const planData = planSnap.data();
@@ -129,7 +137,10 @@ const fetchPlanData = async (planId: string): Promise<PlanData | null> => {
 
 export async function generateStaticParams() {
   try {
-    const querySnapshot = await getDocs(collection(db, 'notifications'));
+    const querySnapshot = await TrackedFirestoreClient.collection('notifications').get({
+      source: 'nudge_page_static',
+      functionName: 'generate_static_params'
+    });
     return querySnapshot.docs.map((doc) => ({ id: doc.id }));
   } catch (error) {
     console.error('Error generating static params:', error);

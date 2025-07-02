@@ -1,5 +1,4 @@
-import { db } from '../../../firebase'
-import { doc, updateDoc } from 'firebase/firestore';
+import { TrackedFirestore } from '../../../lib/trackedFirestore';
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
@@ -13,9 +12,12 @@ export async function POST(req: Request) {
   const note = data.get('note');
 
   try {
-    await updateDoc(doc(db, 'notifications', id), {
+    await TrackedFirestore.doc(`notifications/${id}`).update({
       feedback: note ? `${feedback} | Note: ${note}` : feedback,
       read: true,
+    }, {
+      source: 'feedback_api',
+      functionName: 'update_notification_feedback'
     });
     return NextResponse.json({ status: 'success' });
   } catch (err) {

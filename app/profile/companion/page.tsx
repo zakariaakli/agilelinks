@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useRef, useEffect } from 'react';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { serverTimestamp } from 'firebase/firestore';
+import { TrackedFirestoreClient } from '../../../lib/trackedFirestoreClient';
 import { auth, db } from '../../../firebase';; // Adjust path as needed
 import styles from '../../../Styles/companion.module.css';
 
@@ -158,11 +159,15 @@ const GoalWizard: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUser(user);
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDoc = await getDoc(userDocRef);
+        const userDoc = await TrackedFirestoreClient.doc(`users/${user.uid}`).get({
+          userId: user.uid,
+          userEmail: user.email || undefined,
+          source: 'companion_page',
+          functionName: 'load_user_enneagram_data'
+        });
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setEnneagramResult(data.enneagramResult as EnneagramResult);
+          setEnneagramResult(data?.enneagramResult as EnneagramResult);
         }
       } else {
         setUser(null);
@@ -583,7 +588,12 @@ const GoalWizard: React.FC = () => {
     };
 
     // Add the plan to Firestore
-    const docRef = await addDoc(collection(db, 'plans'), planData);
+    const docRef = await TrackedFirestoreClient.collection('plans').add(planData, {
+      userId: user?.uid,
+      userEmail: user?.email || undefined,
+      source: 'companion_page',
+      functionName: 'create_goal_plan'
+    });
 
     console.log('Plan created successfully with ID:', docRef.id);
 
@@ -607,16 +617,25 @@ const GoalWizard: React.FC = () => {
 // Helper function to update user's plan count (optional)
 const updateUserPlansCount = async (userId: string): Promise<void> => {
   try {
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
+    const userDoc = await TrackedFirestoreClient.doc(`users/${userId}`).get({
+      userId,
+      userEmail: user?.email || undefined,
+      source: 'companion_page',
+      functionName: 'get_user_plan_count'
+    });
 
     if (userDoc.exists()) {
       const currentData = userDoc.data();
-      const currentPlanCount = currentData.planCount || 0;
+      const currentPlanCount = currentData?.planCount || 0;
 
-      await updateDoc(userDocRef, {
+      await TrackedFirestoreClient.doc(`users/${userId}`).update({
         planCount: currentPlanCount + 1,
         lastPlanCreated: serverTimestamp()
+      }, {
+        userId,
+        userEmail: user?.email || undefined,
+        source: 'companion_page',
+        functionName: 'update_user_plan_count'
       });
     }
   } catch (error) {
