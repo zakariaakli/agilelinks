@@ -1,0 +1,544 @@
+/* ===== CINEMATIC ABOUT PAGE ===== */
+
+.filmContainer {
+  min-height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Film grain texture */
+.filmGrain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.03;
+  z-index: 1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Letterbox bars */
+.letterbox {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: #000000;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.letterboxTop {
+  top: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.letterboxBottom {
+  bottom: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Film timeline */
+.filmTimeline {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 600px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  z-index: 101;
+  overflow: hidden;
+}
+
+.filmTimelineProgress {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6, #ec4899, #22d3ee);
+  border-radius: 2px;
+}
+
+.filmTimelineMarkers {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Scenes */
+.scene {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 120px 24px;
+}
+
+.sceneContent {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  z-index: 2;
+}
+
+.sceneContentCenter {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Opening Scene */
+.sceneOpening {
+  background: radial-gradient(
+    circle at center,
+    rgba(139, 92, 246, 0.15) 0%,
+    rgba(0, 0, 0, 1) 70%
+  );
+}
+
+.filmTitle {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 60px;
+}
+
+.openingTitle {
+  font-size: clamp(32px, 5vw, 64px);
+  font-weight: 800;
+  line-height: 1.3;
+  max-width: 1000px;
+  letter-spacing: -0.02em;
+}
+
+.gradientText {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradientTextAlt {
+  background: linear-gradient(135deg, #ec4899, #22d3ee);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.scrollHint {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: bounce 2s infinite;
+}
+
+.scrollHint span {
+  font-size: 32px;
+  opacity: 0.5;
+}
+
+.scrollHint p {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+/* Horizontal Scroll Section */
+.sceneHorizontal {
+  min-height: 100vh;
+  background: #000000;
+  overflow: hidden;
+  position: relative;
+}
+
+.horizontalScrollWrapper {
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  display: flex;
+  padding: 0 60px;
+  scroll-behavior: smooth;
+}
+
+.horizontalScrollWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontalScrollContent {
+  display: flex;
+  gap: 0;
+}
+
+.horizontalScene {
+  min-width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  padding: 0 60px;
+}
+
+/* Navigation Arrows */
+.scrollArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.scrollArrow:hover {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.8);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.scrollArrowLeft {
+  left: 30px;
+  animation: pulseLeft 2s infinite;
+}
+
+.scrollArrowRight {
+  right: 30px;
+  animation: pulseRight 2s infinite;
+}
+
+@keyframes pulseLeft {
+  0%, 100% {
+    transform: translateY(-50%) translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-50%) translateX(-8px);
+    opacity: 0.7;
+  }
+}
+
+@keyframes pulseRight {
+  0%, 100% {
+    transform: translateY(-50%) translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-50%) translateX(8px);
+    opacity: 0.7;
+  }
+}
+
+/* Progress Dots */
+.scrollDots {
+  position: absolute;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.scrollDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.scrollDot:hover {
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(1.2);
+}
+
+.scrollDotActive {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  width: 32px;
+  border-radius: 6px;
+}
+
+/* Horizontal Scroll Hint */
+.scrollHintHorizontal {
+  position: absolute;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  z-index: 10;
+  opacity: 0.6;
+  animation: fadeInOut 3s infinite;
+}
+
+.scrollHintHorizontal span {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.8);
+  animation: slideHorizontal 2s infinite;
+}
+
+.scrollHintHorizontal span:first-child {
+  animation-delay: 0s;
+}
+
+.scrollHintHorizontal span:last-child {
+  animation-delay: 0.5s;
+}
+
+.scrollHintHorizontal p {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes slideHorizontal {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
+}
+
+.sceneNumber {
+  font-size: 120px;
+  font-weight: 900;
+  opacity: 0.05;
+  line-height: 1;
+  margin-bottom: 20px;
+}
+
+.sceneTitle {
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 700;
+  letter-spacing: 6px;
+  margin-bottom: 60px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.statMassive {
+  text-align: center;
+}
+
+.statNumber {
+  font-size: clamp(80px, 15vw, 180px);
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 30px;
+}
+
+.statDescription {
+  font-size: clamp(18px, 2.5vw, 28px);
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+}
+
+.statDescription strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.statMassiveHighlight .statNumber {
+  background: linear-gradient(135deg, #fff, #22d3ee);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* CTA Section */
+.ctaGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 60px;
+}
+
+.ctaCard {
+  padding: 48px 40px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  text-align: center;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.ctaCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.ctaCard:hover::before {
+  opacity: 0.1;
+}
+
+.ctaCard:hover {
+  border-color: rgba(139, 92, 246, 0.8);
+  box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+  transform: scale(1.05) translateY(-5px);
+}
+
+.ctaCardPrimary {
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.ctaLabel {
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+  z-index: 1;
+}
+
+.ctaTitle {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  z-index: 1;
+}
+
+.ctaArrow {
+  font-size: 32px;
+  color: rgba(139, 92, 246, 0.8);
+  z-index: 1;
+}
+
+/* Footer */
+.endCredits {
+  padding: 80px 24px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.endCredits p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 8px 0;
+  letter-spacing: 2px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .letterbox {
+    height: 40px;
+  }
+
+  .filmTimeline {
+    bottom: 50px;
+    width: 85%;
+  }
+
+  .filmTimelineMarkers {
+    font-size: 8px;
+  }
+
+  .scene {
+    padding: 80px 20px;
+  }
+
+  .horizontalScrollWrapper,
+  .horizontalScene {
+    padding: 0 20px;
+  }
+
+  .sceneNumber {
+    font-size: 80px;
+  }
+
+  .statMassive {
+    padding: 0 20px;
+  }
+
+  .ctaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Mobile-specific scroll controls */
+  .scrollArrow {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+  }
+
+  .scrollArrowLeft {
+    left: 10px;
+  }
+
+  .scrollArrowRight {
+    right: 10px;
+  }
+
+  .scrollDots {
+    bottom: 80px;
+  }
+
+  .scrollHintHorizontal {
+    bottom: 120px;
+    gap: 12px;
+  }
+
+  .scrollHintHorizontal span {
+    font-size: 20px;
+  }
+
+  .scrollHintHorizontal p {
+    font-size: 9px;
+  }
+}

@@ -17,7 +17,7 @@ All commit messages must follow this format:
 Use one of these prefixes for every commit:
 
 - **[add]** - When adding new features, files, or functionality
-- **[update]** - When modifying existing features or improving functionality  
+- **[update]** - When modifying existing features or improving functionality
 - **[fix]** - When fixing bugs or resolving issues
 - **[delete]** - When removing files, features, or functionality
 

@@ -93,50 +93,50 @@ export class TrackedFirestoreClient {
           get: async (context: TrackingContext = {}) => {
             const q = query(collection(db, collectionPath), where(field, operator, value));
             const snapshot = await getDocs(q);
-            
+
             // Track the read operation
             await trackFirebaseOperation('read', collectionPath, snapshot.size, {
               ...context,
               functionName: context.functionName || 'firestore_where_query'
             });
-            
+
             return snapshot;
           },
-          
-          orderBy: (field: string, direction?: 'asc' | 'desc') => {
+
+          orderBy: (orderByField: string, direction?: 'asc' | 'desc') => {
             return {
               get: async (context: TrackingContext = {}) => {
                 const q = query(
-                  collection(db, collectionPath), 
+                  collection(db, collectionPath),
                   where(field, operator, value),
-                  orderBy(field, direction)
+                  orderBy(orderByField, direction)
                 );
                 const snapshot = await getDocs(q);
-                
+
                 await trackFirebaseOperation('read', collectionPath, snapshot.size, {
                   ...context,
                   functionName: context.functionName || 'firestore_ordered_query'
                 });
-                
+
                 return snapshot;
               },
-              
+
               limit: (limitCount: number) => {
                 return {
                   get: async (context: TrackingContext = {}) => {
                     const q = query(
                       collection(db, collectionPath),
                       where(field, operator, value),
-                      orderBy(field, direction),
+                      orderBy(orderByField, direction),
                       limit(limitCount)
                     );
                     const snapshot = await getDocs(q);
-                    
+
                     await trackFirebaseOperation('read', collectionPath, snapshot.size, {
                       ...context,
                       functionName: context.functionName || 'firestore_limited_query'
                     });
-                    
+
                     return snapshot;
                   }
                 };
