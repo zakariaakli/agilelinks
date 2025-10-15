@@ -9,6 +9,7 @@ import { EnneagramResult } from '../../Models/EnneagramResult';
 import MilestoneCard from '../../Components/MilestoneCard';
 import GamificationSystem from '../../Components/GamificationSystem';
 import GamifiedEnneagram from '../../Components/GamifiedEnneagram';
+import ConfirmationModal from '../../Components/ConfirmationModal';
 import Link from 'next/link';
 import { LinkButton } from '../../Components/Button';
 import { PlusIcon, EditIcon, EyeIcon, TargetIcon } from '../../Components/Icons';
@@ -64,6 +65,18 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [milestoneNotifications, setMilestoneNotifications] = useState<Record<string, Notification[]>>({});
   const [loadingNotifications, setLoadingNotifications] = useState<Record<string, boolean>>({});
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: 'pause' | 'resume' | 'delete' | null;
+    planId: string | null;
+    planTitle: string;
+  }>({
+    isOpen: false,
+    type: null,
+    planId: null,
+    planTitle: ''
+  });
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -307,6 +320,103 @@ const ProfilePage = () => {
 
   const userStats = calculateUserStats();
 
+  // Plan action handlers
+  const handlePausePlan = (planId: string, planTitle: string) => {
+    setModalState({
+      isOpen: true,
+      type: 'pause',
+      planId,
+      planTitle
+    });
+  };
+
+  const handleResumePlan = (planId: string, planTitle: string) => {
+    setModalState({
+      isOpen: true,
+      type: 'resume',
+      planId,
+      planTitle
+    });
+  };
+
+  const handleDeletePlan = (planId: string, planTitle: string) => {
+    setModalState({
+      isOpen: true,
+      type: 'delete',
+      planId,
+      planTitle
+    });
+  };
+
+  const handleModalCancel = () => {
+    setModalState({
+      isOpen: false,
+      type: null,
+      planId: null,
+      planTitle: ''
+    });
+  };
+
+  const handleModalConfirm = async () => {
+    if (!modalState.planId || !user) return;
+
+    setActionLoading(modalState.planId);
+
+    try {
+      if (modalState.type === 'delete') {
+        // Delete plan
+        const response = await fetch(`/api/plans/${modalState.planId}?userId=${user.uid}&userEmail=${user.email}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to delete plan');
+        }
+
+        // Remove from local state
+        setUserPlans(plans => plans.filter(p => p.id !== modalState.planId));
+        alert('✅ Plan deleted successfully');
+
+      } else if (modalState.type === 'pause' || modalState.type === 'resume') {
+        // Update plan status
+        const newStatus = modalState.type === 'pause' ? 'paused' : 'active';
+
+        const response = await fetch(`/api/plans/${modalState.planId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            status: newStatus,
+            userId: user.uid,
+            userEmail: user.email
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to update plan status');
+        }
+
+        // Update local state
+        setUserPlans(plans => plans.map(p =>
+          p.id === modalState.planId ? { ...p, status: newStatus } : p
+        ));
+
+        const action = modalState.type === 'pause' ? 'paused' : 'resumed';
+        alert(`✅ Plan ${action} successfully`);
+      }
+
+    } catch (error) {
+      console.error('Error performing plan action:', error);
+      alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setActionLoading(null);
+      handleModalCancel();
+    }
+  };
+
 
   if (loading) return <div className={styles.loading}>Loading your profile...</div>;
   if (!user) return <div className={styles.loading}>Please log in to view your profile.</div>;
@@ -459,24 +569,31 @@ const ProfilePage = () => {
                     </div>
 
                     <div className={styles.planActions}>
-                      <LinkButton
-                        href="#"
-                        variant="ghost"
-                        size="sm"
-                        icon={<EditIcon size={14} />}
-                        className={styles.editPlanButton}
+                      {plan.status === 'active' ? (
+                        <button
+                          onClick={() => handlePausePlan(plan.id, plan.goal)}
+                          className={`${styles.planActionButton} ${styles.planActionButtonWarning}`}
+                          disabled={actionLoading === plan.id}
+                        >
+                          {actionLoading === plan.id ? '⏳ Pausing...' : '⏸️ Pause Plan'}
+                        </button>
+                      ) : plan.status === 'paused' ? (
+                        <button
+                          onClick={() => handleResumePlan(plan.id, plan.goal)}
+                          className={`${styles.planActionButton} ${styles.planActionButtonPrimary}`}
+                          disabled={actionLoading === plan.id}
+                        >
+                          {actionLoading === plan.id ? '⏳ Resuming...' : '▶️ Resume Plan'}
+                        </button>
+                      ) : null}
+
+                      <button
+                        onClick={() => handleDeletePlan(plan.id, plan.goal)}
+                        className={`${styles.planActionButton} ${styles.planActionButtonDanger}`}
+                        disabled={actionLoading === plan.id}
                       >
-                        Edit Plan
-                      </LinkButton>
-                      <LinkButton
-                        href="#"
-                        variant="primary"
-                        size="sm"
-                        icon={<EyeIcon size={14} />}
-                        className={styles.viewPlanButton}
-                      >
-                        View Full Plan
-                      </LinkButton>
+                        {actionLoading === plan.id ? '⏳ Deleting...' : '🗑️ Delete Plan'}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -513,6 +630,42 @@ const ProfilePage = () => {
           <p>No Enneagram results found yet.</p>
         </section>
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={modalState.isOpen}
+        title={
+          modalState.type === 'delete'
+            ? 'Delete Plan?'
+            : modalState.type === 'pause'
+            ? 'Pause Plan?'
+            : 'Resume Plan?'
+        }
+        message={
+          modalState.type === 'delete'
+            ? `Are you sure you want to permanently delete this plan? This action cannot be undone.\n\n"${modalState.planTitle.substring(0, 80)}${modalState.planTitle.length > 80 ? '...' : ''}"`
+            : modalState.type === 'pause'
+            ? `Pausing this plan will stop all automated reminders. You can resume it anytime.\n\n"${modalState.planTitle.substring(0, 80)}${modalState.planTitle.length > 80 ? '...' : ''}"`
+            : `Resuming this plan will reactivate automated reminders for current milestones.\n\n"${modalState.planTitle.substring(0, 80)}${modalState.planTitle.length > 80 ? '...' : ''}"`
+        }
+        confirmText={
+          modalState.type === 'delete'
+            ? 'Delete Permanently'
+            : modalState.type === 'pause'
+            ? 'Pause Plan'
+            : 'Resume Plan'
+        }
+        cancelText="Cancel"
+        confirmVariant={
+          modalState.type === 'delete'
+            ? 'danger'
+            : modalState.type === 'pause'
+            ? 'warning'
+            : 'primary'
+        }
+        onConfirm={handleModalConfirm}
+        onCancel={handleModalCancel}
+      />
     </div>
   );
 };

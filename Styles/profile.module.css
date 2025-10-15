@@ -739,3 +739,65 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Plan Action Buttons */
+.planActionButton {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.planActionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.planActionButtonPrimary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.planActionButtonPrimary:hover:not(:disabled) {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.planActionButtonWarning {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.planActionButtonWarning:hover:not(:disabled) {
+  background-color: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.planActionButtonDanger {
+  background-color: #ef4444;
+  color: white;
+}
+
+.planActionButtonDanger:hover:not(:disabled) {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+@media (max-width: 768px) {
+  .planActionButton {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
