@@ -12,25 +12,25 @@
  * HOW IT WORKS:
  * 1. Called from milestoneReminders API after notification creation
  * 2. Checks if user has opted in for email notifications
- * 3. Sends milestone reminder email using SendGrid
+ * 3. Sends milestone reminder email using Resend
  * 4. Updates notification email status in database
  * 
  * DEPENDENCIES:
- * - SendGrid for email delivery
+ * - Resend for email delivery
  * - Firebase for user settings and notification tracking
  * - notificationTracking.ts for email status management
  */
 
 import { db } from '../firebase'
 import { doc, getDoc } from 'firebase/firestore'
-import sgMail from '@sendgrid/mail'
-import { 
+import { Resend } from 'resend'
+import {
   markNotificationAsSent,
   markNotificationSendFailed
 } from './notificationTracking'
 
-// Initialize SendGrid with API key
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
+// Initialize Resend with API key
+const resend = new Resend(process.env.RESEND_API_KEY!)
 
 /**
  * SEND MILESTONE EMAIL
@@ -45,7 +45,7 @@ sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
  * FLOW:
  * 1. Check if user has email notifications enabled
  * 2. Get user's email address from companionSettings
- * 3. Send milestone reminder email via SendGrid
+ * 3. Send milestone reminder email via Resend
  * 4. Update notification email status in database
  * 
  * ERROR HANDLING:
@@ -154,10 +154,10 @@ export async function sendMilestoneEmail(
       </div>
     `;
 
-    // Send email via SendGrid
-    await sgMail.send({
+    // Send email via Resend
+    await resend.emails.send({
+      from: 'Stepiva <onboarding@resend.dev>', // Update to your verified domain
       to: email,
-      from: 'zakaria.akli.ensa@gmail.com', // TODO: Consider using a branded sender address
       subject,
       html: emailHtml
     });

@@ -8,11 +8,11 @@ import CookieConsent from "../Components/CookieConsent";
 
 // app/layout.tsx
 export const metadata = {
-  title: 'Know yourself. Grow every day!',
-  description: 'Know yourself. Grow every day! AI Companion',
+  title: 'Stepiva - AI Companion for Personal Growth',
+  description: 'Know yourself. Grow every day! AI-powered goal planning with personality insights.',
   icons: {
-    icon: '/favicon.ico',
-    apple: '/logo192.png',
+    icon: '/stepiva-favicon.svg',
+    apple: '/stepiva-favicon.svg',
   },
   manifest: '/manifest.json',
 }
@@ -23,17 +23,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const seoProps = {
-    title: 'Know yourself. Grow every day! ',
-    description: '',
-    image: '',
-    url: ''
+    title: 'Stepiva - AI Companion for Personal Growth',
+    description: 'Know yourself. Grow every day! AI-powered goal planning with personality insights.',
+    image: '/stepiva-logo-blue.svg',
+    url: 'https://stepiva.com'
   };
 
   return (
     <html lang="en">
       <Seo {...seoProps} />
       <head>
-        <title>Know yourself. Grow every day!</title>
+        <title>Stepiva - AI Companion for Personal Growth</title>
+        <link rel="icon" href="/stepiva-favicon.svg" type="image/svg+xml" />
       </head>
       <body>
         <Header />

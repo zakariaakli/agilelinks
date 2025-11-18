@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { db } from '../firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 import { Form, FormGroup, RadioGroup, RadioOption, Textarea, FormButton, Field } from './Form';
 import { CheckCircleIcon } from './Icons';
 import Toast, { ToastType } from './Toast';
@@ -40,27 +42,18 @@ export default function FeedbackForm({ notifId, existingFeedback }: Props) {
     setIsLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('feedback', feedback);
-      formData.append('note', note);
+      console.log('Submitting feedback:', { feedback, note, notifId });
 
-      console.log('Sending feedback:', { feedback, note, notifId });
+      const notificationRef = doc(db, 'notifications', notifId);
+      const feedbackText = note ? `${feedback} | Note: ${note}` : feedback;
 
-      const res = await fetch(`/api/feedback?id=${notifId}`, {
-        method: 'POST',
-        body: formData
+      await updateDoc(notificationRef, {
+        feedback: feedbackText,
+        read: true,
       });
 
-      console.log('Response status:', res.status);
-      const responseData = await res.json();
-      console.log('Response data:', responseData);
-
-      if (res.ok) {
-        setSubmitted(true);
-      } else {
-        console.error('Failed to submit feedback:', responseData);
-        showToast('Failed to submit feedback. Please try again.', 'error');
-      }
+      console.log('Feedback saved successfully');
+      setSubmitted(true);
     } catch (error) {
       console.error('Error submitting feedback:', error);
       showToast('An error occurred. Please try again.', 'error');

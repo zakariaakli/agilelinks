@@ -362,7 +362,7 @@ async function processMilestoneReminders(_request: Request) {
           );
 
           const existingReminders = await getDocs(existingRemindersQuery);
-          
+
           // COST MONITORING: Track Firebase read operation for existing reminders check
           await trackFirebaseRead(
             'notifications',
@@ -372,8 +372,27 @@ async function processMilestoneReminders(_request: Request) {
             'server',
             'milestone_reminders_check_existing'
           );
-          
-          const shouldCreateReminder = existingReminders.empty;
+
+          // Get user email to check for testing override
+          let userEmail = '';
+          try {
+            const userDocRef = doc(db, 'users', planData.userId);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              const userData = userDoc.data();
+              userEmail = userData.email || userData.userEmail || '';
+            }
+          } catch (err) {
+            console.error('Error fetching user email:', err);
+          }
+
+          // TESTING OVERRIDE: Allow zakaria.akli.ensa@gmail.com to bypass frequency limits
+          const isTestUser = userEmail === 'zakaria.akli.ensa@gmail.com';
+          const shouldCreateReminder = isTestUser || existingReminders.empty;
+
+          if (isTestUser && !existingReminders.empty) {
+            console.log(`🧪 [TESTING] Bypassing frequency limit for test user: ${userEmail}`);
+          }
 
           // If no recent reminder exists, create one
           if (shouldCreateReminder) {

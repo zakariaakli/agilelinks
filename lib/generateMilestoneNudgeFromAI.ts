@@ -161,7 +161,7 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
     });
 
     const run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: process.env.NEXT_PUBLIC_REACT_MILESTONE_NDG_GENERATOR_ID!,
+      assistant_id: process.env.NEXT_PUBLIC_REACT_NDG_GENERATOR_ID!,
     });
 
     let status = 'queued';
@@ -175,7 +175,9 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
 
       if (status === 'failed') {
         console.error('OpenAI run failed for milestone nudge generation');
-        throw new Error('AI run failed');
+        console.error('Run details:', JSON.stringify(finalResult, null, 2));
+        console.error('Last error:', finalResult.last_error);
+        return generateFallbackNudge(input.milestone, daysInProgress, daysRemaining);
       }
 
       await new Promise(resolve => setTimeout(resolve, 1000));
