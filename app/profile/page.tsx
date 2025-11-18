@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { auth, db } from '../../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { TrackedFirestoreClient } from '../../lib/trackedFirestoreClient';
@@ -59,7 +59,8 @@ const enneagramLabels = {
   enneagramType9: 'Type 9 – The Peacemaker',
 };
 
-const ProfilePage = () => {
+// Component to handle search params (must be wrapped in Suspense)
+function ProfileContent() {
   const searchParams = useSearchParams();
   const newPlanId = searchParams.get('newPlan');
   const planRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -716,6 +717,15 @@ const ProfilePage = () => {
         />
       )}
     </div>
+  );
+}
+
+// Main component with Suspense wrapper
+const ProfilePage = () => {
+  return (
+    <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center' }}>Loading...</div>}>
+      <ProfileContent />
+    </Suspense>
   );
 };
 
