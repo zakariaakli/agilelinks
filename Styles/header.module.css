@@ -75,7 +75,7 @@
 
 .navList li a {
   font-size: var(--font-size-base);
-  color: var(--text-secondary);
+  color: var(--text-primary);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
   padding: var(--space-2) var(--space-3);
@@ -129,28 +129,29 @@
 }
 
 .loginButton {
-  background-color: transparent;
+  background-color: var(--bg-primary);
   color: var(--color-primary-600);
-  border: var(--border-width-base) solid var(--color-primary-200);
+  border: var(--border-width-2) solid var(--color-primary-600);
 }
 
 .loginButton:hover {
-  background-color: var(--color-primary-50);
-  border-color: var(--color-primary-300);
-  color: var(--color-primary-700);
+  background-color: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+  color: var(--color-neutral-0);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 .signupButton {
-  background-color: var(--color-primary-500);
+  background-color: var(--color-primary-600);
   color: var(--color-neutral-0);
-  border: var(--border-width-base) solid var(--color-primary-500);
+  border: var(--border-width-base) solid var(--color-primary-600);
   box-shadow: var(--shadow-sm);
 }
 
 .signupButton:hover {
-  background-color: var(--color-primary-600);
-  border-color: var(--color-primary-600);
+  background-color: var(--color-primary-700);
+  border-color: var(--color-primary-700);
   color: var(--color-neutral-0);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);

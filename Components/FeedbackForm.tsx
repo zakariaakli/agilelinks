@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Form, FormGroup, RadioGroup, RadioOption, Textarea, FormButton, Field } from './Form';
 import { CheckCircleIcon } from './Icons';
+import Toast, { ToastType } from './Toast';
 import styles from '../Styles/nudge.module.css';
 
 interface Props {
@@ -21,13 +22,18 @@ export default function FeedbackForm({ notifId, existingFeedback }: Props) {
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const router = useRouter();
+
+  const showToast = (message: string, type: ToastType = 'info') => {
+    setToast({ message, type });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!feedback) {
-      alert('Please select a feedback option first.');
+      showToast('Please select a feedback option first', 'warning');
       return;
     }
 
@@ -53,11 +59,11 @@ export default function FeedbackForm({ notifId, existingFeedback }: Props) {
         setSubmitted(true);
       } else {
         console.error('Failed to submit feedback:', responseData);
-        alert('Failed to submit feedback. Please try again.');
+        showToast('Failed to submit feedback. Please try again.', 'error');
       }
     } catch (error) {
       console.error('Error submitting feedback:', error);
-      alert('An error occurred. Please try again.');
+      showToast('An error occurred. Please try again.', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -165,6 +171,14 @@ export default function FeedbackForm({ notifId, existingFeedback }: Props) {
           </FormButton>
         )}
       </Form>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

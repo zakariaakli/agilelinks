@@ -293,23 +293,6 @@
 }
 
 /* ==========================================
-   DARK MODE SUPPORT (Future Enhancement)
+   DARK MODE REMOVED
+   Light theme only for consistent UX
    ========================================== */
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-primary: var(--color-neutral-100);
-    --text-secondary: var(--color-neutral-300);
-    --text-muted: var(--color-neutral-400);
-    --text-disabled: var(--color-neutral-500);
-    --text-inverse: var(--color-neutral-900);
-
-    --bg-primary: var(--color-neutral-900);
-    --bg-secondary: var(--color-neutral-800);
-    --bg-muted: var(--color-neutral-700);
-    --bg-subtle: var(--color-neutral-600);
-
-    --border-primary: var(--color-neutral-700);
-    --border-secondary: var(--color-neutral-600);
-  }
-}

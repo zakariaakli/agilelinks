@@ -4,6 +4,8 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { serverTimestamp } from 'firebase/firestore';
 import { TrackedFirestoreClient } from '../../../lib/trackedFirestoreClient';
 import { auth, db } from '../../../firebase';; // Adjust path as needed
+import { useRouter } from 'next/navigation';
+import Toast, { ToastType } from '../../../Components/Toast';
 import styles from '../../../Styles/companion.module.css';
 
 interface PlanData {
@@ -135,6 +137,7 @@ const suggestedGoals: Suggestion[] = [
 ];
 
 const GoalWizard: React.FC = () => {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
   const [selectedGoalType, setSelectedGoalType] = useState<string>('');
   const [goal, setGoal] = useState<string>('');
@@ -151,8 +154,13 @@ const GoalWizard: React.FC = () => {
   const [hasTimePressure, setHasTimePressure] = useState<boolean>(false);
   const [nudgeFrequency, setNudgeFrequency] = useState<'daily' | 'weekly'>('weekly');
   const [personalizationInfo, setPersonalizationInfo] = useState<{isPersonalized: boolean, level: string}>({isPersonalized: false, level: 'standard'});
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const showToast = (message: string, type: ToastType = 'info') => {
+    setToast({ message, type });
+  };
 
   // Firebase auth listener
   useEffect(() => {
@@ -567,7 +575,7 @@ const GoalWizard: React.FC = () => {
 
  const createPlan = async (): Promise<void> => {
   if (!user) {
-    alert('Please log in to create a plan.');
+    showToast('Please log in to create a plan.', 'error');
     return;
   }
 
@@ -600,15 +608,17 @@ const GoalWizard: React.FC = () => {
     // Optional: Update user's document to track their plans
     await updateUserPlansCount(user.uid);
 
-    // Show success message
-    alert(`🎉 Plan created successfully! Your plan ID is: ${docRef.id}`);
+    // Show success message with toast
+    showToast('Plan created successfully! Redirecting to dashboard...', 'success');
 
-    // Optional: Reset the wizard or redirect to dashboard
-    // resetWizard(); // Uncomment if you want to reset after creation
+    // Redirect to dashboard with new plan ID after short delay
+    setTimeout(() => {
+      router.push(`/profile?newPlan=${docRef.id}`);
+    }, 1500);
 
   } catch (error) {
     console.error('Error creating plan:', error);
-    alert('Failed to create plan. Please try again.');
+    showToast('Failed to create plan. Please try again.', 'error');
   } finally {
     setIsLoading(false);
   }
@@ -1099,6 +1109,14 @@ const updateUserPlansCount = async (userId: string): Promise<void> => {
           </button>
         )}
       </div>
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };

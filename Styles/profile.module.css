@@ -77,7 +77,7 @@
 }
 
 .enneagramResultContainer {
-  background: #F9FAFB;
+  background: var(--bg-muted);
   padding: 30px;
   border-radius: 12px;
   margin-top: 40px;
@@ -90,7 +90,7 @@
 }
 
 .enneagramItem {
-  background-color: #F7D36B;
+  background-color: var(--color-accent-300);
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -106,24 +106,24 @@
   font-weight: 600;
   font-size: 1.1rem;
   margin-bottom: 10px;
-  color: #1F2937;
+  color: var(--text-primary);
 }
 
 .enneagramValue {
   font-size: 1rem;
-  color: #374151;
+  color: var(--text-secondary);
   margin-bottom: 10px;
 }
 
 .enneagramDescription {
   font-size: 0.9rem;
-  color: #6B7280;
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .summary {
   margin-top: 30px;
-  background: #E0F2F1;
+  background: var(--color-secondary-100);
   padding: 20px;
   border-radius: 10px;
 }
@@ -131,17 +131,17 @@
 .summary h3 {
   margin-bottom: 10px;
   font-size: 1.3rem;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .summary p {
   line-height: 1.6;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .loading, .noData {
   text-align: center;
-  color: #6B7280;
+  color: var(--text-muted);
   margin-top: 40px;
 }
 
@@ -149,7 +149,7 @@
   display: inline-block;
   margin-top: 20px;
   padding: 10px 20px;
-  background-color: #34D399;
+  background-color: var(--color-secondary-400);
   color: white;
   border-radius: 8px;
   text-decoration: none;
@@ -158,7 +158,7 @@
 }
 
 .aiLink:hover {
-  background-color: #2ebd8c;
+  background-color: var(--color-secondary-500);
 }
 
 /* Plans Section Styles */
@@ -201,7 +201,7 @@
 }
 
 .createPlanLink {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-700) 100%);
   color: white;
   padding: 12px 20px;
   border-radius: 8px;
@@ -276,7 +276,7 @@
 .planTitle {
   font-size: 1.2rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .planStatus {
@@ -290,7 +290,7 @@
 }
 
 .planGoalPreview {
-  color: #374151;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 20px;
   font-size: 0.95rem;
@@ -311,29 +311,29 @@
 
 .metricLabel {
   font-size: 0.8rem;
-  color: #6B7280;
+  color: var(--text-muted);
   margin-bottom: 4px;
 }
 
 .metricValue {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .expandIcon {
   position: absolute;
   top: 20px;
   right: 20px;
-  color: #6B7280;
+  color: var(--text-muted);
   font-size: 1.2rem;
   transition: transform 0.3s ease;
 }
 
 .planDetails {
   padding: 0 20px 20px;
-  border-top: 1px solid #E5E7EB;
-  background: #F9FAFB;
+  border-top: 1px solid var(--border-primary);
+  background: var(--bg-muted);
   animation: expandPlan 0.3s ease-out;
   transform-origin: top;
 }
@@ -346,21 +346,21 @@
 .planDetailsSection h4 {
   font-size: 1rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .fullGoalText {
-  color: #374151;
+  color: var(--text-secondary);
   line-height: 1.6;
   padding: 15px;
   background: white;
   border-radius: 8px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--color-primary-500);
 }
 
 .targetDate {
-  color: #374151;
+  color: var(--text-secondary);
   font-weight: 500;
   padding: 10px;
   background: white;
@@ -369,8 +369,8 @@
 }
 
 .timePressureIndicator {
-  background: #FEF3C7;
-  color: #92400E;
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 0.9rem;
@@ -394,19 +394,19 @@
   padding: 15px;
   background: white;
   border-radius: 8px;
-  border-left: 4px solid #E5E7EB;
+  border-left: 4px solid var(--border-primary);
   margin-bottom: 12px;
   transition: all 0.2s ease;
 }
 
 .milestoneItem:hover {
-  border-left-color: #667eea;
+  border-left-color: var(--color-primary-500);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .milestoneCompleted {
-  border-left-color: #10B981 !important;
-  background: #F0FDF4;
+  border-left-color: var(--color-secondary-500) !important;
+  background: var(--color-success-50);
 }
 
 .milestoneHeader {
@@ -422,20 +422,20 @@
 
 .milestoneTitle {
   font-weight: 600;
-  color: #111827;
+  color: var(--text-primary);
   flex: 1;
 }
 
 .milestoneDueDate {
   font-size: 0.85rem;
-  color: #6B7280;
-  background: #F3F4F6;
+  color: var(--text-muted);
+  background: var(--bg-muted);
   padding: 4px 8px;
   border-radius: 4px;
 }
 
 .milestoneDescription {
-  color: #374151;
+  color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 10px;
   font-size: 0.9rem;
@@ -444,7 +444,7 @@
 .personalityTips {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid var(--border-primary);
 }
 
 .tip {
@@ -453,7 +453,7 @@
   gap: 8px;
   margin-bottom: 8px;
   padding: 8px 12px;
-  background: #FEF9E7;
+  background: var(--color-accent-50);
   border-radius: 6px;
   font-size: 0.85rem;
 }
@@ -464,7 +464,7 @@
 }
 
 .tipText {
-  color: #78716C;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
@@ -474,7 +474,7 @@
 
 .progressBarLabel {
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--text-secondary);
   margin-bottom: 8px;
   font-weight: 500;
 }
@@ -482,14 +482,14 @@
 .progressBarTrack {
   width: 100%;
   height: 8px;
-  background: #E5E7EB;
+  background: var(--border-primary);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progressBarFill {
   height: 100%;
-  background: linear-gradient(90deg, #10B981 0%, #34D399 100%);
+  background: linear-gradient(90deg, var(--color-secondary-500) 0%, var(--color-secondary-400) 100%);
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -499,7 +499,7 @@
   gap: 12px;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid var(--border-primary);
 }
 
 .editPlanButton, .viewPlanButton {
@@ -513,27 +513,27 @@
 }
 
 .editPlanButton {
-  background: #F3F4F6;
-  color: #374151;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
 }
 
 .editPlanButton:hover {
-  background: #E5E7EB;
+  background: var(--border-primary);
 }
 
 .viewPlanButton {
-  background: #667eea;
+  background: var(--color-primary-500);
   color: white;
 }
 
 .viewPlanButton:hover {
-  background: #5a67d8;
+  background: var(--color-primary-600);
 }
 
 .noPlans {
   text-align: center;
   padding: 60px 20px;
-  color: #6B7280;
+  color: var(--text-muted);
 }
 
 .noPlansIcon {
@@ -543,7 +543,7 @@
 
 .noPlans h3 {
   font-size: 1.3rem;
-  color: #374151;
+  color: var(--text-secondary);
   margin-bottom: 10px;
 }
 
@@ -554,7 +554,7 @@
 }
 
 .createFirstPlanButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-700) 100%);
   color: white;
   padding: 15px 30px;
   border-radius: 8px;
@@ -762,34 +762,34 @@
 }
 
 .planActionButtonPrimary {
-  background-color: #3b82f6;
+  background-color: var(--color-info-500);
   color: white;
 }
 
 .planActionButtonPrimary:hover:not(:disabled) {
-  background-color: #2563eb;
+  background-color: var(--color-info-600);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .planActionButtonWarning {
-  background-color: #f59e0b;
+  background-color: var(--color-warning-500);
   color: white;
 }
 
 .planActionButtonWarning:hover:not(:disabled) {
-  background-color: #d97706;
+  background-color: var(--color-warning-600);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .planActionButtonDanger {
-  background-color: #ef4444;
+  background-color: var(--color-error-500);
   color: white;
 }
 
 .planActionButtonDanger:hover:not(:disabled) {
-  background-color: #dc2626;
+  background-color: var(--color-error-600);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
@@ -798,6 +798,22 @@
   .planActionButton {
     width: 100%;
     min-width: unset;
+  }
+}
+
+/* Highlight animation for newly created plans */
+@keyframes highlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(16, 185, 129, 0);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    transform: scale(1);
   }
 }
 

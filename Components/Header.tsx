@@ -8,7 +8,6 @@ import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
 import styles from '../Styles/header.module.css';
 import { useRouter } from 'next/navigation';
 import { UserIcon, TargetIcon, LogOutIcon, HomeIcon, BookOpenIcon, InfoIcon, ArrowRightIcon, SparklesIcon } from './Icons';
-import ThemeToggle from './ThemeToggle';
 
 const Header = () => {
   const [user, setUser] = useState<any>(null);
@@ -109,8 +108,6 @@ const Header = () => {
 
         {/* Desktop CTA */}
         <div className={styles.cta}>
-          <ThemeToggle className={styles.themeToggleHeader} />
-
           {user ? (
             <div className={styles.userInfo}>
               <div className={styles.userDropdown}>

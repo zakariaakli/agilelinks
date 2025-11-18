@@ -1,9 +1,11 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { auth, db } from '../../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { TrackedFirestoreClient } from '../../lib/trackedFirestoreClient';
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { useSearchParams } from 'next/navigation';
+import Toast, { ToastType } from '../../Components/Toast';
 import styles from '../../Styles/profile.module.css';
 import { EnneagramResult } from '../../Models/EnneagramResult';
 import MilestoneCard from '../../Components/MilestoneCard';
@@ -58,6 +60,10 @@ const enneagramLabels = {
 };
 
 const ProfilePage = () => {
+  const searchParams = useSearchParams();
+  const newPlanId = searchParams.get('newPlan');
+  const planRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
   const [user, setUser] = useState<any>(null);
   const [enneagramResult, setEnneagramResult] = useState<EnneagramResult | null>(null);
   const [userPlans, setUserPlans] = useState<PlanData[]>([]);
@@ -77,6 +83,11 @@ const ProfilePage = () => {
     planTitle: ''
   });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+
+  const showToast = (message: string, type: ToastType = 'info') => {
+    setToast({ message, type });
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -264,6 +275,35 @@ const ProfilePage = () => {
     }
   }, [userPlans, user]);
 
+  // Auto-expand and scroll to newly created plan
+  useEffect(() => {
+    if (newPlanId && userPlans.length > 0) {
+      const planExists = userPlans.some(plan => plan.id === newPlanId);
+
+      if (planExists) {
+        // Auto-expand the new plan
+        setExpandedPlans(new Set([newPlanId]));
+
+        // Scroll to the plan after a short delay to ensure rendering
+        setTimeout(() => {
+          const planElement = planRefs.current[newPlanId];
+          if (planElement) {
+            planElement.scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+
+            // Add highlight animation
+            planElement.style.animation = 'highlight 2s ease-in-out';
+          }
+        }, 500);
+
+        // Clear the URL parameter
+        window.history.replaceState({}, '', '/profile');
+      }
+    }
+  }, [newPlanId, userPlans]);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return '#10B981';
@@ -376,7 +416,7 @@ const ProfilePage = () => {
 
         // Remove from local state
         setUserPlans(plans => plans.filter(p => p.id !== modalState.planId));
-        alert('✅ Plan deleted successfully');
+        showToast('Plan deleted successfully', 'success');
 
       } else if (modalState.type === 'pause' || modalState.type === 'resume') {
         // Update plan status
@@ -405,12 +445,12 @@ const ProfilePage = () => {
         ));
 
         const action = modalState.type === 'pause' ? 'paused' : 'resumed';
-        alert(`✅ Plan ${action} successfully`);
+        showToast(`Plan ${action} successfully`, 'success');
       }
 
     } catch (error) {
       console.error('Error performing plan action:', error);
-      alert(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showToast(error instanceof Error ? error.message : 'Unknown error occurred', 'error');
     } finally {
       setActionLoading(null);
       handleModalCancel();
@@ -451,6 +491,7 @@ const ProfilePage = () => {
             {userPlans.map((plan, index) => (
               <div
                 key={plan.id}
+                ref={(el) => { planRefs.current[plan.id] = el; }}
                 className={`${styles.planCard} scaleHover slideInUp`}
                 style={{ animationDelay: `${0.1 * (index + 2)}s` }}
               >
@@ -666,6 +707,14 @@ const ProfilePage = () => {
         onConfirm={handleModalConfirm}
         onCancel={handleModalCancel}
       />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };
