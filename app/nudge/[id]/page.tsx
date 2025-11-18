@@ -5,6 +5,7 @@ import { TrackedFirestoreClient } from '../../../lib/trackedFirestoreClient';
 import Script from 'next/script';
 import styles from '../../../Styles/nudge.module.css';
 import FeedbackForm from '../../../Components/FeedbackForm';
+import NudgeFormatter from '../../../Components/NudgeFormatter';
 import { EnhancedNotification } from '../../../lib/notificationTracking';
 
 interface NotificationData {
@@ -334,7 +335,7 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
             </div>
 
             <div className={styles.promptSection}>
-              <p className={styles.prompt}>{nudge.prompt}</p>
+              <NudgeFormatter text={nudge.prompt} />
             </div>
 
             {/* Personality-based insights */}
@@ -367,12 +368,12 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
               <span className={styles.typeLabel}>For:</span> {nudge.type || 'Your Personality Type'}
             </p>
             <div className={styles.promptSection}>
-              <p className={styles.prompt}>{nudge.prompt}</p>
+              <NudgeFormatter text={nudge.prompt} />
             </div>
           </>
         )}
 
-        <FeedbackForm notifId={id} existingFeedback={nudge.feedback} />
+        <FeedbackForm notifId={id} existingFeedback={nudge.feedback} planId={nudge.planId} />
       </div>
     </>
   );

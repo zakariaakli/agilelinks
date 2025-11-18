@@ -138,16 +138,19 @@ const NotificationPreview: React.FC<NotificationPreviewProps> = ({
 
       {/* Notification Content */}
       <div style={{ marginBottom: '0.75rem' }}>
-        <p style={{ 
-          fontSize: '0.875rem', 
-          color: '#0c4a6e', 
+        <p style={{
+          fontSize: '0.875rem',
+          color: '#0c4a6e',
           lineHeight: '1.5',
           margin: 0
         }}>
-          {notification.prompt.length > 120 
-            ? `${notification.prompt.slice(0, 120)}...` 
-            : notification.prompt
-          }
+          {(() => {
+            // Strip markdown formatting for preview (remove ** markers)
+            const cleanText = notification.prompt.replace(/\*\*/g, '');
+            return cleanText.length > 120
+              ? `${cleanText.slice(0, 120)}...`
+              : cleanText;
+          })()}
         </p>
       </div>
 

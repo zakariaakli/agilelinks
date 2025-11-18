@@ -11,6 +11,7 @@ import styles from '../Styles/nudge.module.css';
 interface Props {
   notifId: string;
   existingFeedback?: string | null;
+  planId?: string;
 }
 
 const feedbackOptions = [
@@ -19,7 +20,7 @@ const feedbackOptions = [
   'I really do not relate to that'
 ];
 
-export default function FeedbackForm({ notifId, existingFeedback }: Props) {
+export default function FeedbackForm({ notifId, existingFeedback, planId }: Props) {
   const [feedback, setFeedback] = useState('');
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -66,12 +67,17 @@ export default function FeedbackForm({ notifId, existingFeedback }: Props) {
   useEffect(() => {
     if (submitted) {
       const timer = setTimeout(() => {
-        router.push('/profile');
+        // Redirect with planId to auto-expand and scroll to plan
+        if (planId) {
+          router.push(`/profile?plan=${planId}`);
+        } else {
+          router.push('/profile');
+        }
       }, 2000); // Wait 2 seconds before redirecting
 
       return () => clearTimeout(timer);
     }
-  }, [submitted, router]);
+  }, [submitted, router, planId]);
 
   // If feedback already exists, show thank you message
   if (existingFeedback) {

@@ -1,0 +1,169 @@
+/* Gen Z-Optimized Nudge Formatting */
+
+.nudgeContent {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  text-align: left;
+}
+
+/* Paragraphs with breathing room */
+.paragraph {
+  margin-bottom: 1.25rem;
+  line-height: 1.6;
+}
+
+.paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Bold text emphasis */
+.paragraph strong,
+.emphasisBlock strong {
+  font-weight: 700;
+  color: var(--color-primary-600);
+}
+
+/* Emphasis blocks (standalone bold sections) */
+.emphasisBlock {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border-left: 4px solid var(--color-primary-500);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: var(--color-primary-700);
+}
+
+/* Bullet point items */
+.bulletItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  margin-left: 1rem;
+  line-height: 1.6;
+}
+
+.bulletIcon {
+  flex-shrink: 0;
+  color: var(--color-primary-600);
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-top: 0.1rem;
+}
+
+.bulletItem span:last-child {
+  flex: 1;
+}
+
+/* Numbered action items */
+.actionItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--bg-muted);
+  border-radius: 0.75rem;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.actionItem:hover {
+  border-color: var(--color-primary-300);
+  background: var(--color-primary-50);
+  transform: translateX(4px);
+}
+
+.actionNumber {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.actionItem span:last-child {
+  flex: 1;
+  line-height: 1.5;
+}
+
+/* Copyable template boxes */
+.copyableTemplate {
+  background: var(--color-neutral-900);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  border: 2px solid var(--color-primary-500);
+  position: relative;
+}
+
+.copyLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+.templateText {
+  font-family: var(--font-family-mono);
+  font-size: 0.95rem;
+  color: var(--color-neutral-100);
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--color-secondary-500);
+  cursor: text;
+  user-select: all;
+}
+
+.templateText:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .nudgeContent {
+    font-size: 1rem;
+  }
+
+  .paragraph {
+    margin-bottom: 1rem;
+  }
+
+  .actionItem {
+    padding: 0.875rem;
+    gap: 0.75rem;
+  }
+
+  .actionNumber {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.875rem;
+  }
+
+  .emphasisBlock {
+    font-size: 1.05rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .copyableTemplate {
+    padding: 1rem;
+  }
+
+  .templateText {
+    font-size: 0.875rem;
+  }
+}

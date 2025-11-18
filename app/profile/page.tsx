@@ -63,6 +63,7 @@ const enneagramLabels = {
 function ProfileContent() {
   const searchParams = useSearchParams();
   const newPlanId = searchParams.get('newPlan');
+  const planIdFromFeedback = searchParams.get('plan'); // From feedback redirect
   const planRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   const [user, setUser] = useState<any>(null);
@@ -276,18 +277,20 @@ function ProfileContent() {
     }
   }, [userPlans, user]);
 
-  // Auto-expand and scroll to newly created plan
+  // Auto-expand and scroll to newly created plan OR plan from feedback redirect
   useEffect(() => {
-    if (newPlanId && userPlans.length > 0) {
-      const planExists = userPlans.some(plan => plan.id === newPlanId);
+    const targetPlanId = newPlanId || planIdFromFeedback;
+
+    if (targetPlanId && userPlans.length > 0) {
+      const planExists = userPlans.some(plan => plan.id === targetPlanId);
 
       if (planExists) {
-        // Auto-expand the new plan
-        setExpandedPlans(new Set([newPlanId]));
+        // Auto-expand the plan
+        setExpandedPlans(new Set([targetPlanId]));
 
         // Scroll to the plan after a short delay to ensure rendering
         setTimeout(() => {
-          const planElement = planRefs.current[newPlanId];
+          const planElement = planRefs.current[targetPlanId];
           if (planElement) {
             planElement.scrollIntoView({
               behavior: 'smooth',
@@ -303,7 +306,7 @@ function ProfileContent() {
         window.history.replaceState({}, '', '/profile');
       }
     }
-  }, [newPlanId, userPlans]);
+  }, [newPlanId, planIdFromFeedback, userPlans]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
