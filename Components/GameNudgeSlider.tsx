@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRightIcon } from "./Icons";
+import NudgeFormatter from "./NudgeFormatter";
+import FeedbackForm from "./FeedbackForm";
 
 interface Notification {
   id: string;
@@ -8,6 +10,7 @@ interface Notification {
   createdAt: any;
   feedback?: string | null;
   type: string;
+  planId?: string;
 }
 
 interface GameNudgeSliderProps {
@@ -33,6 +36,7 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
   const heartCounter = useRef(0);
@@ -250,8 +254,20 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   const currentNotification = notifications[currentIndex];
   const hasReacted = currentNotification?.feedback;
 
+  const handleCollapse = () => {
+    setIsExpanded(false);
+    // Scroll back to the weekly check-ins section
+    setTimeout(() => {
+      containerRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 100);
+  };
+
   return (
     <div
+      ref={containerRef}
       style={{
         background: isMobile
           ? "transparent"
@@ -466,41 +482,81 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         </div>
 
         {/* Nudge Content */}
-        <div
-          style={{
-            fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
-            lineHeight: "1.5",
-            marginBottom: isMobile ? "1rem" : "1.5rem",
-            color: "#2d3748",
-            wordBreak: "break-word",
-          }}
-        >
-          {isMobile && currentNotification.prompt.length > 150 ? (
-            <>
-              {isExpanded
-                ? currentNotification.prompt
-                : `${currentNotification.prompt.substring(0, 150)}...`}
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                style={{
-                  display: "block",
-                  marginTop: "0.5rem",
-                  background: "none",
-                  border: "none",
-                  color: "#667eea",
-                  fontSize: "0.875rem",
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-              >
-                {isExpanded ? "Show less" : "Read more"}
-              </button>
-            </>
-          ) : (
-            currentNotification.prompt
-          )}
-        </div>
+        {!isExpanded ? (
+          <div
+            style={{
+              fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
+              lineHeight: "1.5",
+              marginBottom: isMobile ? "1rem" : "1.5rem",
+              color: "#2d3748",
+              wordBreak: "break-word",
+            }}
+          >
+            {(() => {
+              const cleanText = currentNotification.prompt.replace(/\*\*/g, '');
+              return cleanText.length > 150
+                ? `${cleanText.substring(0, 150)}...`
+                : cleanText;
+            })()}
+            <button
+              onClick={() => setIsExpanded(true)}
+              style={{
+                display: "block",
+                marginTop: "0.75rem",
+                background: "#667eea",
+                color: "white",
+                border: "none",
+                padding: "0.5rem 1rem",
+                borderRadius: "0.5rem",
+                fontSize: "0.875rem",
+                fontWeight: "bold",
+                cursor: "pointer",
+                width: "100%",
+              }}
+            >
+              📖 Read Full Nudge & Give Feedback
+            </button>
+          </div>
+        ) : (
+          <div>
+            {/* Full Formatted Nudge */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <NudgeFormatter text={currentNotification.prompt} />
+            </div>
+
+            {/* Feedback Form */}
+            {!hasReacted && (
+              <div style={{ marginBottom: "1rem" }}>
+                <FeedbackForm
+                  notifId={currentNotification.id}
+                  existingFeedback={currentNotification.feedback}
+                  planId={currentNotification.planId}
+                />
+              </div>
+            )}
+
+            {/* Collapse Button */}
+            <button
+              onClick={handleCollapse}
+              style={{
+                display: "block",
+                marginTop: "0.75rem",
+                marginBottom: "1rem",
+                background: "transparent",
+                color: "#667eea",
+                border: "2px solid #667eea",
+                padding: "0.5rem 1rem",
+                borderRadius: "0.5rem",
+                fontSize: "0.875rem",
+                fontWeight: "bold",
+                cursor: "pointer",
+                width: "100%",
+              }}
+            >
+              ↑ Collapse
+            </button>
+          </div>
+        )}
 
         {/* Existing Reaction */}
         {hasReacted && (
@@ -549,81 +605,31 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
           </div>
         )}
 
-        {/* Simple Action Prompt */}
-        {!hasReacted && (
-          <div
+        {/* Optional Link to Separate Page (only show when expanded OR if already reacted) */}
+        {(isExpanded || hasReacted) && (
+          <Link
+            href={`/nudge/${currentNotification.id}`}
             style={{
-              background: "#fef3c7",
-              border: isMobile ? "1px solid #f59e0b" : "2px solid #f59e0b",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+              background: "transparent",
+              color: "#64748b",
+              padding: "0.75rem",
               borderRadius: "0.5rem",
-              padding: isMobile ? "0.75rem" : "1rem",
-              marginBottom: isMobile ? "0.75rem" : "1rem",
-              textAlign: "center",
+              textDecoration: "none",
+              fontWeight: "500",
+              fontSize: "0.875rem",
+              transition: "all 0.2s ease",
+              width: "100%",
+              border: "1px solid #e2e8f0",
             }}
           >
-            {isMobile ? (
-              <div
-                style={{
-                  fontSize: "0.875rem",
-                  fontWeight: "bold",
-                  color: "#92400e",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "0.5rem",
-                }}
-              >
-                💭 Tap to share feedback
-              </div>
-            ) : (
-              <>
-                <div
-                  style={{
-                    fontSize: "clamp(0.875rem, 2.2vw, 1rem)",
-                    fontWeight: "bold",
-                    color: "#92400e",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  💭 Share your thoughts
-                </div>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: "clamp(0.75rem, 2vw, 0.875rem)",
-                    color: "#a0522d",
-                  }}
-                >
-                  Click below to give feedback and keep your streak going!
-                </p>
-              </>
-            )}
-          </div>
+            🔗 View on separate page
+            <ArrowRightIcon size={14} />
+          </Link>
         )}
-
-        {/* Action Link */}
-        <Link
-          href={`/nudge/${currentNotification.id}`}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.5rem",
-            background: hasReacted ? "#4f46e5" : "#f59e0b",
-            color: "white",
-            padding: "clamp(0.75rem, 2vw, 1rem)",
-            borderRadius: "0.5rem",
-            textDecoration: "none",
-            fontWeight: "bold",
-            fontSize: "clamp(0.8rem, 2.2vw, 0.875rem)",
-            transition: "all 0.2s ease",
-            width: "100%",
-            minHeight: "48px",
-          }}
-        >
-          {hasReacted ? "👀 Review Full Details" : "💬 Give Feedback"}
-          <ArrowRightIcon size={16} />
-        </Link>
       </div>
 
       {/* Navigation Controls */}
