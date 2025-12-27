@@ -306,14 +306,14 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         </div>
       )}
 
-      {/* Current Milestone: Show Gamified Nudge Slider */}
-      {status === 'current' && (
+      {/* Show Gamified Nudge Slider if there are any notifications (past or present) */}
+      {(notifications.length > 0 || isLoadingNotification) && (
         <div>
           <div style={{
             borderTop: '1px solid rgba(59, 130, 246, 0.2)',
             paddingTop: isMobile ? '0.75rem' : '1rem'
           }}>
-            <GameNudgeSlider 
+            <GameNudgeSlider
               notifications={notifications}
               isLoading={isLoadingNotification}
               milestoneStartDate={milestone.startDate}

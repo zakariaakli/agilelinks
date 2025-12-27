@@ -241,30 +241,28 @@ function ProfileContent() {
     }
   };
 
-  // Load notifications for current milestones
+  // Load notifications for ALL milestones (to show past interactions)
   const loadCurrentMilestoneNotifications = async (plans: PlanData[]) => {
     if (!user) return;
 
-    const currentMilestones: { planId: string; milestone: Milestone }[] = [];
+    const allMilestones: { planId: string; milestone: Milestone }[] = [];
 
-    // Find all current milestones across all plans
+    // Find ALL milestones across all plans (current, completed, and future with notifications)
     plans.forEach((plan) => {
       plan.milestones?.forEach((milestone) => {
-        if (getMilestoneStatus(milestone) === "current") {
-          currentMilestones.push({ planId: plan.id, milestone });
-        }
+        allMilestones.push({ planId: plan.id, milestone });
       });
     });
 
-    // Set loading state for all current milestones
+    // Set loading state for all milestones
     const loadingState: Record<string, boolean> = {};
-    currentMilestones.forEach(({ milestone }) => {
+    allMilestones.forEach(({ milestone }) => {
       loadingState[milestone.id] = true;
     });
     setLoadingNotifications(loadingState);
 
-    // Fetch notifications for each current milestone
-    const notificationPromises = currentMilestones.map(
+    // Fetch notifications for each milestone
+    const notificationPromises = allMilestones.map(
       async ({ milestone }) => {
         const notifications = await fetchMilestoneNotifications(
           user.uid,
@@ -636,10 +634,8 @@ function ProfileContent() {
                       <div className={styles.enhancedMilestonesList}>
                         {plan.milestones?.map((milestone) => {
                           const status = getMilestoneStatus(milestone);
-                          const notifications =
-                            status === "current"
-                              ? milestoneNotifications[milestone.id] || []
-                              : [];
+                          // Show notifications for ALL milestone statuses (to display past interactions)
+                          const notifications = milestoneNotifications[milestone.id] || [];
                           const isLoadingNotification =
                             loadingNotifications[milestone.id] || false;
 
