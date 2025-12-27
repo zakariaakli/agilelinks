@@ -24,6 +24,10 @@
   );
 }
 
+.profileHeader {
+  margin-bottom: var(--space-8);
+}
+
 .profileTitle {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);

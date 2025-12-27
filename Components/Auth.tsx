@@ -41,7 +41,7 @@ const Auth = () => {
         source: 'auth_component',
         functionName: 'check_user_exists_on_signin'
       });
-      
+
       if (!userDoc.exists()) {
         await TrackedFirestoreClient.doc(`users/${user.uid}`).set({
           name: user.displayName,
@@ -51,6 +51,19 @@ const Auth = () => {
           userEmail: user.email || undefined,
           source: 'auth_component',
           functionName: 'create_user_on_signin'
+        });
+
+        // Create default companion settings with email notifications enabled
+        await TrackedFirestoreClient.doc(`companionSettings/${user.uid}`).set({
+          email: user.email || '',
+          emailNudgesOptIn: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }, {
+          userId: user.uid,
+          userEmail: user.email || undefined,
+          source: 'auth_component',
+          functionName: 'create_default_companion_settings'
         });
       }
 

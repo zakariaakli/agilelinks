@@ -183,6 +183,12 @@ const Header = () => {
                   >
                     <TargetIcon size={16} /> Create Plan
                   </Link>
+                  <Link
+                    href="/profile/settings"
+                    className={styles.dropdownItem}
+                  >
+                    <span style={{ fontSize: "16px" }}>⚙️</span> Settings
+                  </Link>
                   {user.email === "zakaria.akli.ensa@gmail.com" && (
                     <Link href="/admin" className={styles.dropdownItem}>
                       <span style={{ fontSize: "16px" }}>🔧</span> Admin
