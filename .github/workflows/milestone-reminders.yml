@@ -7,14 +7,22 @@ on:
   workflow_dispatch: # Allow manual trigger for testing
 
 jobs:
-  send-reminders:
+  process-reminders:
     runs-on: ubuntu-latest
     timeout-minutes: 60 # 1 hour timeout - plenty of time for AI processing
 
     steps:
-      - name: Send Milestone Reminders
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Create pending notifications
         run: |
-          echo "🔔 Triggering milestone reminders..."
+          echo "📬 Creating pending notifications..."
 
           response=$(curl -X GET \
             -H "Content-Type: application/json" \
@@ -28,12 +36,25 @@ jobs:
           echo "$body" | jq '.' || echo "$body"
 
           if [ "$http_code" -eq 200 ]; then
-            echo "✅ Milestone reminders sent successfully"
-            exit 0
+            echo "✅ Pending notifications created successfully"
           else
             echo "❌ Failed with HTTP $http_code"
             exit 1
           fi
+
+      - name: Install dependencies
+        working-directory: .github/scripts
+        run: npm install
+
+      - name: Process notifications with AI
+        working-directory: .github/scripts
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          echo "🤖 Processing pending notifications with AI..."
+          npm run process
 
       - name: Notify on failure
         if: failure()

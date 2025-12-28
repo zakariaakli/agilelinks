@@ -10,316 +10,14 @@ import {
   Timestamp,
   getDoc,
 } from "firebase/firestore";
-import { generateMilestoneNudgeFromAI } from "../../../lib/generateMilestoneNudgeFromAI";
 import {
   getDefaultEmailStatus,
   getDefaultNotificationMeta,
 } from "../../../lib/notificationTracking";
-import { sendMilestoneEmail } from "../../../lib/sendMilestoneEmail";
 import {
   trackFirebaseRead,
   trackFirebaseWrite,
 } from "../../../lib/firebaseTracker";
-
-/**
- * TIMEOUT FIX: Async AI Processing Function
- *
- * This function handles AI generation in the background to avoid Vercel's 10-second timeout.
- * It runs asynchronously after the main API response is sent, ensuring users only see
- * the final AI-generated notification (no placeholder notifications).
- *
- * COST MONITORING: This function includes comprehensive tracking of:
- * - OpenAI API usage (tokens and costs)
- * - Firebase operations (reads/writes and costs)
- * - User-specific cost attribution
- *
- * @param notificationData - The notification data to process
- * @param aiInput - Input parameters for AI generation
- */
-async function processAIInBackground(
-  notificationData: {
-    userId: string;
-    planId: string;
-    milestoneId: string;
-    milestoneTitle: string;
-    blindSpotTip: string | null;
-    strengthHook: string | null;
-    startDate: string;
-    dueDate: string;
-  },
-  aiInput: {
-    milestone: Milestone;
-    goalContext: string;
-    userId: string;
-  }
-) {
-  try {
-    console.log(
-      `🤖 [BACKGROUND] Starting AI generation for milestone: ${notificationData.milestoneTitle}`
-    );
-
-    // COST MONITORING: Get user email for cost tracking
-    let userEmail = "unknown@system.com"; // Default fallback
-    try {
-      const userDocRef = doc(db, "users", notificationData.userId);
-      const userDoc = await getDoc(userDocRef);
-
-      // Track Firebase read operation
-      await trackFirebaseRead(
-        "users",
-        1,
-        notificationData.userId,
-        userEmail,
-        "server",
-        "milestone_reminders_user_lookup"
-      );
-
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        userEmail = userData.email || userData.userEmail || userEmail;
-        console.log(
-          `📧 [COST-TRACKING] Retrieved user email for cost attribution: ${userEmail}`
-        );
-      }
-    } catch (userLookupError) {
-      console.error(
-        "❌ [COST-TRACKING] Failed to get user email for tracking:",
-        userLookupError
-      );
-    }
-
-    // Generate AI-powered nudge message (this can take 10-30 seconds)
-    // COST MONITORING: Pass userEmail for OpenAI cost tracking
-    const aiNudgeMessage = await generateMilestoneNudgeFromAI(
-      aiInput,
-      userEmail
-    );
-
-    if (aiNudgeMessage) {
-      // Create the final notification with AI-generated content
-      // User will only see this notification, not any placeholder
-      const notificationRef = doc(collection(db, "notifications"));
-
-      await setDoc(notificationRef, {
-        ...notificationData,
-        prompt: aiNudgeMessage,
-        createdAt: Timestamp.now(),
-        read: false,
-        feedback: null,
-        // Enhanced tracking fields
-        emailStatus: getDefaultEmailStatus(),
-        notificationMeta: getDefaultNotificationMeta("milestone_reminder"),
-      });
-
-      // COST MONITORING: Track Firebase write operation
-      await trackFirebaseWrite(
-        "notifications",
-        1,
-        notificationData.userId,
-        userEmail,
-        "server",
-        "milestone_reminders_create_notification"
-      );
-
-      console.log(
-        `✅ [BACKGROUND] AI notification created successfully for milestone: ${notificationData.milestoneTitle}`
-      );
-
-      // INTEGRATED EMAIL SYSTEM: Send email immediately after notification creation
-      // This ensures users get notified as soon as their milestone reminder is ready
-      console.log(
-        `📧 [BACKGROUND] Attempting to send email for notification: ${notificationRef.id}`
-      );
-      try {
-        await sendMilestoneEmail(notificationRef.id, notificationData.userId, {
-          prompt: aiNudgeMessage,
-          milestoneTitle: notificationData.milestoneTitle,
-          blindSpotTip: notificationData.blindSpotTip,
-          strengthHook: notificationData.strengthHook,
-        });
-      } catch (emailError) {
-        console.error(
-          `❌ [BACKGROUND] Email sending failed for notification ${notificationRef.id}:`,
-          emailError
-        );
-        // Don't throw - email failure shouldn't break notification creation
-      }
-    } else {
-      // Fallback: create notification with basic message if AI fails
-      console.log(
-        `⚠️ [BACKGROUND] AI generation failed, creating fallback notification for: ${notificationData.milestoneTitle}`
-      );
-
-      const today = new Date();
-      const startDate = new Date(aiInput.milestone.startDate);
-      const dueDate = new Date(aiInput.milestone.dueDate);
-      const daysInProgress = Math.ceil(
-        (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      const daysRemaining = Math.ceil(
-        (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      const fallbackMessage = generateFallbackNudge(
-        aiInput.milestone,
-        daysInProgress,
-        daysRemaining
-      );
-
-      const notificationRef = doc(collection(db, "notifications"));
-      await setDoc(notificationRef, {
-        ...notificationData,
-        prompt: fallbackMessage,
-        createdAt: Timestamp.now(),
-        read: false,
-        feedback: null,
-        emailStatus: getDefaultEmailStatus(),
-        notificationMeta: getDefaultNotificationMeta("milestone_reminder"),
-      });
-
-      // COST MONITORING: Track Firebase write operation for fallback
-      await trackFirebaseWrite(
-        "notifications",
-        1,
-        notificationData.userId,
-        userEmail,
-        "server",
-        "milestone_reminders_fallback_notification"
-      );
-
-      // INTEGRATED EMAIL SYSTEM: Send email for AI failure fallback notification
-      console.log(
-        `📧 [BACKGROUND] Attempting to send email for AI-failure fallback notification: ${notificationRef.id}`
-      );
-      try {
-        await sendMilestoneEmail(notificationRef.id, notificationData.userId, {
-          prompt: fallbackMessage,
-          milestoneTitle: notificationData.milestoneTitle,
-          blindSpotTip: notificationData.blindSpotTip,
-          strengthHook: notificationData.strengthHook,
-        });
-      } catch (emailError) {
-        console.error(
-          `❌ [BACKGROUND] Email sending failed for AI-failure fallback notification ${notificationRef.id}:`,
-          emailError
-        );
-        // Don't throw - email failure shouldn't break notification creation
-      }
-    }
-  } catch (error) {
-    console.error(
-      `❌ [BACKGROUND] Failed to process AI generation for milestone ${notificationData.milestoneTitle}:`,
-      error
-    );
-
-    // Create fallback notification even if everything fails
-    try {
-      const today = new Date();
-      const startDate = new Date(aiInput.milestone.startDate);
-      const dueDate = new Date(aiInput.milestone.dueDate);
-      const daysInProgress = Math.ceil(
-        (today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      const daysRemaining = Math.ceil(
-        (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-      );
-
-      const fallbackMessage = generateFallbackNudge(
-        aiInput.milestone,
-        daysInProgress,
-        daysRemaining
-      );
-
-      const notificationRef = doc(collection(db, "notifications"));
-      await setDoc(notificationRef, {
-        ...notificationData,
-        prompt: fallbackMessage,
-        createdAt: Timestamp.now(),
-        read: false,
-        feedback: null,
-        emailStatus: getDefaultEmailStatus(),
-        notificationMeta: getDefaultNotificationMeta("milestone_reminder"),
-      });
-
-      // COST MONITORING: Track Firebase write operation for critical fallback
-      // Use fallback email since userEmail may not be accessible in this catch block
-      await trackFirebaseWrite(
-        "notifications",
-        1,
-        notificationData.userId,
-        "unknown@critical-fallback.com",
-        "server",
-        "milestone_reminders_critical_fallback"
-      );
-
-      console.log(
-        `🆘 [BACKGROUND] Fallback notification created after error for: ${notificationData.milestoneTitle}`
-      );
-
-      // INTEGRATED EMAIL SYSTEM: Send email for critical error fallback notification
-      console.log(
-        `📧 [BACKGROUND] Attempting to send email for critical-error fallback notification: ${notificationRef.id}`
-      );
-      try {
-        await sendMilestoneEmail(notificationRef.id, notificationData.userId, {
-          prompt: fallbackMessage,
-          milestoneTitle: notificationData.milestoneTitle,
-          blindSpotTip: notificationData.blindSpotTip,
-          strengthHook: notificationData.strengthHook,
-        });
-      } catch (emailError) {
-        console.error(
-          `❌ [BACKGROUND] Email sending failed for critical-error fallback notification ${notificationRef.id}:`,
-          emailError
-        );
-        // Don't throw - this is already the final fallback
-      }
-    } catch (fallbackError) {
-      console.error(
-        `💥 [BACKGROUND] Critical error - could not create any notification:`,
-        fallbackError
-      );
-    }
-  }
-}
-
-/**
- * Generates a simple fallback nudge message when AI is unavailable
- * This ensures users always get a notification even if AI fails
- */
-function generateFallbackNudge(
-  milestone: Milestone,
-  daysInProgress: number,
-  daysRemaining: number
-): string {
-  const encouragements = [
-    "You're making great progress!",
-    "Keep up the momentum!",
-    "You've got this - stay focused!",
-    "Every step forward counts!",
-    "You're on the right track!",
-  ];
-
-  const randomEncouragement =
-    encouragements[Math.floor(Math.random() * encouragements.length)];
-
-  let message = `Week ${Math.ceil(daysInProgress / 7)} of your "${milestone.title}" milestone! ${randomEncouragement} You have ${daysRemaining} days remaining to achieve this goal.`;
-
-  // Add blind spot tip if available
-  if (milestone.blindSpotTip) {
-    message += ` Keep in mind: ${milestone.blindSpotTip}`;
-  }
-
-  // Add strength hook if available
-  if (milestone.strengthHook) {
-    message += ` Leverage your strength: ${milestone.strengthHook}`;
-  }
-
-  message +=
-    " What's one key action you can take this week to move closer to completion?";
-
-  return message;
-}
 
 interface Milestone {
   id: string;
@@ -348,18 +46,19 @@ interface PlanData {
 /**
  * MAIN MILESTONE REMINDERS PROCESSOR
  *
- * This function processes milestone reminders for all active plans.
- * GITHUB ACTIONS FIX: Awaits all AI processing to complete before returning.
- * Works with GitHub Actions 60-minute timeout to ensure notifications are fully created.
+ * This function creates pending notifications for all active milestones.
+ * Works within Vercel's 10-second timeout by creating notifications WITHOUT AI processing.
+ * AI processing happens separately via GitHub Actions script.
  *
  * How it works:
  * 1. Scans all active plans for current milestones
  * 2. Checks if reminders are needed (based on frequency and existing reminders)
- * 3. Processes AI generation and creates notifications with email delivery
- * 4. Returns 200 response after all processing completes
+ * 3. Creates pending notifications with empty prompt (fast, <10s)
+ * 4. Returns 200 response immediately
+ * 5. GitHub Actions script processes pending notifications with AI later
  *
  * @param request - HTTP request object
- * @returns NextResponse with completion status
+ * @returns NextResponse with pending notifications count
  */
 async function processMilestoneReminders(_request: Request) {
   try {
@@ -478,11 +177,12 @@ async function processMilestoneReminders(_request: Request) {
           // If no recent reminder exists, create one
           if (shouldCreateReminder) {
             console.log(
-              `📬 Processing ${nudgeFrequency} reminder for current milestone: ${milestone.title}`
+              `📬 Creating pending ${nudgeFrequency} reminder for current milestone: ${milestone.title}`
             );
 
-            // Prepare notification data structure
-            const notificationData = {
+            // Create pending notification (AI will process later via GitHub Actions)
+            const notificationRef = doc(collection(db, "notifications"));
+            await setDoc(notificationRef, {
               userId: planData.userId,
               type: "milestone_reminder" as const,
               planId: planId,
@@ -492,24 +192,29 @@ async function processMilestoneReminders(_request: Request) {
               strengthHook: milestone.strengthHook || null,
               startDate: milestone.startDate,
               dueDate: milestone.dueDate,
-            };
+              prompt: "", // Empty prompt - AI will fill this in
+              goalContext: planData.goal, // Store for AI processing
+              createdAt: Timestamp.now(),
+              read: false,
+              feedback: null,
+              emailStatus: getDefaultEmailStatus(),
+              notificationMeta: getDefaultNotificationMeta("milestone_reminder"),
+            });
 
-            // Prepare AI input parameters
-            const aiInput = {
-              milestone,
-              goalContext: planData.goal,
-              userId: planData.userId,
-            };
+            // Track Firebase write operation
+            await trackFirebaseWrite(
+              "notifications",
+              1,
+              planData.userId,
+              "pending-notification@system.com",
+              "server",
+              "milestone_reminders_create_pending"
+            );
 
-            // GITHUB ACTIONS FIX: Await AI processing to complete before returning
-            // This ensures notifications are fully created when GitHub Actions workflow completes
-            await processAIInBackground(notificationData, aiInput);
-
-            // Count reminder as created only after successful processing
             remindersCreated++;
 
             console.log(
-              `✅ ${nudgeFrequency.charAt(0).toUpperCase() + nudgeFrequency.slice(1)} reminder created successfully: ${milestone.title}`
+              `✅ Pending ${nudgeFrequency} reminder created: ${milestone.title} (ID: ${notificationRef.id})`
             );
           } else {
             console.log(
@@ -521,14 +226,14 @@ async function processMilestoneReminders(_request: Request) {
     }
 
     console.log(
-      `✅ Milestone reminder check completed. Created ${remindersCreated} reminders.`
+      `✅ Milestone reminder check completed. Created ${remindersCreated} pending reminders.`
     );
 
-    // Return response after all processing completes
+    // Return response - AI processing will happen via GitHub Actions
     return NextResponse.json({
       status: "success",
-      remindersCreated: remindersCreated,
-      message: `Successfully created ${remindersCreated} milestone reminders with AI-generated content`,
+      pendingRemindersCreated: remindersCreated,
+      message: `Successfully created ${remindersCreated} pending milestone reminders (AI processing will follow)`,
     });
   } catch (error) {
     console.error("❌ Error in milestone reminders:", error);
@@ -545,8 +250,8 @@ async function processMilestoneReminders(_request: Request) {
 
 /**
  * GET endpoint for milestone reminders
- * Used by GitHub Actions scheduled workflow and manual triggers
- * Returns after all AI processing and notification creation completes
+ * Creates pending notifications (fast, <10s) without AI processing
+ * AI processing happens separately via GitHub Actions script
  */
 export async function GET(request: Request) {
   return processMilestoneReminders(request);
@@ -554,8 +259,8 @@ export async function GET(request: Request) {
 
 /**
  * POST endpoint for milestone reminders
- * Used for webhook triggers and API calls
- * Returns after all AI processing and notification creation completes
+ * Creates pending notifications (fast, <10s) without AI processing
+ * AI processing happens separately via GitHub Actions script
  */
 export async function POST(request: Request) {
   return processMilestoneReminders(request);

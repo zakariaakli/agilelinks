@@ -1,0 +1,14 @@
+{
+  "name": "milestone-reminder-processor",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "GitHub Actions script to process pending milestone reminders with AI",
+  "scripts": {
+    "process": "node process-milestone-reminders.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "openai": "^4.20.0",
+    "resend": "^3.0.0"
+  }
+}
