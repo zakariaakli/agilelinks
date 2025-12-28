@@ -349,18 +349,17 @@ interface PlanData {
  * MAIN MILESTONE REMINDERS PROCESSOR
  *
  * This function processes milestone reminders for all active plans.
- * TIMEOUT FIX: Returns response immediately (under 10s) while AI processing
- * continues in the background to avoid Vercel serverless timeouts.
+ * GITHUB ACTIONS FIX: Awaits all AI processing to complete before returning.
+ * Works with GitHub Actions 60-minute timeout to ensure notifications are fully created.
  *
  * How it works:
  * 1. Scans all active plans for current milestones
  * 2. Checks if reminders are needed (based on frequency and existing reminders)
- * 3. Queues AI generation tasks for background processing
- * 4. Returns 200 response immediately
- * 5. AI processing continues asynchronously and creates notifications when done
+ * 3. Processes AI generation and creates notifications with email delivery
+ * 4. Returns 200 response after all processing completes
  *
  * @param request - HTTP request object
- * @returns NextResponse with immediate status
+ * @returns NextResponse with completion status
  */
 async function processMilestoneReminders(_request: Request) {
   try {
@@ -479,13 +478,8 @@ async function processMilestoneReminders(_request: Request) {
           // If no recent reminder exists, create one
           if (shouldCreateReminder) {
             console.log(
-              `📬 Queuing ${nudgeFrequency} reminder for current milestone: ${milestone.title}`
+              `📬 Processing ${nudgeFrequency} reminder for current milestone: ${milestone.title}`
             );
-
-            // TIMEOUT FIX: Instead of waiting for AI generation (which can take 10-30 seconds),
-            // we immediately count this as a reminder being created and process AI in background.
-            // The user will only see the final notification when AI processing completes.
-            remindersCreated++;
 
             // Prepare notification data structure
             const notificationData = {
@@ -507,17 +501,15 @@ async function processMilestoneReminders(_request: Request) {
               userId: planData.userId,
             };
 
-            // Process AI generation in background (non-blocking)
-            // This will create the actual notification after AI completes
-            processAIInBackground(notificationData, aiInput).catch((error) => {
-              console.error(
-                `❌ [MAIN] Background processing failed for milestone ${milestone.title}:`,
-                error
-              );
-            });
+            // GITHUB ACTIONS FIX: Await AI processing to complete before returning
+            // This ensures notifications are fully created when GitHub Actions workflow completes
+            await processAIInBackground(notificationData, aiInput);
+
+            // Count reminder as created only after successful processing
+            remindersCreated++;
 
             console.log(
-              `✅ ${nudgeFrequency.charAt(0).toUpperCase() + nudgeFrequency.slice(1)} reminder queued for background processing: ${milestone.title}`
+              `✅ ${nudgeFrequency.charAt(0).toUpperCase() + nudgeFrequency.slice(1)} reminder created successfully: ${milestone.title}`
             );
           } else {
             console.log(
@@ -529,16 +521,14 @@ async function processMilestoneReminders(_request: Request) {
     }
 
     console.log(
-      `✅ Milestone reminder check completed. Queued ${remindersCreated} reminders for background processing.`
+      `✅ Milestone reminder check completed. Created ${remindersCreated} reminders.`
     );
 
-    // TIMEOUT FIX: Return response immediately to avoid Vercel timeout
-    // The actual notifications will be created by background AI processing
+    // Return response after all processing completes
     return NextResponse.json({
       status: "success",
-      remindersQueued: remindersCreated,
-      message: `Successfully queued ${remindersCreated} milestone reminders for AI processing`,
-      note: "Notifications will appear after AI generation completes in background",
+      remindersCreated: remindersCreated,
+      message: `Successfully created ${remindersCreated} milestone reminders with AI-generated content`,
     });
   } catch (error) {
     console.error("❌ Error in milestone reminders:", error);
@@ -555,8 +545,8 @@ async function processMilestoneReminders(_request: Request) {
 
 /**
  * GET endpoint for milestone reminders
- * Used by scheduled cron jobs and manual triggers
- * Returns immediately to avoid timeouts while processing continues in background
+ * Used by GitHub Actions scheduled workflow and manual triggers
+ * Returns after all AI processing and notification creation completes
  */
 export async function GET(request: Request) {
   return processMilestoneReminders(request);
@@ -565,7 +555,7 @@ export async function GET(request: Request) {
 /**
  * POST endpoint for milestone reminders
  * Used for webhook triggers and API calls
- * Returns immediately to avoid timeouts while processing continues in background
+ * Returns after all AI processing and notification creation completes
  */
 export async function POST(request: Request) {
   return processMilestoneReminders(request);
