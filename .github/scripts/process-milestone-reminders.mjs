@@ -143,9 +143,9 @@ async function sendMilestoneEmail(userId, notificationData) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Stepiva <nudges@stepiva.com>',
+      from: 'Stepiva - Your AI Goal Coach <onboarding@resend.dev>',
       to: [settings.email],
-      subject: `Milestone Reminder: ${notificationData.milestoneTitle}`,
+      subject: `🎯 Your Milestone Check-in: ${notificationData.milestoneTitle}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #4F46E5;">${notificationData.milestoneTitle}</h2>
