@@ -195,6 +195,11 @@ const goalTemplateItems: { [key: string]: GoalTemplateItem[] } = {
 
 const goalTemplates: GoalTemplate[] = [
   {
+    value: "custom",
+    label: "Custom Goal (Write your own)",
+    template: "",
+  },
+  {
     value: "consultant",
     label: "Become a Consultant after graduation",
     template:
@@ -205,6 +210,12 @@ const goalTemplates: GoalTemplate[] = [
     label: "Get promoted to Manager",
     template:
       "I want to get promoted from my current [current position] role to Manager within my company. I need to demonstrate leadership skills, exceed my current performance metrics, take on additional responsibilities, mentor junior team members, and build strong relationships with senior leadership. My goal is to secure this promotion by [specific date] with an accompanying salary increase of [target amount/percentage].",
+  },
+  {
+    value: "capstone",
+    label: "Complete Capstone Project",
+    template:
+      "I want to successfully complete my capstone project by [specific date]. I need to finalize my project topic, conduct thorough research, develop a comprehensive plan, execute the implementation phase, gather and analyze results, and prepare a compelling final presentation. My goal is to deliver a high-quality project that demonstrates my skills and knowledge while meeting all academic requirements.",
   },
 ];
 
@@ -410,17 +421,33 @@ const GoalWizard: React.FC = () => {
 
       const data: OpenAIMilestonesResponse = await response.json();
 
-      // Convert to our Milestone format
-      return data.milestones.map((m) => ({
-        id: m.id,
-        title: m.title,
-        description: m.description,
-        dueDate: m.dueDate,
-        completed: false,
-        blindSpotTip: m.blindSpotTip,
-        strengthHook: m.strengthHook,
-        startDate: m.startDate,
-      }));
+      // Get today's date for validation
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
+
+      // Convert to our Milestone format and ensure dates are not in the past
+      return data.milestones.map((m) => {
+        const startDate = new Date(m.startDate);
+        const dueDate = new Date(m.dueDate);
+
+        // If start date is in the past, set it to today
+        const validStartDate = startDate < today ? todayStr : m.startDate;
+
+        // If due date is in the past, set it to today
+        const validDueDate = dueDate < today ? todayStr : m.dueDate;
+
+        return {
+          id: m.id,
+          title: m.title,
+          description: m.description,
+          dueDate: validDueDate,
+          completed: false,
+          blindSpotTip: m.blindSpotTip,
+          strengthHook: m.strengthHook,
+          startDate: validStartDate,
+        };
+      });
     } catch (error) {
       console.error("Error calling OpenAI Milestone Generator:", error);
       // Fallback to default milestones
@@ -853,6 +880,9 @@ const GoalWizard: React.FC = () => {
           <>
             <div className={styles.section}>
               <h2 className={styles.subtitle}>Goal Type Selection</h2>
+              <p className={styles.helperText}>
+                Choose a template to get started, or select "Custom Goal" to write your own from scratch.
+              </p>
               <select
                 value={selectedGoalType}
                 onChange={handleGoalTypeChange}
@@ -870,9 +900,11 @@ const GoalWizard: React.FC = () => {
             <div className={styles.section}>
               <h2 className={styles.subtitle}>Goal Entry</h2>
               <p className={styles.helperText}>
-                {selectedGoalType
+                {selectedGoalType === "custom"
+                  ? "Describe your goal in detail. Be specific about what you want to achieve and why it matters to you:"
+                  : selectedGoalType
                   ? "Customize the template below with your specific details and timeline:"
-                  : "Select a goal type above to see a helpful template, or write your own goal below:"}
+                  : "Select a goal type above to get started:"}
               </p>
               <div className={styles.autosuggestContainer}>
                 <textarea
@@ -882,7 +914,9 @@ const GoalWizard: React.FC = () => {
                   onKeyDown={handleKeyDown}
                   onFocus={handleInputFocus}
                   onBlur={handleInputBlur}
-                  placeholder="What do you want to achieve? Describe your goal in detail..."
+                  placeholder={selectedGoalType === "custom"
+                    ? "Example: I want to write and publish a science fiction novel by December 2026. I'll need to develop a consistent writing habit, learn story structure, complete a first draft, revise it with feedback from beta readers, and query literary agents..."
+                    : "What do you want to achieve? Describe your goal in detail..."}
                   rows={6}
                   className={styles.goalTextarea}
                 />

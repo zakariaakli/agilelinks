@@ -253,6 +253,7 @@ Context:
 - Goal Type: ${body.goalType}
 - Goal: ${body.goalSummary}
 - Target Date: ${body.targetDate}
+- Today's Date: ${new Date().toISOString().split('T')[0]}
 - Personality Type: ${body.enneagramType}
 - Personality Summary: ${body.personalitySummary}
 - Time Pressure: ${body.paceInfo.hasTimePressure ? 'Yes' : 'No'}
@@ -264,7 +265,9 @@ Instructions:
 2. Include personality-specific tips for blind spots and strengths
 3. Adjust timeline based on time pressure preference
 4. Create sequential milestones with appropriate start and due dates
-5. Return JSON format with milestones array containing: id, title, description, startDate, dueDate, blindSpotTip, strengthHook`;
+5. IMPORTANT: All milestone startDate and dueDate values MUST be today or in the future. Never generate dates in the past.
+6. If a goal template is provided with defaultOffsetDays (negative values), use them as a guide for milestone spacing relative to the target date, but ensure all dates are adjusted to start from today if the calculated date would be in the past.
+7. Return JSON format with milestones array containing: id, title, description, startDate, dueDate, blindSpotTip, strengthHook`;
 
     await openai.beta.threads.messages.create(thread.id, {
       role: 'user',
