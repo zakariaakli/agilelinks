@@ -210,6 +210,8 @@ To update this assistant's instructions:
 
 ## Related Files
 
-- **Code Implementation:** `lib/generateMilestoneNudgeFromAI.ts`
-- **API Route:** `app/api/milestoneReminders/route.ts`
-- **Environment Variable:** `.env.local` → `NEXT_PUBLIC_REACT_NDG_GENERATOR_ID`
+- **Active Implementation:** `.github/scripts/process-milestone-reminders.mjs`
+- **Reference Implementation:** `lib/generateMilestoneNudgeFromAI.ts` (logic ported to GitHub Actions)
+- **API Route (Phase 1):** `app/api/milestoneReminders/route.ts` (creates pending notifications)
+- **GitHub Actions (Phase 2):** `.github/workflows/milestone-reminders.yml` (triggers AI processing)
+- **Environment Variable:** GitHub Secrets → `NEXT_PUBLIC_REACT_NDG_GENERATOR_ID`

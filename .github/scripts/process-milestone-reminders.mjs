@@ -7,10 +7,17 @@
  * It queries Firebase for notifications with empty prompts, generates AI content,
  * updates the notifications, and sends emails.
  *
+ * Uses advanced AI personalization with:
+ * - User's Enneagram personality type
+ * - Personalized growth advice
+ * - Feedback history from previous nudges
+ * - OpenAI Assistants API for sophisticated prompting
+ *
  * Environment variables required:
  * - FIREBASE_SERVICE_ACCOUNT: Firebase service account JSON
  * - OPENAI_API_KEY: OpenAI API key
  * - RESEND_API_KEY: Resend API key for sending emails
+ * - NEXT_PUBLIC_REACT_NDG_GENERATOR_ID: OpenAI Assistant ID for nudge generation
  */
 
 import { initializeApp, cert } from 'firebase-admin/app';
@@ -35,47 +42,179 @@ const openai = new OpenAI({
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * Generate AI nudge message for a milestone
+ * Generate AI nudge message for a milestone using OpenAI Assistants API
+ * with personalization based on user's Enneagram type and feedback history
  */
-async function generateMilestoneNudge(milestone, goalContext, userEmail) {
+async function generateMilestoneNudge(milestone, goalContext, userId, userEmail) {
   console.log(`🤖 Generating AI nudge for milestone: ${milestone.title}`);
-
-  const today = new Date();
-  const startDate = new Date(milestone.startDate);
-  const dueDate = new Date(milestone.dueDate);
-  const daysInProgress = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-  const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-  const prompt = `You are a personalized AI coach helping someone achieve their goal: "${goalContext}".
-
-Current milestone: "${milestone.title}"
-Days in progress: ${daysInProgress}
-Days remaining: ${daysRemaining}
-${milestone.blindSpotTip ? `Blind spot to avoid: ${milestone.blindSpotTip}` : ''}
-${milestone.strengthHook ? `Strength to leverage: ${milestone.strengthHook}` : ''}
-
-Generate a motivating, personalized nudge (2-3 sentences) that:
-1. Acknowledges their progress
-2. ${milestone.blindSpotTip ? 'Gently reminds them of their blind spot' : 'Encourages them'}
-3. ${milestone.strengthHook ? 'Reminds them to leverage their strength' : 'Motivates action'}
-4. Ends with a specific question to prompt reflection
-
-Keep it warm, personal, and actionable.`;
+  console.log(`   User: ${userId}`);
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: 200,
-      temperature: 0.8,
+    // Calculate milestone timeline context
+    const today = new Date();
+    const startDate = new Date(milestone.startDate);
+    const dueDate = new Date(milestone.dueDate);
+    const totalDays = Math.ceil((dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysInProgress = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    // Get user's personality data for personalization
+    let personalityContext = '';
+    let enneagramTypeNumber = '';
+
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (userDoc.exists) {
+      const userData = userDoc.data();
+      const enneagramResult = userData.enneagramResult;
+      if (enneagramResult && enneagramResult.summary) {
+        personalityContext = enneagramResult.summary;
+        console.log(`   ✅ Personality context found`);
+
+        // Extract Enneagram type number from summary
+        const typeMatch = personalityContext.match(/enneagram type (\d+)/i);
+        if (typeMatch) {
+          enneagramTypeNumber = typeMatch[1];
+          console.log(`   ✅ Enneagram type: ${enneagramTypeNumber}`);
+        }
+      }
+    }
+
+    // Query Firebase personalization data for milestone_nudge
+    let growthAdvice = '';
+    if (enneagramTypeNumber) {
+      try {
+        const personalizationSnapshot = await db.collection('personalization')
+          .where('topic', '==', 'milestone_nudge')
+          .where('type', '==', enneagramTypeNumber)
+          .limit(1)
+          .get();
+
+        if (!personalizationSnapshot.empty) {
+          const doc = personalizationSnapshot.docs[0];
+          growthAdvice = doc.data().summary || '';
+          console.log(`   ✅ Growth advice retrieved`);
+        }
+      } catch (firebaseError) {
+        console.error(`   ⚠️ Error fetching personalization:`, firebaseError.message);
+      }
+    }
+
+    // Query for ALL previous notifications for this milestone to build feedback history
+    let feedbackHistory = [];
+    try {
+      const notificationsSnapshot = await db.collection('notifications')
+        .where('userId', '==', userId)
+        .where('milestoneId', '==', milestone.id)
+        .where('type', '==', 'milestone_reminder')
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      if (!notificationsSnapshot.empty) {
+        feedbackHistory = notificationsSnapshot.docs
+          .map(doc => {
+            const data = doc.data();
+            return {
+              nudge: data.prompt || data.message || '',
+              feedback: data.feedback || '',
+              timestamp: data.createdAt?.toDate?.() || new Date()
+            };
+          })
+          .filter(item => item.feedback); // Only include items with feedback
+
+        console.log(`   ✅ Found ${feedbackHistory.length} previous nudge(s) with feedback`);
+      }
+    } catch (firebaseError) {
+      console.error(`   ⚠️ Error fetching feedback history:`, firebaseError.message);
+    }
+
+    // Prepare feedback history with recency context
+    const feedbackHistoryFormatted = feedbackHistory.map(item => {
+      const daysAgo = Math.floor((today.getTime() - item.timestamp.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        nudge: item.nudge,
+        feedback: item.feedback,
+        daysAgo
+      };
     });
 
-    const nudgeMessage = completion.choices[0].message.content.trim();
-    console.log(`✅ AI nudge generated (${completion.usage.total_tokens} tokens)`);
+    // Prepare assistant input in the exact format expected
+    const assistantInput = {
+      goalContext: goalContext,
+      milestone: {
+        title: milestone.title,
+        description: milestone.description || '',
+        blindSpotTip: milestone.blindSpotTip || null,
+        strengthHook: milestone.strengthHook || null,
+        daysInProgress,
+        totalDays,
+        daysRemaining
+      },
+      personalityContext,
+      growthAdvice,
+      feedbackHistory: feedbackHistoryFormatted
+    };
 
-    return nudgeMessage;
+    console.log(`   🧠 Sending to OpenAI Assistant with personalization data`);
+
+    // Create thread and send message to OpenAI Assistants API
+    const thread = await openai.beta.threads.create();
+
+    await openai.beta.threads.messages.create(thread.id, {
+      role: 'user',
+      content: JSON.stringify(assistantInput)
+    });
+
+    const run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: process.env.NEXT_PUBLIC_REACT_NDG_GENERATOR_ID,
+    });
+
+    // Poll for completion
+    let status = 'queued';
+    let attempts = 0;
+    const maxAttempts = 30; // 30 seconds timeout
+    let finalResult = null;
+
+    while (status !== 'completed' && attempts < maxAttempts) {
+      finalResult = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+      status = finalResult.status;
+
+      if (status === 'failed') {
+        console.error(`   ❌ OpenAI run failed:`, finalResult.last_error);
+        return null;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      attempts++;
+    }
+
+    if (status !== 'completed') {
+      console.error(`   ❌ OpenAI run timed out after ${maxAttempts} seconds`);
+      return null;
+    }
+
+    // Get the assistant's response
+    const messages = await openai.beta.threads.messages.list(thread.id);
+    const latest = messages.data[0];
+
+    if (!latest || !latest.content || latest.content.length === 0) {
+      console.warn(`   ⚠️ No response from OpenAI`);
+      return null;
+    }
+
+    const firstContent = latest.content[0];
+    if (firstContent.type === 'text') {
+      const nudgeMessage = firstContent.text.value;
+      console.log(`   ✅ AI nudge generated with personalization`);
+      if (finalResult && finalResult.usage) {
+        console.log(`   📊 Tokens used: ${finalResult.usage.total_tokens}`);
+      }
+      return nudgeMessage;
+    }
+
+    return null;
+
   } catch (error) {
-    console.error(`❌ AI generation failed:`, error);
+    console.error(`   ❌ AI generation failed:`, error.message);
     return null;
   }
 }
@@ -208,14 +347,16 @@ async function processPendingNotifications() {
 
         // Generate AI nudge
         const milestone = {
+          id: notifData.milestoneId,
           title: notifData.milestoneTitle,
+          description: notifData.milestoneDescription || '',
           startDate: notifData.startDate,
           dueDate: notifData.dueDate,
           blindSpotTip: notifData.blindSpotTip,
           strengthHook: notifData.strengthHook,
         };
 
-        let aiNudge = await generateMilestoneNudge(milestone, notifData.goalContext, userEmail);
+        let aiNudge = await generateMilestoneNudge(milestone, notifData.goalContext, notifData.userId, userEmail);
 
         // Use fallback if AI fails
         if (!aiNudge) {

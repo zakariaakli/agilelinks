@@ -52,8 +52,9 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          NEXT_PUBLIC_REACT_NDG_GENERATOR_ID: ${{ secrets.NEXT_PUBLIC_REACT_NDG_GENERATOR_ID }}
         run: |
-          echo "🤖 Processing pending notifications with AI..."
+          echo "🤖 Processing pending notifications with AI personalization..."
           npm run process
 
       - name: Notify on failure

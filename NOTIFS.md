@@ -110,16 +110,28 @@ interface Plan {
 - Simple notification structure
 
 #### Weekly Milestone Reminders
-**API**: `/api/weeklyMilestoneReminders`
+**System**: Two-phase process (API → GitHub Actions)
 
+**Phase 1: Notification Creation** (`/api/milestoneReminders`)
 1. **Scan active plans** for current milestones
 2. **Detect current milestones** (`startDate ≤ today ≤ dueDate` & `!completed`)
-3. **Generate progress-aware content** with timeline context
-4. **Include personality tips** (blind spots + strengths)
-5. **Prevent duplicates** with 7-day lookback
+3. **Create pending notifications** with empty prompts (no AI yet)
+4. **Prevent duplicates** with 7-day lookback
+
+**Phase 2: AI Processing** (`.github/scripts/process-milestone-reminders.mjs`)
+1. **Query pending notifications** (empty prompt field)
+2. **Fetch user personality data** (Enneagram type and summary)
+3. **Retrieve personalization advice** (type-specific milestone guidance)
+4. **Load feedback history** (all previous nudge feedback for this milestone)
+5. **Generate AI content** via OpenAI Assistants API with full context
+6. **Update notification** with generated prompt
+7. **Send email** via Resend API
+8. **Track delivery status**
 
 **Key Features**:
-- Smart milestone detection
+- Two-phase architecture (avoids Vercel timeout limits)
+- Advanced AI personalization with Enneagram integration
+- Feedback loop learning from previous nudges
 - Progress-aware messaging
 - Personality-enhanced guidance
 - Duplicate prevention
@@ -172,7 +184,11 @@ interface Plan {
 - Generates 1-2 sentence daily reflections
 - Personality-specific tone and advice
 
-**Milestone Nudges** (`/lib/generateMilestoneNudgeFromAI.ts`):
+**Milestone Nudges** (`.github/scripts/process-milestone-reminders.mjs`):
+- **Enneagram personality integration** - Fetches user's personality type and context
+- **Personalized growth advice** - Retrieves type-specific guidance from Firestore
+- **Feedback history learning** - Includes all previous nudge feedback for improvement
+- **OpenAI Assistants API** - Uses sophisticated assistant-based prompting
 - Progress timeline awareness
 - Goal context integration
 - Blind spot & strength incorporation
@@ -271,18 +287,20 @@ The notification system runs automatically on Vercel using cron jobs:
 - **Generation**: Every day at **3:00 AM Paris time** (`/api/generateNudges`)
 - **Delivery**: Every day at **4:00 AM Paris time** (`/api/sendDailyNudges`)
 
-### Weekly Milestone Reminders  
-- **Generation**: Every Monday at **3:00 AM Paris time** (`/api/weeklyMilestoneReminders`)
-- **Delivery**: Same day at **4:00 AM Paris time** (via `/api/sendDailyNudges`)
+### Weekly Milestone Reminders
+- **Phase 1 - Creation**: Every day at **7:00 AM UTC** (`/api/milestoneReminders` via GitHub Actions)
+- **Phase 2 - AI Processing & Delivery**: Immediately after creation (`.github/scripts/process-milestone-reminders.mjs`)
 
 ### Execution Flow
 ```
 3:00 AM Paris (Mon-Sun) → Generate daily personality nudges
-3:00 AM Paris (Monday)  → Generate weekly milestone reminders  
-4:00 AM Paris (Mon-Sun) → Send all unsent notifications
+4:00 AM Paris (Mon-Sun) → Send daily personality nudges
+7:00 AM UTC   (Mon-Sun) → Create milestone notifications (API) → Process with AI & send emails (GitHub Actions)
 ```
 
-### Vercel Cron Configuration
+### Scheduling Configuration
+
+**Vercel Cron** (Daily Nudges):
 ```json
 {
   "crons": [
@@ -291,15 +309,18 @@ The notification system runs automatically on Vercel using cron jobs:
       "schedule": "0 2 * * *"
     },
     {
-      "path": "/api/weeklyMilestoneReminders", 
-      "schedule": "0 2 * * 1"
-    },
-    {
       "path": "/api/sendDailyNudges",
       "schedule": "0 3 * * *"
     }
   ]
 }
+```
+
+**GitHub Actions** (Milestone Reminders):
+```yaml
+# .github/workflows/milestone-reminders.yml
+schedule:
+  - cron: "0 7 * * *"  # Daily at 7:00 AM UTC
 ```
 
 ### Smart Email Delivery
@@ -312,15 +333,19 @@ The notification system runs automatically on Vercel using cron jobs:
 
 ### API Endpoints
 - `/app/api/generateNudges/route.ts` - Daily nudge generation
-- `/app/api/weeklyMilestoneReminders/route.ts` - Milestone reminder generation  
-- `/app/api/sendDailyNudges/route.ts` - Email delivery trigger
+- `/app/api/milestoneReminders/route.ts` - Milestone notification creation (Phase 1)
+- `/app/api/sendDailyNudges/route.ts` - Email delivery trigger for daily nudges
 - `/app/api/testMilestoneReminder/route.ts` - Testing utility
+
+### GitHub Actions Scripts
+- `.github/scripts/process-milestone-reminders.mjs` - **NEW**: AI processing & email delivery (Phase 2)
+- `.github/workflows/milestone-reminders.yml` - Scheduling configuration
 
 ### Core Libraries
 - `/lib/sendNudge.ts` - Enhanced email sending with duplicate prevention
-- `/lib/notificationTracking.ts` - ✅ **NEW**: Email status tracking and prioritization
+- `/lib/notificationTracking.ts` - Email status tracking and prioritization
 - `/lib/generateNudgeFromAI.ts` - Personality nudge AI generation
-- `/lib/generateMilestoneNudgeFromAI.ts` - Milestone nudge AI generation
+- `/lib/generateMilestoneNudgeFromAI.ts` - **Reference only** (logic now in GitHub Actions script)
 - `/lib/milestoneScheduler.ts` - Scheduling utilities
 
 ### UI Components

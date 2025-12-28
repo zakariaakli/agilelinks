@@ -147,44 +147,59 @@ if (existingReminders.empty) {
 
 ### Phase 3: AI Nudge Generation
 
-**Location**: `/app/api/milestoneReminders/route.ts` - `processAIInBackground()`
-**AI Function**: `/lib/generateMilestoneNudgeFromAI.ts`
+**Architecture**: Two-phase system (API creates notifications → GitHub Actions processes with AI)
+
+**Phase 3A - Notification Creation**: `/app/api/milestoneReminders/route.ts`
+**Phase 3B - AI Processing**: `.github/scripts/process-milestone-reminders.mjs`
 
 #### 3.1 Background Processing Architecture
 **Problem Solved**: Vercel has 10-second timeout for serverless functions
-**Solution**: Async background processing
+**Solution**: GitHub Actions for unlimited processing time
 
 **Flow**:
-1. Main endpoint returns immediately (< 1 second)
-2. AI processing continues in background (10-30 seconds)
-3. Notification created only after AI completes
-4. User sees final AI-generated content (no placeholders)
+1. API endpoint creates notifications with empty prompts (< 1 second)
+2. GitHub Actions script queries pending notifications
+3. AI processing runs without time limits (30-60 seconds per notification)
+4. Notifications updated with AI-generated content
+5. Emails sent immediately after AI completion
 
 #### 3.2 AI Prompt Construction
-**Function**: `generateMilestoneNudgeFromAI()`
+**Function**: `generateMilestoneNudge()` in `.github/scripts/process-milestone-reminders.mjs`
 
-**Input Data Sent to OpenAI**:
-```typescript
+**Advanced Personalization Data**:
+```javascript
 {
+  goalContext: string,           // Full goal description
   milestone: {
     title: string,
     description: string,
-    startDate: string,
-    dueDate: string,
-    blindSpotTip?: string,
-    strengthHook?: string
+    blindSpotTip: string | null,
+    strengthHook: string | null,
+    daysInProgress: number,      // Days since milestone started
+    totalDays: number,           // Total milestone duration
+    daysRemaining: number        // Days until due date
   },
-  goalContext: string,           // Full goal description
-  enneagramType: string,         // User's personality type
-  daysInProgress: number,        // Days since milestone started
-  daysRemaining: number          // Days until due date
+  personalityContext: string,    // User's Enneagram summary
+  growthAdvice: string,          // Type-specific milestone guidance
+  feedbackHistory: [{            // Previous nudge feedback
+    nudge: string,
+    feedback: string,
+    daysAgo: number
+  }]
 }
 ```
 
+**AI System**:
+- **Technology**: OpenAI Assistants API (not Chat Completions)
+- **Assistant ID**: Configured in GitHub Secrets
+- **Personalization**: Enneagram type + growth advice + feedback history
+- **Output**: 2-3 sentence personalized nudge with reflection question
+
 **AI Task**:
-- Generate 2-3 sentence personalized nudge
+- Generate personalized nudge based on Enneagram type
 - Reference current progress timeline
-- Incorporate personality-specific guidance
+- Incorporate personality-specific guidance from growth advice
+- Learn from previous feedback history
 - Provide actionable next steps
 - Maintain encouraging, motivational tone
 
