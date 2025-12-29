@@ -164,8 +164,8 @@ async function processMilestoneReminders(_request: Request) {
             console.error("Error fetching user email:", err);
           }
 
-          // TESTING OVERRIDE: Allow zakaria.akli.ensa@gmail.com to bypass frequency limits
-          const isTestUser = userEmail === "zakaria.akli.ensa@gmail.com";
+          // TESTING OVERRIDE: Allow specific users to bypass frequency limits
+          const isTestUser = userEmail === "zakaria.akli.ensa@gmail.com" || userEmail === "serfatiamine9@gmail.com";
           const shouldCreateReminder = isTestUser || existingReminders.empty;
 
           if (isTestUser && !existingReminders.empty) {
