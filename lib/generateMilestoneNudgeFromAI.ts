@@ -5,6 +5,7 @@ import { trackTokenUsage } from './tokenTracker';
 
 interface Milestone {
   id: string;
+  planId: string;
   title: string;
   description: string;
   startDate: string;
@@ -104,6 +105,7 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
       const notificationsQuery = query(
         collection(db, 'notifications'),
         where('userId', '==', input.userId),
+        where('planId', '==', input.milestone.planId),
         where('milestoneId', '==', input.milestone.id),
         where('type', '==', 'milestone_reminder'),
         orderBy('createdAt', 'desc')

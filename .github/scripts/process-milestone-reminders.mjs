@@ -104,6 +104,7 @@ async function generateMilestoneNudge(milestone, goalContext, userId, userEmail)
     try {
       const notificationsSnapshot = await db.collection('notifications')
         .where('userId', '==', userId)
+        .where('planId', '==', milestone.planId)
         .where('milestoneId', '==', milestone.id)
         .where('type', '==', 'milestone_reminder')
         .orderBy('createdAt', 'desc')
@@ -348,6 +349,7 @@ async function processPendingNotifications() {
         // Generate AI nudge
         const milestone = {
           id: notifData.milestoneId,
+          planId: notifData.planId,
           title: notifData.milestoneTitle,
           description: notifData.milestoneDescription || '',
           startDate: notifData.startDate,

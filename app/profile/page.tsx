@@ -198,6 +198,7 @@ function ProfileContent() {
   // Fetch ALL notifications for a milestone
   const fetchMilestoneNotifications = async (
     userId: string,
+    planId: string,
     milestoneId: string
   ): Promise<Notification[]> => {
     try {
@@ -205,6 +206,7 @@ function ProfileContent() {
       const q = query(
         collection(db, "notifications"),
         where("userId", "==", userId),
+        where("planId", "==", planId),
         where("milestoneId", "==", milestoneId),
         where("type", "==", "milestone_reminder"),
         orderBy("createdAt", "desc")
@@ -263,9 +265,10 @@ function ProfileContent() {
 
     // Fetch notifications for each milestone
     const notificationPromises = allMilestones.map(
-      async ({ milestone }) => {
+      async ({ planId, milestone }) => {
         const notifications = await fetchMilestoneNotifications(
           user.uid,
+          planId,
           milestone.id
         );
         return { milestoneId: milestone.id, notifications };

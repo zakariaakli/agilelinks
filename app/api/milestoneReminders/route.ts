@@ -135,6 +135,7 @@ async function processMilestoneReminders(_request: Request) {
           const existingRemindersQuery = query(
             collection(db, "notifications"),
             where("userId", "==", planData.userId),
+            where("planId", "==", planId),
             where("milestoneId", "==", milestone.id),
             where("createdAt", ">=", Timestamp.fromDate(lookbackDate))
           );
