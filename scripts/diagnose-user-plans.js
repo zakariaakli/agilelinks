@@ -132,6 +132,7 @@ async function diagnoseUserPlans(userIdentifier) {
 
           const notificationsSnapshot = await db.collection('notifications')
             .where('userId', '==', userId)
+            .where('planId', '==', plan.id)
             .where('milestoneId', '==', milestone.id)
             .where('createdAt', '>=', admin.firestore.Timestamp.fromDate(lookbackDate))
             .get();
