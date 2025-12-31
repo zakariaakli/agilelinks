@@ -177,6 +177,13 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
     console.log('Sending to assistant:', JSON.stringify(assistantInput, null, 2));
     console.log('=== END MILESTONE NUDGE PERSONALIZATION DEBUG ===');
 
+    // Log the complete request payload
+    console.log('\n📤 AI REQUEST PAYLOAD (Ennea-Milestone-Nudge-Generator):');
+    console.log(`   Thread: ${thread.id}`);
+    console.log(`   Assistant ID: ${process.env.NEXT_PUBLIC_REACT_NDG_GENERATOR_ID}`);
+    console.log(`   User: ${input.userId}${userEmail ? ` (${userEmail})` : ''}`);
+    console.log('   Input Data:', JSON.stringify(assistantInput, null, 2));
+
     await openai.beta.threads.messages.create(thread.id, {
       role: 'user',
       content: JSON.stringify(assistantInput)
@@ -185,6 +192,7 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
     const run = await openai.beta.threads.runs.create(thread.id, {
       assistant_id: process.env.NEXT_PUBLIC_REACT_NDG_GENERATOR_ID!,
     });
+    console.log(`   Run Started: ${run.id}`);
 
     let status = 'queued';
     let attempts = 0;
@@ -238,7 +246,24 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
 
     const firstContent = latest.content[0];
     if (firstContent.type === 'text') {
-      return firstContent.text.value;
+      const nudgeMessage = firstContent.text.value;
+
+      // Log the complete response
+      console.log('\n📥 AI RESPONSE RECEIVED (Ennea-Milestone-Nudge-Generator):');
+      console.log(`   Thread ID: ${thread.id}`);
+      console.log(`   Run ID: ${run.id}`);
+      console.log(`   Status: ${status}`);
+      if (finalResult && finalResult.usage) {
+        console.log('   📊 Token Usage:');
+        console.log(`      - Prompt tokens: ${finalResult.usage.prompt_tokens || 0}`);
+        console.log(`      - Completion tokens: ${finalResult.usage.completion_tokens || 0}`);
+        console.log(`      - Total tokens: ${finalResult.usage.total_tokens}`);
+      }
+      console.log('   Response Content:');
+      console.log(`   ${nudgeMessage.split('\n').join('\n   ')}`);
+      console.log('\n   ✅ AI nudge generated successfully');
+
+      return nudgeMessage;
     }
 
     return generateFallbackNudge(input.milestone, daysInProgress, daysRemaining);

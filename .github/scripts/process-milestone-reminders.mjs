@@ -184,8 +184,16 @@ async function generateMilestoneNudge(
 
     console.log(`   🧠 Sending to OpenAI Assistant with personalization data`);
 
+    // Log the complete request payload
+    console.log(`\n📤 AI REQUEST PAYLOAD:`);
+    console.log(`   Thread: New thread will be created`);
+    console.log(`   Assistant ID: ${process.env.NEXT_PUBLIC_REACT_NDG_GENERATOR_ID}`);
+    console.log(`   User: ${userId} (${userEmail})`);
+    console.log(`   Input Data:`, JSON.stringify(assistantInput, null, 2));
+
     // Create thread and send message to OpenAI Assistants API
     const thread = await openai.beta.threads.create();
+    console.log(`   Thread Created: ${thread.id}`);
 
     await openai.beta.threads.messages.create(thread.id, {
       role: "user",
@@ -195,6 +203,7 @@ async function generateMilestoneNudge(
     const run = await openai.beta.threads.runs.create(thread.id, {
       assistant_id: process.env.NEXT_PUBLIC_REACT_NDG_GENERATOR_ID,
     });
+    console.log(`   Run Started: ${run.id}`);
 
     // Poll for completion
     let status = "queued";
@@ -232,10 +241,22 @@ async function generateMilestoneNudge(
     const firstContent = latest.content[0];
     if (firstContent.type === "text") {
       const nudgeMessage = firstContent.text.value;
-      console.log(`   ✅ AI nudge generated with personalization`);
+
+      // Log the complete response
+      console.log(`\n📥 AI RESPONSE RECEIVED:`);
+      console.log(`   Thread ID: ${thread.id}`);
+      console.log(`   Run ID: ${run.id}`);
+      console.log(`   Status: ${status}`);
       if (finalResult && finalResult.usage) {
-        console.log(`   📊 Tokens used: ${finalResult.usage.total_tokens}`);
+        console.log(`   📊 Token Usage:`);
+        console.log(`      - Prompt tokens: ${finalResult.usage.prompt_tokens || 0}`);
+        console.log(`      - Completion tokens: ${finalResult.usage.completion_tokens || 0}`);
+        console.log(`      - Total tokens: ${finalResult.usage.total_tokens}`);
       }
+      console.log(`   Response Content:`);
+      console.log(`   ${nudgeMessage.split('\n').join('\n   ')}`);
+      console.log(`\n   ✅ AI nudge generated with personalization`);
+
       return nudgeMessage;
     }
 
