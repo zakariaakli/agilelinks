@@ -24,7 +24,7 @@ export interface EmailStatus {
 
 export interface NotificationMeta {
   priority: 'low' | 'medium' | 'high';
-  category: 'daily_nudge' | 'weekly_milestone' | 'urgent_milestone';
+  category: 'milestone_reminder';
   scheduledFor?: Timestamp;
   expiresAt?: Timestamp;
 }
@@ -83,21 +83,8 @@ export async function getUnsentNotifications(userId: string): Promise<EnhancedNo
 // Prioritize notifications for sending
 export function prioritizeNotifications(notifications: EnhancedNotification[]): EnhancedNotification[] {
   return notifications.sort((a, b) => {
-    // Priority order: urgent_milestone > weekly_milestone > daily_nudge
-    const priorityOrder = { 
-      urgent_milestone: 3, 
-      weekly_milestone: 2, 
-      daily_nudge: 1 
-    };
-    
-    const aPriority = priorityOrder[a.notificationMeta.category] || 1;
-    const bPriority = priorityOrder[b.notificationMeta.category] || 1;
-    
-    if (aPriority !== bPriority) {
-      return bPriority - aPriority;
-    }
-    
-    // If same priority, send newer first
+    // All notifications have same category now, so prioritize by creation time
+    // Send newer notifications first
     return b.createdAt.toMillis() - a.createdAt.toMillis();
   });
 }
@@ -155,19 +142,11 @@ export function getDefaultEmailStatus(): EmailStatus {
 
 // Get default notification meta based on type
 export function getDefaultNotificationMeta(type: string): NotificationMeta {
-  if (type === 'milestone_reminder') {
-    return {
-      priority: 'medium',
-      category: 'weekly_milestone',
-      expiresAt: Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) // 7 days
-    };
-  }
-  
-  // Daily nudge
+  // All notifications are milestone reminders now
   return {
-    priority: 'low',
-    category: 'daily_nudge',
-    expiresAt: Timestamp.fromDate(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)) // 2 days
+    priority: 'medium',
+    category: 'milestone_reminder',
+    expiresAt: Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) // 7 days
   };
 }
 
@@ -195,7 +174,6 @@ export async function getNotificationStats(userId?: string) {
       sent: 0,
       pending: 0,
       failed: 0,
-      daily_nudges: 0,
       milestone_reminders: 0,
       read: 0,
       feedback_given: 0
@@ -204,14 +182,14 @@ export async function getNotificationStats(userId?: string) {
     allNotifications.forEach((doc) => {
       const data = doc.data();
       stats.total++;
-      
+
       if (data.emailStatus?.sent) stats.sent++;
       else if (data.emailStatus?.deliveryStatus === 'failed') stats.failed++;
       else stats.pending++;
-      
-      if (data.type === 'milestone_reminder') stats.milestone_reminders++;
-      else stats.daily_nudges++;
-      
+
+      // All notifications are milestone reminders now
+      stats.milestone_reminders++;
+
       if (data.read) stats.read++;
       if (data.feedback) stats.feedback_given++;
     });

@@ -180,17 +180,3 @@ export async function sendMilestoneEmail(
   }
 }
 
-/**
- * SEND BULK MILESTONE EMAILS (Deprecated - for reference only)
- * 
- * This function was used for batch email sending but is now deprecated.
- * We now send emails immediately when notifications are created.
- * 
- * MIGRATION NOTE: 
- * If you need to send emails for existing notifications, use the new
- * sendMilestoneEmail function in a loop instead of this function.
- */
-export async function sendDailyNudges() {
-  console.warn('⚠️ [EMAIL] sendDailyNudges is deprecated. Use sendMilestoneEmail for individual notifications.');
-  throw new Error('sendDailyNudges is deprecated. Use sendMilestoneEmail instead.');
-}

@@ -142,10 +142,10 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
+      if (e.key === "ArrowLeft") {
         e.preventDefault();
         goToPrevious();
-      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") {
+      } else if (e.key === "ArrowRight") {
         e.preventDefault();
         goToNext();
       }
@@ -399,7 +399,7 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
             key={index}
             style={{
               flex: 1,
-              height: "clamp(2px, 0.5vw, 3px)",
+              height: isMobile ? "3px" : "8px",
               background:
                 index <= currentIndex ? "#ffd700" : "rgba(255,255,255,0.3)",
               borderRadius: "2px",
@@ -678,10 +678,10 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
           ) : (
             <>
               <div style={{ marginBottom: "0.25rem" }}>
-                💡 Swipe left/right to navigate
+                💡 Swipe to navigate
               </div>
               <div style={{ fontSize: "0.65rem", opacity: 0.7 }}>
-                Or use ←/→ keys • Double-tap for celebration
+                Or use arrow keys • Double-tap for celebration
               </div>
             </>
           )}
