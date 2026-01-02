@@ -1,0 +1,85 @@
+.notificationBell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.notificationBell:hover {
+  background-color: rgba(124, 58, 237, 0.1);
+  transform: translateY(-1px);
+}
+
+.bellContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary, #1f2937);
+}
+
+.bellContainer svg {
+  transition: all 0.2s ease;
+}
+
+.notificationBell:hover .bellContainer svg {
+  color: var(--primary-color, #7c3aed);
+  animation: bellRing 0.5s ease;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+  border: 2px solid white;
+  animation: badgePulse 2s ease infinite;
+}
+
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(-10deg); }
+  20%, 40% { transform: rotate(10deg); }
+  50% { transform: rotate(0deg); }
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .notificationBell {
+    padding: 6px;
+  }
+
+  .badge {
+    font-size: 9px;
+    min-width: 16px;
+    height: 16px;
+    padding: 1px 4px;
+  }
+}

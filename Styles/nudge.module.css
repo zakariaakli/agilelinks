@@ -105,6 +105,18 @@
 }
 
 /* Milestone-specific styles */
+.goalContext {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin: 0.75rem 0;
+  text-align: center;
+}
+
+.goalLabel {
+  font-weight: 600;
+  color: #4b5563;
+}
+
 .milestoneTitle {
   font-size: 1.5rem;
   font-weight: 600;

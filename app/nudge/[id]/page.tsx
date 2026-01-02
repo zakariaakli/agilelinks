@@ -316,6 +316,11 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
         {isMilestoneReminder ? (
           <>
             <h1 className={styles.title}>🎯 Milestone Check-in</h1>
+            {planData?.goal && (
+              <p className={styles.goalContext}>
+                <span className={styles.goalLabel}>Goal:</span> {planData.goal}
+              </p>
+            )}
             <h2 className={styles.milestoneTitle}>{nudge.milestoneTitle || 'Untitled Milestone'}</h2>
 
             {/* Timeline information */}

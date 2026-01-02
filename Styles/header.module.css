@@ -424,6 +424,12 @@
   border: var(--border-width-base) solid var(--color-primary-100);
 }
 
+.mobileUserHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
 .mobileProfilePic {
   width: var(--size-12);
   height: var(--size-12);

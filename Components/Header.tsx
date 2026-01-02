@@ -17,6 +17,7 @@ import {
   ArrowRightIcon,
   SparklesIcon,
 } from "./Icons";
+import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const [user, setUser] = useState<any>(null);
@@ -140,13 +141,16 @@ const Header = () => {
             </div>
           ) : (
             <div className={styles.mobileUserInfo}>
-              <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-                <img
-                  src={user.photoURL}
-                  alt="Profile"
-                  className={styles.mobileProfilePic}
-                />
-              </Link>
+              <div className={styles.mobileUserHeader}>
+                <NotificationBell />
+                <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                  <img
+                    src={user.photoURL}
+                    alt="Profile"
+                    className={styles.mobileProfilePic}
+                  />
+                </Link>
+              </div>
               <span className={styles.mobileUserName}>
                 {user.displayName || user.email}
               </span>
@@ -167,6 +171,7 @@ const Header = () => {
         <div className={styles.cta}>
           {user ? (
             <div className={styles.userInfo}>
+              <NotificationBell />
               <div className={styles.userDropdown}>
                 <img
                   src={user.photoURL}
