@@ -24,6 +24,7 @@ import { initializeApp, cert } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
 import OpenAI from "openai";
 import { Resend } from "resend";
+import webPush from "web-push";
 
 // Initialize Firebase Admin
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
@@ -40,6 +41,18 @@ const openai = new OpenAI({
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Configure web-push with VAPID details
+if (process.env.VAPID_PRIVATE_KEY && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_SUBJECT) {
+  webPush.setVapidDetails(
+    process.env.VAPID_SUBJECT,
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+  console.log('✅ Web Push configured with VAPID keys');
+} else {
+  console.log('⚠️ Web Push not configured - VAPID keys missing');
+}
 
 /**
  * Generate AI nudge message for a milestone using OpenAI Assistants API
@@ -369,6 +382,79 @@ async function sendMilestoneEmail(userId, notificationData) {
 }
 
 /**
+ * Send push notification to user
+ */
+async function sendPushNotification(userId, notificationData, notificationId) {
+  try {
+    // Get user's push subscription from Firestore
+    const subscriptionDoc = await db.collection('pushSubscriptions').doc(userId).get();
+
+    if (!subscriptionDoc.exists) {
+      console.log(`   ℹ️ No push subscription found for user`);
+      return false;
+    }
+
+    const subscriptionData = subscriptionDoc.data();
+
+    if (!subscriptionData || !subscriptionData.active || !subscriptionData.subscription) {
+      console.log(`   ℹ️ Push subscription inactive or invalid`);
+      return false;
+    }
+
+    const subscription = subscriptionData.subscription;
+
+    // Validate subscription has required fields
+    if (!subscription.endpoint || !subscription.keys) {
+      console.log(`   ⚠️ Invalid subscription format`);
+      return false;
+    }
+
+    // Prepare notification payload
+    const payload = JSON.stringify({
+      title: `🎯 ${notificationData.milestoneTitle}`,
+      body: notificationData.prompt.substring(0, 100) + '...',
+      icon: '/icon-192x192.png',
+      badge: '/badge-72x72.png',
+      url: `https://stepiva.vercel.app/nudge/${notificationId}`,
+      notificationId: notificationId,
+      tag: 'milestone-nudge',
+      vibrate: [200, 100, 200],
+      data: {
+        url: `https://stepiva.vercel.app/nudge/${notificationId}`,
+        notificationId: notificationId
+      }
+    });
+
+    // Send push notification
+    await webPush.sendNotification(subscription, payload);
+
+    // Update lastUsed timestamp
+    await db.collection('pushSubscriptions').doc(userId).update({
+      lastUsed: Timestamp.now()
+    });
+
+    console.log(`   ✅ Push notification sent successfully`);
+    return true;
+  } catch (error) {
+    console.error(`   ❌ Error sending push notification:`, error.message);
+
+    // Handle expired or invalid subscriptions
+    if (error.statusCode === 410 || error.statusCode === 404) {
+      console.log(`   ⚠️ Subscription expired, marking as inactive`);
+      try {
+        await db.collection('pushSubscriptions').doc(userId).update({
+          active: false
+        });
+      } catch (updateError) {
+        console.error('   ❌ Error updating subscription status:', updateError);
+      }
+    }
+
+    return false;
+  }
+}
+
+/**
  * Main processing function
  */
 async function processPendingNotifications() {
@@ -461,6 +547,13 @@ async function processPendingNotifications() {
           });
           console.log("   ⚠️ Email not sent (user opted out or no email)");
         }
+
+        // Send push notification
+        console.log("   📱 Attempting to send push notification...");
+        await sendPushNotification(notifData.userId, {
+          ...notifData,
+          prompt: aiNudge,
+        }, notifDoc.id);
 
         processed++;
       } catch (error) {
