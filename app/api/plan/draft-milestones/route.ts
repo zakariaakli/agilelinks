@@ -174,12 +174,12 @@ Return ONLY valid JSON in this exact format:
 
     let response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
 
-    // Poll for completion with timeout protection (max 7 seconds to leave buffer for other operations)
+    // Poll for completion with timeout protection (max 50 seconds to leave buffer for other operations)
     const startTime = Date.now();
-    const maxWaitTime = 7000; // 7 seconds max
+    const maxWaitTime = 50000; // 50 seconds max
 
     while ((response.status === 'in_progress' || response.status === 'queued') && (Date.now() - startTime < maxWaitTime)) {
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Poll every 500ms
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Poll every 1 second
       response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
     }
 
