@@ -11,12 +11,20 @@ import styles from "../../../Styles/companion.module.css";
 interface PlanData {
   id?: string;
   userId: string;
-  goalType: string;
   goal: string;
   targetDate: string;
   hasTimePressure: boolean;
   nudgeFrequency: "daily" | "weekly";
-  clarifyingQuestions: ClarifyingQuestion[];
+  goalFrame?: {
+    successCriteria: string;
+    failureCriteria: string;
+    mustAvoid: string[];
+  };
+  assumptions?: {
+    constraints: string[];
+    risks: string[];
+    nonGoals: string[];
+  };
   milestones: Milestone[];
   createdAt: any; // Will be server timestamp
   status: "active" | "completed" | "paused";
@@ -41,6 +49,7 @@ interface Milestone {
   completed: boolean;
   blindSpotTip?: string;
   strengthHook?: string;
+  measurableOutcome?: string;
 }
 
 interface GoalTemplate {
@@ -254,6 +263,16 @@ const GoalWizard: React.FC = () => {
     isPersonalized: boolean;
     level: string;
   }>({ isPersonalized: false, level: "standard" });
+  const [goalFrame, setGoalFrame] = useState<{
+    successCriteria: string;
+    failureCriteria: string;
+    mustAvoid: string[];
+  } | null>(null);
+  const [assumptions, setAssumptions] = useState<{
+    constraints: string[];
+    risks: string[];
+    nonGoals: string[];
+  } | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     type: ToastType;
@@ -372,24 +391,23 @@ const GoalWizard: React.FC = () => {
     }
   };
 
-  const callOpenAIMilestoneGenerator = async (): Promise<Milestone[]> => {
+  // New enhanced plan generation using 4-pass architecture
+  const callEnhancedPlanGenerator = async (): Promise<{
+    milestones: Milestone[];
+    goalFrame: any;
+    assumptions: any;
+  }> => {
     try {
       const payload = {
-        goalType: selectedGoalType,
-        goalSummary: goal,
+        goalDescription: goal,
         targetDate: targetDate,
+        hasTimePressure: hasTimePressure,
         enneagramType: getDominantEnneagramType(),
         personalitySummary:
           enneagramResult?.summary || "No personality data available",
-        paceInfo: { hasTimePressure },
-        qaPairs: clarifyingQuestions.map((q) => ({
-          question: q.question,
-          answer: q.answer,
-        })),
-        goalTemplate: goalTemplateItems[selectedGoalType] || [],
       };
 
-      console.log("Sending milestone generation payload:", payload);
+      console.log("🚀 Sending enhanced plan generation payload:", payload);
 
       // Get auth token for API tracking
       let authHeader = {};
@@ -405,8 +423,7 @@ const GoalWizard: React.FC = () => {
         }
       }
 
-      const response = await fetch("/api/openAi/?type=milestones", {
-        // Add query parameter
+      const response = await fetch("/api/openAi/?type=enhanced-plan", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -419,15 +436,17 @@ const GoalWizard: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data: OpenAIMilestonesResponse = await response.json();
+      const data = await response.json();
+
+      console.log("✅ Enhanced plan generation response:", data);
 
       // Get today's date for validation
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = today.toISOString().split("T")[0];
 
-      // Convert to our Milestone format and ensure dates are not in the past
-      return data.milestones.map((m) => {
+      // Convert to our Milestone format and ensure dates are valid
+      const validatedMilestones = data.milestones.map((m: any) => {
         const startDate = new Date(m.startDate);
         const dueDate = new Date(m.dueDate);
 
@@ -446,12 +465,32 @@ const GoalWizard: React.FC = () => {
           blindSpotTip: m.blindSpotTip,
           strengthHook: m.strengthHook,
           startDate: validStartDate,
+          measurableOutcome: m.measurableOutcome,
         };
       });
+
+      return {
+        milestones: validatedMilestones,
+        goalFrame: data.goalFrame,
+        assumptions: data.assumptions,
+      };
     } catch (error) {
-      console.error("Error calling OpenAI Milestone Generator:", error);
+      console.error("❌ Error calling enhanced plan generator:", error);
       // Fallback to default milestones
-      return generateFallbackMilestones();
+      const fallbackMilestones = generateFallbackMilestones();
+      return {
+        milestones: fallbackMilestones,
+        goalFrame: {
+          successCriteria: "Complete the goal by target date",
+          failureCriteria: "Miss the deadline or abandon the goal",
+          mustAvoid: ["Procrastination", "Lack of accountability"],
+        },
+        assumptions: {
+          constraints: ["Limited time", "Need consistent effort"],
+          risks: ["Loss of motivation"],
+          nonGoals: ["Perfectionism"],
+        },
+      };
     }
   };
 
@@ -598,14 +637,17 @@ const GoalWizard: React.FC = () => {
     }
   };
 
-  // Generate milestones using OpenAI
+  // Generate milestones using enhanced 4-pass AI architecture
   const generateMilestones = async () => {
     setIsLoading(true);
     try {
-      const generatedMilestones = await callOpenAIMilestoneGenerator();
-      setMilestones(generatedMilestones);
+      const result = await callEnhancedPlanGenerator();
+      setMilestones(result.milestones);
+      setGoalFrame(result.goalFrame);
+      setAssumptions(result.assumptions);
+      console.log("✅ Plan generated successfully with enhanced AI");
     } catch (error) {
-      console.error("Error generating milestones:", error);
+      console.error("❌ Error generating milestones:", error);
       // Fallback to default milestones
       const fallbackMilestones = generateFallbackMilestones();
       setMilestones(fallbackMilestones);
@@ -742,12 +784,11 @@ const GoalWizard: React.FC = () => {
   };
 
   const nextStep = (): void => {
-    if (currentStep === 1) {
-      generateClarifyingQuestions();
-    } else if (currentStep === 2) {
+    // New simplified flow: Step 0 (goal entry) → generate milestones → Step 1 (review milestones)
+    if (currentStep === 0) {
       generateMilestones();
     }
-    setCurrentStep((prev) => Math.min(prev + 1, 4));
+    setCurrentStep((prev) => Math.min(prev + 1, 2)); // Only 2 steps now (0 and 1)
   };
 
   const prevStep = (): void => {
@@ -765,12 +806,12 @@ const GoalWizard: React.FC = () => {
     try {
       const planData: PlanData = {
         userId: user.uid,
-        goalType: selectedGoalType,
         goal,
         targetDate,
         hasTimePressure,
         nudgeFrequency,
-        clarifyingQuestions,
+        goalFrame: goalFrame || undefined,
+        assumptions: assumptions || undefined,
         milestones,
         createdAt: serverTimestamp(),
         status: "active",
@@ -861,10 +902,6 @@ const GoalWizard: React.FC = () => {
       case 0:
         return goal.trim() !== "" && targetDate !== "";
       case 1:
-        return true; // Can always proceed from step 1
-      case 2:
-        return clarifyingQuestions.every((q) => q.answer.trim() !== "");
-      case 3:
         return milestones.length > 0;
       default:
         return true;
@@ -879,32 +916,9 @@ const GoalWizard: React.FC = () => {
         return (
           <>
             <div className={styles.section}>
-              <h2 className={styles.subtitle}>Goal Type Selection</h2>
+              <h2 className={styles.subtitle}>What's Your Goal?</h2>
               <p className={styles.helperText}>
-                Choose a template to get started, or select "Custom Goal" to write your own from scratch.
-              </p>
-              <select
-                value={selectedGoalType}
-                onChange={handleGoalTypeChange}
-                className={styles.goalTypeDropdown}
-              >
-                <option value="">Select a goal type...</option>
-                {goalTemplates.map((template) => (
-                  <option key={template.value} value={template.value}>
-                    {template.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={styles.section}>
-              <h2 className={styles.subtitle}>Goal Entry</h2>
-              <p className={styles.helperText}>
-                {selectedGoalType === "custom"
-                  ? "Describe your goal in detail. Be specific about what you want to achieve and why it matters to you:"
-                  : selectedGoalType
-                  ? "Customize the template below with your specific details and timeline:"
-                  : "Select a goal type above to get started:"}
+                Describe your goal in detail. Our AI will automatically create a personalized action plan with milestones tailored to your personality and timeline.
               </p>
               <div className={styles.autosuggestContainer}>
                 <textarea
@@ -914,9 +928,7 @@ const GoalWizard: React.FC = () => {
                   onKeyDown={handleKeyDown}
                   onFocus={handleInputFocus}
                   onBlur={handleInputBlur}
-                  placeholder={selectedGoalType === "custom"
-                    ? "Example: I want to write and publish a science fiction novel by December 2026. I'll need to develop a consistent writing habit, learn story structure, complete a first draft, revise it with feedback from beta readers, and query literary agents..."
-                    : "What do you want to achieve? Describe your goal in detail..."}
+                  placeholder="Example: I want to become a management consultant after graduation in May 2026. I need to build my case interview skills, network with target firms, and secure multiple offers to compare..."
                   rows={6}
                   className={styles.goalTextarea}
                 />
@@ -1030,114 +1042,13 @@ const GoalWizard: React.FC = () => {
       case 1:
         return (
           <div className={styles.section}>
-            <h2 className={styles.subtitle}>Goal Summary</h2>
-            <div className={styles.goalSummary}>
-              {selectedGoalType && (
-                <>
-                  <h3>Goal Type:</h3>
-                  <p>
-                    {
-                      goalTemplates.find((t) => t.value === selectedGoalType)
-                        ?.label
-                    }
-                  </p>
-                </>
-              )}
-              <h3>Your Goal:</h3>
-              <p>{goal}</p>
-              <h3>Target Date:</h3>
-              <p>{new Date(targetDate).toLocaleDateString()}</p>
-              <h3>Timeline Preference:</h3>
-              <p>
-                {hasTimePressure
-                  ? "Accelerated (time pressure)"
-                  : "Normal pace"}
-              </p>
-              <h3>Reminder Frequency:</h3>
-              <p>
-                {nudgeFrequency === "daily"
-                  ? "Daily reminders"
-                  : "Weekly reminders"}
-              </p>
-              {enneagramResult && (
-                <>
-                  <h3>Personality Insight:</h3>
-                  <p className={styles.personalityInsight}>
-                    Questions will be personalized based on your Enneagram
-                    profile (Type {getDominantEnneagramType()})
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className={styles.section}>
-            <h2 className={styles.subtitle}>Clarifying Questions</h2>
-
-            {/* Gamified Personalization Indicator */}
-            {personalizationInfo.isPersonalized &&
-              personalizationInfo.level === "ai-enhanced" && (
-                <div className={styles.personalizationBadge}>
-                  <div className={styles.personalizationIcon}>✨</div>
-                  <div className={styles.personalizationContent}>
-                    <div className={styles.personalizationTitle}>
-                      AI-Enhanced Questions
-                    </div>
-                    <div className={styles.personalizationDescription}>
-                      These questions are personalized for your profile and
-                      personality type to help you craft the most adequate
-                      milestones to achieve your goal.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            {enneagramResult && !personalizationInfo.isPersonalized && (
-              <p className={styles.personalizedNote}>
-                These questions are personalized based on your personality
-                profile and goal.
-              </p>
-            )}
+            <h2 className={styles.subtitle}>Review & Edit Your Milestones</h2>
             {isLoading ? (
               <div className={styles.loading}>
-                <p>
-                  Generating personalized questions based on your goal and
-                  personality...
+                <p>🧠 AI is crafting your personalized plan...</p>
+                <p className={styles.helperText}>
+                  Using 4-pass architecture: Goal framing → Assumptions → Draft → Review → Polish
                 </p>
-              </div>
-            ) : (
-              <div className={styles.questionsContainer}>
-                {clarifyingQuestions.map((question) => (
-                  <div key={question.id} className={styles.questionItem}>
-                    <label className={styles.questionLabel}>
-                      {question.question}
-                    </label>
-                    <textarea
-                      value={question.answer}
-                      onChange={(e) =>
-                        handleQuestionAnswerChange(question.id, e.target.value)
-                      }
-                      placeholder="Enter your answer here..."
-                      rows={3}
-                      className={styles.questionAnswer}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className={styles.section}>
-            <h2 className={styles.subtitle}>Milestone Review</h2>
-            {isLoading ? (
-              <div className={styles.loading}>
-                <p>Generating your personalized milestones...</p>
               </div>
             ) : (
               <>
@@ -1279,67 +1190,16 @@ const GoalWizard: React.FC = () => {
                     ))}
                   </div>
                 </div>
+
+                <button
+                  onClick={createPlan}
+                  disabled={isLoading || milestones.length === 0}
+                  className={styles.createPlanButton}
+                >
+                  {isLoading ? "⏳ Creating Plan..." : "🎯 Create Plan"}
+                </button>
               </>
             )}
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className={styles.section}>
-            <h2 className={styles.subtitle}>Confirm Your Plan</h2>
-            <div className={styles.planSummary}>
-              {selectedGoalType && (
-                <div className={styles.summarySection}>
-                  <h3>Goal Type:</h3>
-                  <p>
-                    {
-                      goalTemplates.find((t) => t.value === selectedGoalType)
-                        ?.label
-                    }
-                  </p>
-                </div>
-              )}
-
-              <div className={styles.summarySection}>
-                <h3>Goal:</h3>
-                <p>{goal}</p>
-              </div>
-
-              <div className={styles.summarySection}>
-                <h3>Target Date:</h3>
-                <p>{new Date(targetDate).toLocaleDateString()}</p>
-              </div>
-
-              <div className={styles.summarySection}>
-                <h3>Reminder Frequency:</h3>
-                <p>
-                  {nudgeFrequency === "daily"
-                    ? "Daily reminders"
-                    : "Weekly reminders"}
-                </p>
-              </div>
-
-              <div className={styles.summarySection}>
-                <h3>Milestones ({milestones.length}):</h3>
-                <ul className={styles.milestoneList}>
-                  {milestones.map((milestone) => (
-                    <li key={milestone.id} className={styles.milestoneListItem}>
-                      <strong>{milestone.title}</strong> -{" "}
-                      {new Date(milestone.dueDate).toLocaleDateString()}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <button
-                onClick={createPlan}
-                disabled={isLoading}
-                className={styles.createPlanButton}
-              >
-                {isLoading ? "⏳ Creating Plan..." : "🎯 Create Plan"}
-              </button>
-            </div>
           </div>
         );
 
@@ -1353,7 +1213,7 @@ const GoalWizard: React.FC = () => {
       <h1 className={styles.title}>🧠 Goal Setting Wizard</h1>
 
       <div className={styles.stepIndicator}>
-        {["Goal Entry", "Review", "Questions", "Milestones", "Confirm"].map(
+        {["Goal Entry", "Review & Create"].map(
           (step, index) => (
             <div
               key={index}
@@ -1361,7 +1221,7 @@ const GoalWizard: React.FC = () => {
                 index === currentStep ? styles.stepActive : ""
               } ${index < currentStep ? styles.stepCompleted : ""}`}
             >
-              <div className={styles.stepNumber}>{index}</div>
+              <div className={styles.stepNumber}>{index + 1}</div>
               <div className={styles.stepLabel}>{step}</div>
             </div>
           )
@@ -1373,17 +1233,17 @@ const GoalWizard: React.FC = () => {
       <div className={styles.navigationButtons}>
         {currentStep > 0 && (
           <button onClick={prevStep} className={styles.navButton}>
-            ← Previous
+            ← Back
           </button>
         )}
 
-        {currentStep < 4 && (
+        {currentStep < 1 && (
           <button
             onClick={nextStep}
-            disabled={!canProceed()}
+            disabled={!canProceed() || isLoading}
             className={`${styles.navButton} ${styles.navButtonPrimary}`}
           >
-            Next →
+            {isLoading ? "Generating..." : "Generate Plan →"}
           </button>
         )}
       </div>

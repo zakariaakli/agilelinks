@@ -2,32 +2,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
-import { db } from '../../../firebase-admin.js';
-import { trackFirebaseQuery } from '../../../lib/firebaseTracker';
-import { trackAPICall } from '../../../lib/tokenTracker';
 import { logTokenUsage } from '../../../lib/simpleTracker';
 import { auth } from 'firebase-admin';
-
-interface RequestBody {
-  objective: string;
-  personalitySummary: string;
-}
-
-interface MilestoneRequestBody {
-  goalType: string;
-  goalSummary: string;
-  targetDate: string;
-  enneagramType: string;
-  personalitySummary: string;
-  paceInfo: { hasTimePressure: boolean };
-  qaPairs: Array<{ question: string; answer: string }>;
-  goalTemplate: Array<{
-    id: string;
-    title: string;
-    description: string;
-    defaultOffsetDays: number;
-  }>;
-}
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -65,13 +41,11 @@ export async function POST(request: NextRequest) {
     // Get user information (optional - will proceed without if not available)
     const userInfo = await getUserFromRequest(request);
 
-    if (assistantType === 'questions') {
-      return await handleQuestionsRequest(body, userInfo);
-    } else if (assistantType === 'milestones') {
-      return await handleMilestonesRequest(body, userInfo);
+    if (assistantType === 'enhanced-plan') {
+      return await handleEnhancedPlanRequest(body, userInfo);
     } else {
       return NextResponse.json(
-        { error: 'Invalid assistant type' },
+        { error: 'Invalid assistant type. Use type=enhanced-plan' },
         { status: 400 }
       );
     }
@@ -84,80 +58,337 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Keep your existing handleQuestionsRequest logic (rename your current logic to this function)
-async function handleQuestionsRequest(body: RequestBody, userInfo: { userId: string; userEmail: string } | null) {
-  const { objective, personalitySummary } = body;
-
-  if (!objective) {
-    return NextResponse.json(
-      { questions: [], error: 'Objective is required' },
-      { status: 400 }
-    );
-  }
-
+// PASS 1: Context Lock - Frame the goal with specificity (Chat Completion)
+async function generateGoalFrame(
+  goalDescription: string,
+  targetDate: string,
+  personalitySummary: string
+): Promise<{ successCriteria: string; failureCriteria: string; mustAvoid: string[] }> {
   try {
-    console.log('=== PERSONALIZATION DEBUG ===');
-    console.log('personalitySummary received:', personalitySummary);
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a goal clarity expert. Your job is to force specificity and eliminate ambiguity.'
+        },
+        {
+          role: 'user',
+          content: `Summarize this goal in 3 lines:
 
-    // Extract Enneagram type number from personalitySummary
-    let enneagramTypeNumber = '';
-    if (personalitySummary) {
-      const typeMatch = personalitySummary.match(/enneagram type (\d+)/i);
-      if (typeMatch) {
-        enneagramTypeNumber = typeMatch[1];
-        console.log('Extracted Enneagram type number:', enneagramTypeNumber);
-      } else {
-        console.log('No Enneagram type number found in personalitySummary');
-      }
-    } else {
-      console.log('No personalitySummary provided');
-    }
+Goal: ${goalDescription}
+Target Date: ${targetDate}
+${personalitySummary ? `Personality: ${personalitySummary}` : ''}
 
-    // Query personalization data from Firebase
-    let personalizationSummary = '';
-    if (enneagramTypeNumber && db) {
-      try {
-        console.log('Querying Firebase for type:', enneagramTypeNumber);
-        const personalizationQuery = await db
-          .collection('personalization')
-          .where('topic', '==', 'question')
-          .where('type', '==', enneagramTypeNumber)
-          .limit(1)
-          .get();
+Explicitly state:
+1. What success looks like (observable, measurable)
+2. What failure looks like (concrete warning signs)
+3. What must be avoided (anti-patterns, traps)
 
-        // Track the Firebase query manually since it's a complex query
-        await trackFirebaseQuery('read', 'personalization', personalizationQuery.size, {
-          userId: userInfo?.userId,
-          userEmail: userInfo?.userEmail,
-          source: 'openai_api',
-          functionName: 'get_personalization_data_for_questions'
-        });
-
-        console.log('Firebase query results:', !personalizationQuery.empty ? 'Found data' : 'No data found');
-
-        if (!personalizationQuery.empty) {
-          const doc = personalizationQuery.docs[0];
-          personalizationSummary = doc.data().summary || '';
-          console.log('Retrieved personalization summary:', personalizationSummary);
+Return ONLY valid JSON:
+{
+  "successCriteria": "...",
+  "failureCriteria": "...",
+  "mustAvoid": ["...", "...", "..."]
+}`
         }
-      } catch (firebaseError) {
-        console.error('Error fetching personalization data:', firebaseError);
-        // Continue without personalization if Firebase query fails
-      }
-    } else {
-      console.log('Skipping Firebase query - no Enneagram type number extracted');
-    }
+      ],
+      temperature: 0.3,
+    });
 
-    console.log('Final personalizationSummary to send to Assistant:', personalizationSummary);
-    console.log('=== END PERSONALIZATION DEBUG ===');
+    const content = completion.choices[0].message.content || '{}';
+    const cleaned = content.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error('Error in generateGoalFrame:', error);
+    return {
+      successCriteria: 'Complete the goal by target date',
+      failureCriteria: 'Miss the deadline or abandon the goal',
+      mustAvoid: ['Procrastination', 'Lack of accountability', 'Unclear metrics']
+    };
+  }
+}
 
-    // Your existing question generation logic here...
+// PASS 2: Assumption Builder - Infer constraints without asking questions (Chat Completion)
+async function generateAssumptions(
+  goalDescription: string,
+  targetDate: string,
+  hasTimePressure: boolean,
+  personalitySummary: string,
+  enneagramType: string
+): Promise<{ constraints: string[]; risks: string[]; nonGoals: string[] }> {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an inference engine. You do NOT ask questions. You make explicit assumptions based on goal context and personality.'
+        },
+        {
+          role: 'user',
+          content: `Based on this goal, personality, and deadline, infer constraints and risks:
+
+Goal: ${goalDescription}
+Target Date: ${targetDate}
+Time Pressure: ${hasTimePressure ? 'High (accelerated timeline)' : 'Normal pace'}
+Personality: ${personalitySummary}
+Enneagram Type: ${enneagramType}
+
+Do NOT ask questions. Make explicit assumptions.
+
+Infer:
+- 3 realistic constraints (time, resources, dependencies)
+- 2 personality-specific risks (what could derail this Type ${enneagramType} person)
+- 2 non-goals (what NOT to optimize for, what to avoid overdoing)
+
+Return ONLY valid JSON:
+{
+  "constraints": ["...", "...", "..."],
+  "risks": ["...", "..."],
+  "nonGoals": ["...", "..."]
+}`
+        }
+      ],
+      temperature: 0.5,
+    });
+
+    const content = completion.choices[0].message.content || '{}';
+    const cleaned = content.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error('Error in generateAssumptions:', error);
+    return {
+      constraints: ['Limited time available', 'Must balance with other commitments', 'Need consistent effort'],
+      risks: ['Loss of motivation midway', 'Overcommitment'],
+      nonGoals: ['Perfectionism', 'Over-preparation']
+    };
+  }
+}
+
+// PASS 3: Draft Milestones - Generate high-quality initial milestones (Assistant API)
+async function generateDraftMilestones(
+  goalDescription: string,
+  targetDate: string,
+  hasTimePressure: boolean,
+  enneagramType: string,
+  goalFrame: { successCriteria: string; failureCriteria: string; mustAvoid: string[] },
+  assumptions: { constraints: string[]; risks: string[]; nonGoals: string[] }
+): Promise<any[]> {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+
     const thread = await openai.beta.threads.create();
 
-    const systemPrompt = `Context:
-- User's Goal: ${objective}
-${personalitySummary ? `- User's Personality Profile: ${personalitySummary}` : ''}
-${personalizationSummary ? `- Type Characteristics regarding questions to ask: ${personalizationSummary}` : ''}`;
+    const systemPrompt = `You are an expert milestone architect. Create specific, actionable milestones with measurable outcomes.
+
+GOAL: ${goalDescription}
+TARGET DATE: ${targetDate}
+TODAY: ${today}
+TIME PRESSURE: ${hasTimePressure ? 'Accelerated timeline - create focused, efficient milestones' : 'Normal pace - allow appropriate time for each phase'}
+ENNEAGRAM TYPE: ${enneagramType}
+
+GOAL FRAME:
+- Success looks like: ${goalFrame.successCriteria}
+- Failure looks like: ${goalFrame.failureCriteria}
+- Must avoid: ${goalFrame.mustAvoid.join(', ')}
+
+ASSUMPTIONS:
+- Constraints: ${assumptions.constraints.join(', ')}
+- Risks to mitigate: ${assumptions.risks.join(', ')}
+- Non-goals (don't optimize for): ${assumptions.nonGoals.join(', ')}
+
+RULES FOR MILESTONE GENERATION:
+1. Each milestone MUST produce a visible, tangible output
+2. NO generic actions like "research", "prepare", "explore" - be specific
+3. Each milestone MUST reduce a specific risk from the assumptions
+4. Use exam-grade specificity - concrete deliverables
+5. All dates must be ${today} or later (NEVER generate past dates)
+6. Distribute milestones evenly from today to target date
+
+For each milestone, provide:
+- title: Action-oriented, specific (not vague)
+- description: What gets produced, what the deliverable is
+- startDate: YYYY-MM-DD format (today or later)
+- dueDate: YYYY-MM-DD format (after startDate, on or before target date)
+- blindSpotTip: Type ${enneagramType} specific warning for THIS milestone
+- strengthHook: How Type ${enneagramType} can leverage their natural strength HERE
+- measurableOutcome: Concrete, observable deliverable
+
+Generate 5-7 milestones.
+
+Return ONLY valid JSON in this exact format:
+{
+  "milestones": [
+    {
+      "id": "1",
+      "title": "...",
+      "description": "...",
+      "startDate": "YYYY-MM-DD",
+      "dueDate": "YYYY-MM-DD",
+      "blindSpotTip": "...",
+      "strengthHook": "...",
+      "measurableOutcome": "..."
+    }
+  ]
+}`;
+
+    await openai.beta.threads.messages.create(thread.id, {
+      role: 'user',
+      content: systemPrompt,
+    });
+
+    const run = await openai.beta.threads.runs.create(thread.id, {
+      assistant_id: process.env.NEXT_PUBLIC_REACT_MILESTONE_GENERATOR_ID!,
+    });
+
+    let response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+
+    while (response.status === 'in_progress' || response.status === 'queued') {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+    }
+
+    if (response.status === 'completed') {
+      const messageList = await openai.beta.threads.messages.list(thread.id);
+      const lastMessage = messageList.data
+        .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
+        .pop();
+
+      if (lastMessage && lastMessage.content && lastMessage.content.length > 0) {
+        const firstContent = lastMessage.content[0];
+        if (firstContent.type === 'text') {
+          const content = firstContent.text.value;
+          let cleaned = content.trim();
+
+          if (cleaned.startsWith('```json')) {
+            cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          } else if (cleaned.startsWith('```')) {
+            cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+          }
+
+          const parsed = JSON.parse(cleaned);
+          return parsed.milestones || [];
+        }
+      }
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error in generateDraftMilestones:', error);
+    return [];
+  }
+}
+
+// PASS 4: Anti-Generic Review - Quality control (Chat Completion)
+async function reviewMilestones(
+  milestones: any[],
+  enneagramType: string,
+  assumptions: { risks: string[] }
+): Promise<{ corrections: string[]; approved: boolean }> {
+  try {
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a ruthless milestone quality reviewer. You flag generic, vague, or unmeasurable milestones.'
+        },
+        {
+          role: 'user',
+          content: `Review these milestones for quality issues:
+
+${JSON.stringify(milestones, null, 2)}
+
+ENNEAGRAM TYPE: ${enneagramType}
+RISKS TO AVOID: ${assumptions.risks.join(', ')}
+
+Flag any milestone that has these problems:
+1. Generic language (too broad, vague, could apply to any goal)
+2. No measurable outcome (can't verify completion)
+3. Would trigger Type ${enneagramType} blind spots (overdoing or avoiding)
+4. Has dates in the past
+5. Lacks specificity (what exactly gets done?)
+
+For each flagged milestone, provide specific correction guidance.
+
+Return ONLY valid JSON:
+{
+  "corrections": [
+    "Milestone 1: Issue - specific fix needed",
+    "Milestone 3: Issue - specific fix needed"
+  ],
+  "approved": false
+}
+
+If all milestones are good, return:
+{
+  "corrections": [],
+  "approved": true
+}`
+        }
+      ],
+      temperature: 0.3,
+    });
+
+    const content = completion.choices[0].message.content || '{}';
+    const cleaned = content.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    return JSON.parse(cleaned);
+  } catch (error) {
+    console.error('Error in reviewMilestones:', error);
+    return { corrections: [], approved: true };
+  }
+}
+
+// PASS 5: Final Synthesis - Apply corrections and polish (Assistant API)
+async function synthesizeFinalMilestones(
+  draftMilestones: any[],
+  corrections: string[],
+  enneagramType: string,
+  targetDate: string
+): Promise<any[]> {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+
+    const thread = await openai.beta.threads.create();
+
+    const systemPrompt = `You are a milestone refinement expert. Apply reviewer feedback to create perfect milestones.
+
+DRAFT MILESTONES:
+${JSON.stringify(draftMilestones, null, 2)}
+
+CORRECTIONS TO APPLY:
+${corrections.join('\n')}
+
+ENNEAGRAM TYPE: ${enneagramType}
+TODAY: ${today}
+TARGET DATE: ${targetDate}
+
+Apply all corrections:
+- Fix generic language → make specific and actionable
+- Add measurable outcomes → concrete deliverables
+- Increase behavioral pressure → make milestones non-negotiable
+- Cut 20% verbosity → be concise
+- Ensure dates are valid (${today} or later, before ${targetDate})
+- Address Type ${enneagramType} blind spots in tips
+
+Return the SAME JSON structure as draft milestones, but with improvements applied.
+
+IMPORTANT: Return ONLY valid JSON with this exact structure:
+{
+  "milestones": [
+    {
+      "id": "1",
+      "title": "...",
+      "description": "...",
+      "startDate": "YYYY-MM-DD",
+      "dueDate": "YYYY-MM-DD",
+      "blindSpotTip": "...",
+      "strengthHook": "...",
+      "measurableOutcome": "..."
+    }
+  ]
+}`;
 
     await openai.beta.threads.messages.create(thread.id, {
       role: 'user',
@@ -168,7 +399,6 @@ ${personalizationSummary ? `- Type Characteristics regarding questions to ask: $
       assistant_id: process.env.NEXT_PUBLIC_REACT_GOAL_QST_GENERATOR_ID!,
     });
 
-    // Wait for completion and return response (your existing logic)
     let response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
 
     while (response.status === 'in_progress' || response.status === 'queued') {
@@ -182,209 +412,136 @@ ${personalizationSummary ? `- Type Characteristics regarding questions to ask: $
         .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
         .pop();
 
-      // Simple tracking that should definitely work
-      try {
-        console.log('🔥 Attempting simple tracking for questions...');
-        const userEmail = userInfo?.userEmail || 'anonymous@example.com';
-        await logTokenUsage('openai_questions', userEmail, 300);
-        console.log('✅ Simple tracking successful for questions');
-      } catch (trackingError) {
-        console.error('❌ Simple tracking failed:', trackingError);
-      }
-
       if (lastMessage && lastMessage.content && lastMessage.content.length > 0) {
-        // Fix: Properly type check and access the text content
         const firstContent = lastMessage.content[0];
         if (firstContent.type === 'text') {
           const content = firstContent.text.value;
-          const questions = content
-            .split('\n')
-            .map(q => q.trim())
-            .filter(q => q.length > 0 && q.includes('?'))
-            .slice(0, 6);
+          let cleaned = content.trim();
 
-          return NextResponse.json({
-            questions,
-            isPersonalized: !!personalizationSummary,
-            personalizationLevel: personalizationSummary ? 'ai-enhanced' : 'standard'
-          });
-        }
-      }
-    }
-
-    // Fallback questions
-    const fallbackQuestions = [
-      'What specific skills do you need to develop to achieve this goal?',
-      'What resources or support do you currently have available?',
-      'What potential obstacles do you anticipate?',
-      'How will you measure success and track your progress?'
-    ];
-
-    return NextResponse.json({
-      questions: fallbackQuestions,
-      isPersonalized: false,
-      personalizationLevel: 'fallback'
-    });
-
-  } catch (error) {
-    console.error('Error calling OpenAI Questions Assistant:', error);
-    const fallbackQuestions = [
-      'What specific skills do you need to develop to achieve this goal?',
-      'What resources or support do you currently have available?',
-      'What potential obstacles do you anticipate?',
-      'How will you measure success and track your progress?'
-    ];
-    return NextResponse.json({
-      questions: fallbackQuestions,
-      isPersonalized: false,
-      personalizationLevel: 'error-fallback'
-    });
-  }
-}
-
-// Add this new function for milestone generation
-async function handleMilestonesRequest(body: MilestoneRequestBody, userInfo: { userId: string; userEmail: string } | null) {
-  try {
-    const thread = await openai.beta.threads.create();
-
-    const systemPrompt = `You are a milestone generation assistant. Create personalized milestones based on the user's goal and personality profile.
-
-Context:
-- Goal Type: ${body.goalType}
-- Goal: ${body.goalSummary}
-- Target Date: ${body.targetDate}
-- Today's Date: ${new Date().toISOString().split('T')[0]}
-- Personality Type: ${body.enneagramType}
-- Personality Summary: ${body.personalitySummary}
-- Time Pressure: ${body.paceInfo.hasTimePressure ? 'Yes' : 'No'}
-- Q&A Pairs: ${JSON.stringify(body.qaPairs)}
-- Goal Template: ${JSON.stringify(body.goalTemplate)}
-
-Instructions:
-1. Generate 4-8 specific, actionable milestones
-2. Include personality-specific tips for blind spots and strengths
-3. Adjust timeline based on time pressure preference
-4. Create sequential milestones with appropriate start and due dates
-5. IMPORTANT: All milestone startDate and dueDate values MUST be today or in the future. Never generate dates in the past.
-6. If a goal template is provided with defaultOffsetDays (negative values), use them as a guide for milestone spacing relative to the target date, but ensure all dates are adjusted to start from today if the calculated date would be in the past.
-7. Return JSON format with milestones array containing: id, title, description, startDate, dueDate, blindSpotTip, strengthHook`;
-
-    await openai.beta.threads.messages.create(thread.id, {
-      role: 'user',
-      content: systemPrompt,
-    });
-
-    const run = await openai.beta.threads.runs.create(thread.id, {
-      assistant_id: process.env.NEXT_PUBLIC_REACT_MILESTONE_GENERATOR_ID!, // Add this env variable
-    });
-
-    let response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-
-    while (response.status === 'in_progress' || response.status === 'queued') {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      response = await openai.beta.threads.runs.retrieve(thread.id, run.id);
-    }
-
-    if (response.status === 'completed') {
-      const messageList = await openai.beta.threads.messages.list(thread.id);
-      const lastMessage = messageList.data
-        .filter((msg: any) => msg.run_id === run.id && msg.role === 'assistant')
-        .pop();
-
-      // Simple tracking that should definitely work
-      try {
-        console.log('🔥 Attempting simple tracking for milestones...');
-        const userEmail = userInfo?.userEmail || 'anonymous@example.com';
-        await logTokenUsage('openai_milestones', userEmail, 500);
-        console.log('✅ Simple tracking successful for milestones');
-      } catch (trackingError) {
-        console.error('❌ Simple tracking failed:', trackingError);
-      }
-
-      if (lastMessage && lastMessage.content && lastMessage.content.length > 0) {
-        // Fix: Properly type check and access the text content
-        const firstContent = lastMessage.content[0];
-        if (firstContent.type === 'text') {
-          const content = firstContent.text.value;
-          try {
-            // Clean the content - remove markdown code blocks if present
-            let cleanContent = content.trim();
-            
-            // Remove ```json and ``` if present
-            if (cleanContent.startsWith('```json')) {
-              cleanContent = cleanContent.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-            } else if (cleanContent.startsWith('```')) {
-              cleanContent = cleanContent.replace(/^```\s*/, '').replace(/\s*```$/, '');
-            }
-            
-            console.log('🧹 Cleaned content for parsing:', cleanContent.substring(0, 200) + '...');
-            
-            const parsedContent = JSON.parse(cleanContent);
-            return NextResponse.json(parsedContent);
-          } catch (parseError) {
-            console.error('Error parsing milestone response:', parseError);
-            console.log('📝 Raw content that failed to parse:', content.substring(0, 500));
-            return generateFallbackMilestonesResponse(body.targetDate);
+          if (cleaned.startsWith('```json')) {
+            cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+          } else if (cleaned.startsWith('```')) {
+            cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
           }
+
+          const parsed = JSON.parse(cleaned);
+          return parsed.milestones || draftMilestones;
         }
       }
     }
 
-    return generateFallbackMilestonesResponse(body.targetDate);
-
+    return draftMilestones;
   } catch (error) {
-    console.error('Error calling OpenAI Milestones Assistant:', error);
-    return generateFallbackMilestonesResponse(body.targetDate);
+    console.error('Error in synthesizeFinalMilestones:', error);
+    return draftMilestones;
   }
 }
 
-// Add this helper function
-function generateFallbackMilestonesResponse(targetDate: string) {
-  const today = new Date();
-  const endDate = new Date(targetDate);
-  const timeSpan = endDate.getTime() - today.getTime();
-  const quarterSpan = timeSpan / 4;
+// Main handler for enhanced plan generation (4-pass architecture)
+async function handleEnhancedPlanRequest(
+  body: {
+    goalDescription: string;
+    targetDate: string;
+    hasTimePressure: boolean;
+    personalitySummary: string;
+    enneagramType: string;
+  },
+  userInfo: { userId: string; userEmail: string } | null
+) {
+  try {
+    const { goalDescription, targetDate, hasTimePressure, personalitySummary, enneagramType } = body;
 
-  const fallbackMilestones = [
-    {
-      id: '1',
-      title: 'Research and Planning Phase',
-      description: 'Conduct market research and create detailed action plan',
-      startDate: today.toISOString().split('T')[0],
-      dueDate: new Date(today.getTime() + quarterSpan).toISOString().split('T')[0],
-      blindSpotTip: 'Don\'t get stuck in analysis paralysis',
-      strengthHook: 'Use your natural planning abilities'
-    },
-    {
-      id: '2',
-      title: 'Skill Development',
-      description: 'Complete necessary training and skill building activities',
-      startDate: new Date(today.getTime() + quarterSpan).toISOString().split('T')[0],
-      dueDate: new Date(today.getTime() + quarterSpan * 2).toISOString().split('T')[0],
-      blindSpotTip: 'Set specific learning goals',
-      strengthHook: 'Leverage your learning style'
-    },
-    {
-      id: '3',
-      title: 'Implementation Phase',
-      description: 'Execute the main activities towards achieving the goal',
-      startDate: new Date(today.getTime() + quarterSpan * 2).toISOString().split('T')[0],
-      dueDate: new Date(today.getTime() + quarterSpan * 3).toISOString().split('T')[0],
-      blindSpotTip: 'Stay consistent with daily actions',
-      strengthHook: 'Focus on your key strengths'
-    },
-    {
-      id: '4',
-      title: 'Final Push and Evaluation',
-      description: 'Complete final steps and evaluate progress',
-      startDate: new Date(today.getTime() + quarterSpan * 3).toISOString().split('T')[0],
-      dueDate: targetDate,
-      blindSpotTip: 'Don\'t neglect the final details',
-      strengthHook: 'Use your determination to finish strong'
+    console.log('🚀 Starting 4-pass enhanced plan generation...');
+    console.log('Goal:', goalDescription);
+    console.log('Target:', targetDate);
+    console.log('Type:', enneagramType);
+
+    // PASS 1: Context Lock (Chat Completion - gpt-4o-mini)
+    console.log('📋 PASS 1: Generating goal frame...');
+    const goalFrame = await generateGoalFrame(goalDescription, targetDate, personalitySummary);
+    console.log('✅ Goal frame:', goalFrame);
+
+    // PASS 2: Assumption Builder (Chat Completion - gpt-4o-mini)
+    console.log('🧠 PASS 2: Generating assumptions...');
+    const assumptions = await generateAssumptions(
+      goalDescription,
+      targetDate,
+      hasTimePressure,
+      personalitySummary,
+      enneagramType
+    );
+    console.log('✅ Assumptions:', assumptions);
+
+    // PASS 3: Draft Milestones (Assistant API - gpt-4o)
+    console.log('📝 PASS 3: Generating draft milestones...');
+    const draftMilestones = await generateDraftMilestones(
+      goalDescription,
+      targetDate,
+      hasTimePressure,
+      enneagramType,
+      goalFrame,
+      assumptions
+    );
+
+    if (draftMilestones.length === 0) {
+      console.error('❌ Failed to generate draft milestones');
+      return NextResponse.json(
+        { error: 'Failed to generate milestones' },
+        { status: 500 }
+      );
     }
-  ];
 
-  return NextResponse.json({ milestones: fallbackMilestones });
+    console.log(`✅ Generated ${draftMilestones.length} draft milestones`);
+
+    // PASS 4: Anti-Generic Review (Chat Completion - gpt-4o-mini)
+    console.log('🔍 PASS 4: Reviewing milestones for quality...');
+    const review = await reviewMilestones(draftMilestones, enneagramType, assumptions);
+    console.log('✅ Review:', review);
+
+    // PASS 5: Final Synthesis (Assistant API - gpt-4o) - only if corrections needed
+    let finalMilestones = draftMilestones;
+    if (review.corrections.length > 0) {
+      console.log('✨ PASS 5: Synthesizing final milestones with corrections...');
+      finalMilestones = await synthesizeFinalMilestones(
+        draftMilestones,
+        review.corrections,
+        enneagramType,
+        targetDate
+      );
+      console.log(`✅ Final milestones synthesized: ${finalMilestones.length} milestones`);
+    } else {
+      console.log('✅ No corrections needed, using draft milestones as final');
+    }
+
+    // Track token usage (estimated: ~1000 tokens total across all passes)
+    try {
+      const userEmail = userInfo?.userEmail || 'anonymous@example.com';
+      await logTokenUsage('openai_enhanced_plan', userEmail, 1000);
+      console.log('✅ Token usage logged');
+    } catch (trackingError) {
+      console.error('❌ Token tracking failed:', trackingError);
+    }
+
+    console.log('🎉 Enhanced plan generation complete!');
+
+    return NextResponse.json({
+      milestones: finalMilestones,
+      goalFrame,
+      assumptions,
+      reviewNotes: review.corrections,
+      generationMethod: '4-pass-enhanced'
+    });
+
+  } catch (error) {
+    console.error('❌ Error in enhanced plan generation:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to generate enhanced plan',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
 }
 
 // Handle other HTTP methods
