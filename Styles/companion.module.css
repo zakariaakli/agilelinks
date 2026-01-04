@@ -252,6 +252,14 @@
   animation: pulse 2s infinite;
 }
 
+.loadingStep {
+  font-size: 1rem;
+  margin: 1rem 0 !important;
+  color: #6366f1 !important;
+  font-weight: 600 !important;
+  animation: none !important;
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 1;

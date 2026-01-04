@@ -252,6 +252,7 @@ const GoalWizard: React.FC = () => {
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingStep, setLoadingStep] = useState<string>("");
   const [user, setUser] = useState<FirebaseUser | null>(null);
   const [enneagramResult, setEnneagramResult] =
     useState<EnneagramResult | null>(null);
@@ -391,24 +392,13 @@ const GoalWizard: React.FC = () => {
     }
   };
 
-  // New enhanced plan generation using 4-pass architecture
+  // New enhanced plan generation using 3-route sequential architecture
   const callEnhancedPlanGenerator = async (): Promise<{
     milestones: Milestone[];
     goalFrame: any;
     assumptions: any;
   }> => {
     try {
-      const payload = {
-        goalDescription: goal,
-        targetDate: targetDate,
-        hasTimePressure: hasTimePressure,
-        enneagramType: getDominantEnneagramType(),
-        personalitySummary:
-          enneagramResult?.summary || "No personality data available",
-      };
-
-      console.log("🚀 Sending enhanced plan generation payload:", payload);
-
       // Get auth token for API tracking
       let authHeader = {};
       if (user) {
@@ -423,22 +413,81 @@ const GoalWizard: React.FC = () => {
         }
       }
 
-      const response = await fetch("/api/openAi/?type=enhanced-plan", {
+      // ROUTE 1: Frame goal and generate assumptions (Pass 1 + 2)
+      setLoadingStep("📋 Analyzing your goal and framing success criteria...");
+      console.log("📋 ROUTE 1: Calling /api/plan/frame-assumptions...");
+      const frameResponse = await fetch("/api/plan/frame-assumptions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...authHeader,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          goalDescription: goal,
+          targetDate: targetDate,
+          hasTimePressure: hasTimePressure,
+          enneagramType: getDominantEnneagramType(),
+          personalitySummary:
+            enneagramResult?.summary || "No personality data available",
+          userId: user?.uid,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!frameResponse.ok) {
+        const errorData = await frameResponse.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Frame-assumptions error:', errorData);
+        throw new Error(`Frame-assumptions failed: ${frameResponse.status} - ${errorData.error || 'Unknown error'}`);
       }
 
-      const data = await response.json();
+      const frameData = await frameResponse.json();
+      console.log("✅ ROUTE 1 completed:", frameData);
 
-      console.log("✅ Enhanced plan generation response:", data);
+      const { planId, goalFrame, assumptions } = frameData;
+
+      // ROUTE 2: Generate draft milestones (Pass 3)
+      setLoadingStep("🧠 Inferring constraints and generating personalized milestones...");
+      console.log("📝 ROUTE 2: Calling /api/plan/draft-milestones...");
+      const draftResponse = await fetch("/api/plan/draft-milestones", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader,
+        },
+        body: JSON.stringify({ planId }),
+      });
+
+      if (!draftResponse.ok) {
+        const errorData = await draftResponse.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Draft-milestones error:', errorData);
+        throw new Error(`Draft-milestones failed: ${draftResponse.status} - ${errorData.error || 'Unknown error'}`);
+      }
+
+      const draftData = await draftResponse.json();
+      console.log("✅ ROUTE 2 completed:", draftData);
+
+      // ROUTE 3: Review and synthesize final milestones (Pass 4 + 5)
+      setLoadingStep("🔍 Reviewing milestones for quality and finalizing your plan...");
+      console.log("🔍 ROUTE 3: Calling /api/plan/review-synthesize...");
+      const finalResponse = await fetch("/api/plan/review-synthesize", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...authHeader,
+        },
+        body: JSON.stringify({
+          planId,
+          userEmail: user?.email,
+        }),
+      });
+
+      if (!finalResponse.ok) {
+        const errorData = await finalResponse.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Review-synthesize error:', errorData);
+        throw new Error(`Review-synthesize failed: ${finalResponse.status} - ${errorData.error || 'Unknown error'}`);
+      }
+
+      const finalData = await finalResponse.json();
+      console.log("✅ ROUTE 3 completed:", finalData);
 
       // Get today's date for validation
       const today = new Date();
@@ -446,7 +495,7 @@ const GoalWizard: React.FC = () => {
       const todayStr = today.toISOString().split("T")[0];
 
       // Convert to our Milestone format and ensure dates are valid
-      const validatedMilestones = data.milestones.map((m: any) => {
+      const validatedMilestones = finalData.finalMilestones.map((m: any) => {
         const startDate = new Date(m.startDate);
         const dueDate = new Date(m.dueDate);
 
@@ -469,13 +518,22 @@ const GoalWizard: React.FC = () => {
         };
       });
 
+      console.log("🎉 All 3 routes completed successfully!");
+      setLoadingStep("");
+
       return {
         milestones: validatedMilestones,
-        goalFrame: data.goalFrame,
-        assumptions: data.assumptions,
+        goalFrame,
+        assumptions,
       };
     } catch (error) {
-      console.error("❌ Error calling enhanced plan generator:", error);
+      console.error("❌ Error in enhanced plan generation:", error);
+      setLoadingStep("");
+
+      // Show error toast to user
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      showToast(`Plan generation failed: ${errorMessage}. Using fallback milestones.`, "error");
+
       // Fallback to default milestones
       const fallbackMilestones = generateFallbackMilestones();
       return {
@@ -1046,6 +1104,11 @@ const GoalWizard: React.FC = () => {
             {isLoading ? (
               <div className={styles.loading}>
                 <p>🧠 AI is crafting your personalized plan...</p>
+                {loadingStep && (
+                  <p className={styles.loadingStep}>
+                    {loadingStep}
+                  </p>
+                )}
                 <p className={styles.helperText}>
                   Using 4-pass architecture: Goal framing → Assumptions → Draft → Review → Polish
                 </p>
