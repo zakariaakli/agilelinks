@@ -10,11 +10,17 @@ import Link from 'next/link';
 
 const Auth = () => {
   const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
   const pathname = usePathname();
 
   const handleGoogleSignIn = async (e?: React.MouseEvent<HTMLButtonElement>) => {
     e?.preventDefault();
+
+    // Prevent multiple clicks
+    if (isLoading) return;
+
+    setIsLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
 
@@ -70,6 +76,7 @@ const Auth = () => {
       router.push('/');
     } catch (error) {
       console.error("Error signing in with Google", error);
+      setIsLoading(false);
     }
   };
 
@@ -104,9 +111,23 @@ const Auth = () => {
       <h2 className={styles.formTitle}>
         {pathname === '/signup' ? 'Welcome! Create your account' : 'Happy to have you back!'}
       </h2>
-      <button onClick={(e) => handleGoogleSignIn(e)} className={styles.googleButton}>
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className={styles.googleLogo} />
-        Continue with Google
+      <button
+        onClick={(e) => handleGoogleSignIn(e)}
+        className={styles.googleButton}
+        disabled={isLoading}
+        style={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? 'not-allowed' : 'pointer' }}
+      >
+        {isLoading ? (
+          <>
+            <div className={styles.spinner}></div>
+            Signing in...
+          </>
+        ) : (
+          <>
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className={styles.googleLogo} />
+            Continue with Google
+          </>
+        )}
       </button>
       <div style={{ textAlign: "center", marginTop: "10px" }}>
         {pathname === '/signup' ? (

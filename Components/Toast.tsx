@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from '../Styles/toast.module.css';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -17,12 +17,25 @@ const Toast: React.FC<ToastProps> = ({
   duration = 4000,
   onClose
 }) => {
+  const [progress, setProgress] = useState(100);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       onClose();
     }, duration);
 
-    return () => clearTimeout(timer);
+    // Animate progress bar
+    const startTime = Date.now();
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(remaining);
+    }, 16); // ~60fps
+
+    return () => {
+      clearTimeout(timer);
+      clearInterval(progressInterval);
+    };
   }, [duration, onClose]);
 
   const getIcon = () => {
@@ -36,7 +49,7 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   return (
-    <div className={`${styles.toast} ${styles[type]} ${styles.slideIn}`}>
+    <div className={`${styles.toast} ${styles[type]} ${styles.slideDown}`}>
       <div className={styles.toastContent}>
         <span className={styles.toastIcon}>{getIcon()}</span>
         <span className={styles.toastMessage}>{message}</span>
@@ -48,6 +61,12 @@ const Toast: React.FC<ToastProps> = ({
       >
         ×
       </button>
+      <div className={styles.progressBar}>
+        <div
+          className={styles.progressFill}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   );
 };

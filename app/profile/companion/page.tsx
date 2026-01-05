@@ -842,6 +842,9 @@ const GoalWizard: React.FC = () => {
   };
 
   const nextStep = (): void => {
+    // Scroll to top of page when moving to next step
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     // New simplified flow: Step 0 (goal entry) → generate milestones → Step 1 (review milestones)
     if (currentStep === 0) {
       generateMilestones();
@@ -850,6 +853,9 @@ const GoalWizard: React.FC = () => {
   };
 
   const prevStep = (): void => {
+    // Scroll to top of page when going back to previous step
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
