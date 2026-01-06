@@ -356,7 +356,13 @@ function ProfileContent() {
     const target = new Date(targetDate);
     const diffTime = target.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+
+    if (diffDays > 30) {
+      const months = Math.round(diffDays / 30);
+      return `${months} ${months === 1 ? 'month' : 'months'}`;
+    }
+
+    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
   };
 
   // Calculate gamification stats
@@ -572,12 +578,6 @@ function ProfileContent() {
                     </div>
                   </div>
 
-                  <div className={styles.planGoalPreview}>
-                    {plan.goal.length > 100
-                      ? plan.goal.substring(0, 100) + "..."
-                      : plan.goal}
-                  </div>
-
                   <div className={styles.planMetrics}>
                     <div className={styles.metric}>
                       <span className={styles.metricLabel}>Progress:</span>
@@ -588,7 +588,7 @@ function ProfileContent() {
                     <div className={styles.metric}>
                       <span className={styles.metricLabel}>Target:</span>
                       <span className={styles.metricValue}>
-                        {getDaysUntilTarget(plan.targetDate)} days
+                        {getDaysUntilTarget(plan.targetDate)}
                       </span>
                     </div>
                     <div className={styles.metric}>
@@ -606,52 +606,51 @@ function ProfileContent() {
                   </div>
                 </div>
 
-                {/* Plan Details (Expandable) */}
+                {/* Current Milestone Only */}
                 {expandedPlans.has(plan.id) && (
                   <div className={styles.planDetails}>
                     <div className={styles.planDetailsSection}>
-                      <h4>Full Goal Description</h4>
-                      <p className={styles.fullGoalText}>{plan.goal}</p>
-                    </div>
-
-                    <div className={styles.planDetailsSection}>
-                      <h4>Target Date</h4>
-                      <p className={styles.targetDate}>
-                        {new Date(plan.targetDate).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
-
-                    {plan.hasTimePressure && (
-                      <div className={styles.timePressureIndicator}>
-                        ⚡ Accelerated Timeline
-                      </div>
-                    )}
-
-                    <div className={styles.planDetailsSection}>
-                      <h4>Milestones ({plan.milestones?.length || 0})</h4>
+                      <h4>Current Milestone</h4>
                       <div className={styles.enhancedMilestonesList}>
-                        {plan.milestones?.map((milestone) => {
-                          const status = getMilestoneStatus(milestone);
-                          // Show notifications for ALL milestone statuses (to display past interactions)
-                          const notifications = milestoneNotifications[milestone.id] || [];
-                          const isLoadingNotification =
-                            loadingNotifications[milestone.id] || false;
-
-                          return (
-                            <MilestoneCard
-                              key={milestone.id}
-                              milestone={milestone}
-                              status={status}
-                              notifications={notifications}
-                              isLoadingNotification={isLoadingNotification}
-                            />
+                        {(() => {
+                          // Find the current milestone
+                          const currentMilestone = plan.milestones?.find(
+                            (milestone) => getMilestoneStatus(milestone) === "current"
                           );
-                        })}
+
+                          if (currentMilestone) {
+                            const notifications = milestoneNotifications[currentMilestone.id] || [];
+                            const isLoadingNotification =
+                              loadingNotifications[currentMilestone.id] || false;
+
+                            return (
+                              <MilestoneCard
+                                key={currentMilestone.id}
+                                milestone={currentMilestone}
+                                status="current"
+                                notifications={notifications}
+                                isLoadingNotification={isLoadingNotification}
+                              />
+                            );
+                          } else {
+                            // No current milestone - show message
+                            const allCompleted = plan.milestones?.every(m => m.completed);
+                            return (
+                              <div style={{
+                                padding: '1.5rem',
+                                textAlign: 'center',
+                                color: '#6b7280',
+                                background: '#f9fafb',
+                                borderRadius: '0.5rem',
+                                border: '1px dashed #d1d5db'
+                              }}>
+                                {allCompleted
+                                  ? "🎉 All milestones completed! Great job!"
+                                  : "📋 No active milestone right now. Check full details to see upcoming milestones."}
+                              </div>
+                            );
+                          }
+                        })()}
                       </div>
                     </div>
 
@@ -672,38 +671,32 @@ function ProfileContent() {
                       </div>
                     </div>
 
-                    <div className={styles.planActions}>
-                      {plan.status === "active" ? (
-                        <button
-                          onClick={() => handlePausePlan(plan.id, plan.goal)}
-                          className={`${styles.planActionButton} ${styles.planActionButtonWarning}`}
-                          disabled={actionLoading === plan.id}
-                        >
-                          {actionLoading === plan.id
-                            ? "⏳ Pausing..."
-                            : "⏸️ Pause Plan"}
-                        </button>
-                      ) : plan.status === "paused" ? (
-                        <button
-                          onClick={() => handleResumePlan(plan.id, plan.goal)}
-                          className={`${styles.planActionButton} ${styles.planActionButtonPrimary}`}
-                          disabled={actionLoading === plan.id}
-                        >
-                          {actionLoading === plan.id
-                            ? "⏳ Resuming..."
-                            : "▶️ Resume Plan"}
-                        </button>
-                      ) : null}
-
-                      <button
-                        onClick={() => handleDeletePlan(plan.id, plan.goal)}
-                        className={`${styles.planActionButton} ${styles.planActionButtonDanger}`}
-                        disabled={actionLoading === plan.id}
+                    {/* See Full Details Link */}
+                    <div style={{
+                      marginTop: '1rem',
+                      paddingTop: '1rem',
+                      borderTop: '1px solid #e5e7eb',
+                      textAlign: 'center'
+                    }}>
+                      <Link
+                        href={`/profile/goals/${plan.id}`}
+                        className={styles.viewDetailsLink}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          color: '#3b82f6',
+                          fontWeight: '600',
+                          textDecoration: 'none',
+                          fontSize: '0.875rem',
+                          padding: '0.5rem 1rem',
+                          borderRadius: '0.5rem',
+                          transition: 'all 0.2s ease'
+                        }}
                       >
-                        {actionLoading === plan.id
-                          ? "⏳ Deleting..."
-                          : "🗑️ Delete Plan"}
-                      </button>
+                        <EyeIcon size={16} />
+                        View Full Goal Details
+                      </Link>
                     </div>
                   </div>
                 )}
