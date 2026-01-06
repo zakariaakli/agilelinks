@@ -434,9 +434,13 @@ const GoalWizard: React.FC = () => {
       });
 
       if (!frameResponse.ok) {
-        const errorData = await frameResponse.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Frame-assumptions error:', errorData);
-        throw new Error(`Frame-assumptions failed: ${frameResponse.status} - ${errorData.error || 'Unknown error'}`);
+        const errorData = await frameResponse
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        console.error("Frame-assumptions error:", errorData);
+        throw new Error(
+          `Frame-assumptions failed: ${frameResponse.status} - ${errorData.error || "Unknown error"}`
+        );
       }
 
       const frameData = await frameResponse.json();
@@ -445,7 +449,9 @@ const GoalWizard: React.FC = () => {
       const { planId, goalFrame, assumptions } = frameData;
 
       // ROUTE 2: Generate draft milestones (Pass 3)
-      setLoadingStep("🧠 Inferring constraints and generating personalized milestones...");
+      setLoadingStep(
+        "🧠 Inferring constraints and generating personalized milestones..."
+      );
       console.log("📝 ROUTE 2: Calling /api/plan/draft-milestones...");
       const draftResponse = await fetch("/api/plan/draft-milestones", {
         method: "POST",
@@ -457,16 +463,22 @@ const GoalWizard: React.FC = () => {
       });
 
       if (!draftResponse.ok) {
-        const errorData = await draftResponse.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Draft-milestones error:', errorData);
-        throw new Error(`Draft-milestones failed: ${draftResponse.status} - ${errorData.error || 'Unknown error'}`);
+        const errorData = await draftResponse
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        console.error("Draft-milestones error:", errorData);
+        throw new Error(
+          `Draft-milestones failed: ${draftResponse.status} - ${errorData.error || "Unknown error"}`
+        );
       }
 
       const draftData = await draftResponse.json();
       console.log("✅ ROUTE 2 completed:", draftData);
 
       // ROUTE 3: Review and synthesize final milestones (Pass 4 + 5)
-      setLoadingStep("🔍 Reviewing milestones for quality and finalizing your plan...");
+      setLoadingStep(
+        "🔍 Reviewing milestones for quality and finalizing your plan..."
+      );
       console.log("🔍 ROUTE 3: Calling /api/plan/review-synthesize...");
       const finalResponse = await fetch("/api/plan/review-synthesize", {
         method: "POST",
@@ -481,9 +493,13 @@ const GoalWizard: React.FC = () => {
       });
 
       if (!finalResponse.ok) {
-        const errorData = await finalResponse.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Review-synthesize error:', errorData);
-        throw new Error(`Review-synthesize failed: ${finalResponse.status} - ${errorData.error || 'Unknown error'}`);
+        const errorData = await finalResponse
+          .json()
+          .catch(() => ({ error: "Unknown error" }));
+        console.error("Review-synthesize error:", errorData);
+        throw new Error(
+          `Review-synthesize failed: ${finalResponse.status} - ${errorData.error || "Unknown error"}`
+        );
       }
 
       const finalData = await finalResponse.json();
@@ -531,8 +547,12 @@ const GoalWizard: React.FC = () => {
       setLoadingStep("");
 
       // Show error toast to user
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      showToast(`Plan generation failed: ${errorMessage}. Using fallback milestones.`, "error");
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      showToast(
+        `Plan generation failed: ${errorMessage}. Using fallback milestones.`,
+        "error"
+      );
 
       // Fallback to default milestones
       const fallbackMilestones = generateFallbackMilestones();
@@ -843,7 +863,7 @@ const GoalWizard: React.FC = () => {
 
   const nextStep = (): void => {
     // Scroll to top of page when moving to next step
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     // New simplified flow: Step 0 (goal entry) → generate milestones → Step 1 (review milestones)
     if (currentStep === 0) {
@@ -854,7 +874,7 @@ const GoalWizard: React.FC = () => {
 
   const prevStep = (): void => {
     // Scroll to top of page when going back to previous step
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
 
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
@@ -982,7 +1002,9 @@ const GoalWizard: React.FC = () => {
             <div className={styles.section}>
               <h2 className={styles.subtitle}>What's Your Goal?</h2>
               <p className={styles.helperText}>
-                Describe your goal in detail. Our AI will automatically create a personalized action plan with milestones tailored to your personality and timeline.
+                Describe your goal in detail. Our AI will automatically create a
+                personalized action plan with milestones tailored to your
+                personality and timeline.
               </p>
               <div className={styles.autosuggestContainer}>
                 <textarea
@@ -1109,14 +1131,13 @@ const GoalWizard: React.FC = () => {
             <h2 className={styles.subtitle}>Review & Edit Your Milestones</h2>
             {isLoading ? (
               <div className={styles.loading}>
-                <p>🧠 AI is crafting your personalized plan...</p>
+                <p>AI is crafting your personalized plan...</p>
                 {loadingStep && (
-                  <p className={styles.loadingStep}>
-                    {loadingStep}
-                  </p>
+                  <p className={styles.loadingStep}>{loadingStep}</p>
                 )}
                 <p className={styles.helperText}>
-                  Using 4-pass architecture: Goal framing → Assumptions → Draft → Review → Polish
+                  Using 4-pass architecture: Goal framing → Assumptions → Draft
+                  → Review → Polish
                 </p>
               </div>
             ) : (
@@ -1279,22 +1300,20 @@ const GoalWizard: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>🧠 Goal Setting Wizard</h1>
+      <h1 className={styles.title}>Goal Setting Wizard</h1>
 
       <div className={styles.stepIndicator}>
-        {["Goal Entry", "Review & Create"].map(
-          (step, index) => (
-            <div
-              key={index}
-              className={`${styles.stepItem} ${
-                index === currentStep ? styles.stepActive : ""
-              } ${index < currentStep ? styles.stepCompleted : ""}`}
-            >
-              <div className={styles.stepNumber}>{index + 1}</div>
-              <div className={styles.stepLabel}>{step}</div>
-            </div>
-          )
-        )}
+        {["Goal Entry", "Review & Create"].map((step, index) => (
+          <div
+            key={index}
+            className={`${styles.stepItem} ${
+              index === currentStep ? styles.stepActive : ""
+            } ${index < currentStep ? styles.stepCompleted : ""}`}
+          >
+            <div className={styles.stepNumber}>{index + 1}</div>
+            <div className={styles.stepLabel}>{step}</div>
+          </div>
+        ))}
       </div>
 
       <div className={styles.stepContent}>{renderStepContent()}</div>
