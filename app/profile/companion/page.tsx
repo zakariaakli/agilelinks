@@ -511,7 +511,8 @@ const GoalWizard: React.FC = () => {
       const todayStr = today.toISOString().split("T")[0];
 
       // Convert to our Milestone format and ensure dates are valid
-      const validatedMilestones = finalData.finalMilestones.map((m: any) => {
+      // Generate unique IDs for milestones to avoid collisions across different plans
+      const validatedMilestones = finalData.finalMilestones.map((m: any, index: number) => {
         const startDate = new Date(m.startDate);
         const dueDate = new Date(m.dueDate);
 
@@ -521,8 +522,12 @@ const GoalWizard: React.FC = () => {
         // If due date is in the past, set it to today
         const validDueDate = dueDate < today ? todayStr : m.dueDate;
 
+        // Create globally unique milestone ID by combining timestamp, random string, and index
+        // This prevents milestone ID collisions across different plans
+        const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${index}`;
+
         return {
-          id: m.id,
+          id: uniqueId,
           title: m.title,
           description: m.description,
           dueDate: validDueDate,
@@ -578,10 +583,11 @@ const GoalWizard: React.FC = () => {
     const endDate = new Date(targetDate);
     const timeSpan = endDate.getTime() - today.getTime();
     const quarterSpan = timeSpan / 4;
+    const baseId = Date.now();
 
     return [
       {
-        id: "1",
+        id: `${baseId}_${Math.random().toString(36).substring(2, 11)}_0`,
         title: "Research and Planning Phase",
         description: "Conduct market research and create detailed action plan",
         startDate: today.toISOString().split("T")[0],
@@ -591,7 +597,7 @@ const GoalWizard: React.FC = () => {
         completed: false,
       },
       {
-        id: "2",
+        id: `${baseId}_${Math.random().toString(36).substring(2, 11)}_1`,
         title: "Skill Development",
         description:
           "Complete necessary training and skill building activities",
@@ -604,7 +610,7 @@ const GoalWizard: React.FC = () => {
         completed: false,
       },
       {
-        id: "3",
+        id: `${baseId}_${Math.random().toString(36).substring(2, 11)}_2`,
         title: "Implementation Phase",
         description: "Execute the main activities towards achieving the goal",
         startDate: new Date(today.getTime() + quarterSpan * 2)
@@ -616,7 +622,7 @@ const GoalWizard: React.FC = () => {
         completed: false,
       },
       {
-        id: "4",
+        id: `${baseId}_${Math.random().toString(36).substring(2, 11)}_3`,
         title: "Final Push and Evaluation",
         description: "Complete final steps and evaluate progress",
         startDate: new Date(today.getTime() + quarterSpan * 3)
@@ -837,7 +843,7 @@ const GoalWizard: React.FC = () => {
   const addCustomMilestone = (): void => {
     const today = new Date();
     const newMilestone: Milestone = {
-      id: Date.now().toString(),
+      id: `${Date.now()}_${Math.random().toString(36).substring(2, 11)}_custom`,
       title: "Custom Milestone",
       description: "Add your description here",
       startDate: today.toISOString().split("T")[0],
@@ -1135,10 +1141,6 @@ const GoalWizard: React.FC = () => {
                 {loadingStep && (
                   <p className={styles.loadingStep}>{loadingStep}</p>
                 )}
-                <p className={styles.helperText}>
-                  Using 4-pass architecture: Goal framing → Assumptions → Draft
-                  → Review → Polish
-                </p>
               </div>
             ) : (
               <>

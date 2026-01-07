@@ -102,10 +102,16 @@ const GoalDetailsPage = () => {
       });
 
       if (planDoc.exists()) {
+        const docData = planDoc.data();
+        // Use the id field from document data if it exists, otherwise use Firestore doc ID
+        const actualPlanId = docData?.id || planDoc.id;
+
         const planData = {
-          id: planDoc.id,
-          ...planDoc.data(),
+          id: actualPlanId,
+          ...docData,
         } as PlanData;
+
+        console.log(`📋 Loaded plan with ID: ${actualPlanId} (Firestore doc ID: ${planDoc.id})`);
 
         // Verify this plan belongs to the user
         if (planData.userId !== userId) {
@@ -174,6 +180,7 @@ const GoalDetailsPage = () => {
     milestoneId: string
   ): Promise<Notification[]> => {
     try {
+      console.log(`🔍 Fetching notifications for:`, { userId, planId, milestoneId });
       const q = query(
         collection(db, "notifications"),
         where("userId", "==", userId),
@@ -198,15 +205,24 @@ const GoalDetailsPage = () => {
         }),
       }).catch(console.warn);
 
-      if (querySnapshot.empty) return [];
+      if (querySnapshot.empty) {
+        console.log(`✅ No notifications found for milestone ${milestoneId}`);
+        return [];
+      }
 
-      return querySnapshot.docs.map(
+      const notifications = querySnapshot.docs.map(
         (doc) =>
           ({
             id: doc.id,
             ...doc.data(),
           }) as Notification
       );
+
+      console.log(`✅ Found ${notifications.length} notification(s) for milestone ${milestoneId}:`,
+        notifications.map(n => ({ id: n.id, planId: (n as any).planId, milestoneId: (n as any).milestoneId }))
+      );
+
+      return notifications;
     } catch (error) {
       console.error("Error fetching milestone notifications:", error);
       return [];
