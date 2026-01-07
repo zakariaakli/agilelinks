@@ -253,6 +253,7 @@ const NotificationPreview: React.FC<NotificationPreviewProps> = ({
               notifId={notification.id}
               existingFeedback={notification.feedback}
               planId={notification.planId}
+              nudgeText={notification.prompt || ''}
             />
           </div>
 

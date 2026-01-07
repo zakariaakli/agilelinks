@@ -351,6 +351,26 @@ function ProfileContent() {
     return Math.round((completed / milestones.length) * 100);
   };
 
+  // Helper to get primary enneagram type from result
+  const getPrimaryEnneagramType = (result: EnneagramResult | null): string | undefined => {
+    if (!result) return undefined;
+
+    const types = [
+      { key: 'enneagramType1', label: 'Type 1', value: result.enneagramType1 },
+      { key: 'enneagramType2', label: 'Type 2', value: result.enneagramType2 },
+      { key: 'enneagramType3', label: 'Type 3', value: result.enneagramType3 },
+      { key: 'enneagramType4', label: 'Type 4', value: result.enneagramType4 },
+      { key: 'enneagramType5', label: 'Type 5', value: result.enneagramType5 },
+      { key: 'enneagramType6', label: 'Type 6', value: result.enneagramType6 },
+      { key: 'enneagramType7', label: 'Type 7', value: result.enneagramType7 },
+      { key: 'enneagramType8', label: 'Type 8', value: result.enneagramType8 },
+      { key: 'enneagramType9', label: 'Type 9', value: result.enneagramType9 },
+    ];
+
+    const maxType = types.reduce((max, type) => type.value > max.value ? type : max);
+    return maxType.label;
+  };
+
   const getDaysUntilTarget = (targetDate: string) => {
     const today = new Date();
     const target = new Date(targetDate);
@@ -630,6 +650,17 @@ function ProfileContent() {
                                 status="current"
                                 notifications={notifications}
                                 isLoadingNotification={isLoadingNotification}
+                                goalType={plan.goalType}
+                                enneagramData={
+                                  enneagramResult
+                                    ? {
+                                        type: getPrimaryEnneagramType(enneagramResult),
+                                        summary: enneagramResult.summary,
+                                        blindSpots: undefined, // Not available in current model
+                                        strengths: undefined, // Not available in current model
+                                      }
+                                    : undefined
+                                }
                               />
                             );
                           } else {

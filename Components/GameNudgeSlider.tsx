@@ -18,6 +18,15 @@ interface GameNudgeSliderProps {
   isLoading?: boolean;
   milestoneStartDate: string;
   milestoneDueDate: string;
+  milestoneTitle: string;
+  milestoneDescription: string;
+  goalType?: string;
+  enneagramData?: {
+    type?: string;
+    summary?: string;
+    blindSpots?: string[];
+    strengths?: string[];
+  };
 }
 
 const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
@@ -25,6 +34,10 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   isLoading = false,
   milestoneStartDate,
   milestoneDueDate,
+  milestoneTitle,
+  milestoneDescription,
+  goalType,
+  enneagramData,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -531,6 +544,15 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
                   notifId={currentNotification.id}
                   existingFeedback={currentNotification.feedback}
                   planId={currentNotification.planId}
+                  nudgeText={currentNotification.prompt}
+                  milestoneContext={{
+                    title: milestoneTitle,
+                    description: milestoneDescription,
+                    startDate: milestoneStartDate,
+                    dueDate: milestoneDueDate,
+                  }}
+                  goalType={goalType}
+                  enneagramData={enneagramData}
                 />
               </div>
             )}

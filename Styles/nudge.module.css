@@ -453,3 +453,76 @@
   margin: 0 0 0.5rem 0;
   color: #374151;
 }
+
+/* Reflection Summary Styles */
+.reflectionSummary {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border: 1.5px solid #c7d2fe;
+  border-radius: 1rem;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.summaryHeader {
+  margin-bottom: 1rem;
+}
+
+.summaryTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #4338ca;
+  margin: 0;
+}
+
+.summaryIcon {
+  font-size: 1.5rem;
+}
+
+.summaryText {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #374151;
+  margin: 0;
+}
+
+.summaryMeta {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #c7d2fe;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Mobile responsive styles for reflection summary */
+@media (max-width: 640px) {
+  .reflectionSummary {
+    padding: 1.25rem;
+  }
+
+  .summaryTitle {
+    font-size: 1rem;
+  }
+
+  .summaryText {
+    font-size: 0.9375rem;
+  }
+
+  .summaryMeta {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

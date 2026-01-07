@@ -336,8 +336,8 @@
 
 .planDetails {
   padding: 0 20px 20px;
-  border-top: 1px solid var(--border-primary);
-  background: var(--bg-muted);
+  border-top: 1px solid var(--border-secondary);
+  background: var(--bg-primary);
   animation: expandPlan 0.3s ease-out;
   transform-origin: top;
 }

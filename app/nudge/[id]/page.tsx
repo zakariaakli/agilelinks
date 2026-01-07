@@ -26,6 +26,20 @@ interface NotificationData {
   startDate?: string;
   dueDate?: string;
 
+  // Feedback details from AI reflection
+  feedbackDetails?: {
+    aiSummary?: string;
+    chatStartTime?: Date | Timestamp;
+    chatEndTime?: Date | Timestamp;
+    chatDuration?: number;
+    messageCount?: number;
+    contextUsed?: {
+      enneagramType?: string | null;
+      milestoneTitle?: string | null;
+      goalType?: string | null;
+    };
+  };
+
   // Enhanced tracking fields
   emailStatus?: {
     sent: boolean;
@@ -82,6 +96,18 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
       ...(data.strengthHook && { strengthHook: String(data.strengthHook) }),
       ...(data.startDate && { startDate: String(data.startDate) }),
       ...(data.dueDate && { dueDate: String(data.dueDate) }),
+
+      // Feedback details from AI reflection (if they exist)
+      ...((data as any).feedbackDetails && {
+        feedbackDetails: {
+          aiSummary: (data as any).feedbackDetails.aiSummary || undefined,
+          chatStartTime: (data as any).feedbackDetails.chatStartTime?.toDate?.() || (data as any).feedbackDetails.chatStartTime,
+          chatEndTime: (data as any).feedbackDetails.chatEndTime?.toDate?.() || (data as any).feedbackDetails.chatEndTime,
+          chatDuration: (data as any).feedbackDetails.chatDuration || undefined,
+          messageCount: (data as any).feedbackDetails.messageCount || undefined,
+          contextUsed: (data as any).feedbackDetails.contextUsed || undefined,
+        }
+      }),
 
       // Enhanced tracking fields (if they exist)
       ...(data.emailStatus && {
@@ -378,7 +404,41 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
           </>
         )}
 
-        <FeedbackForm notifId={id} existingFeedback={nudge.feedback} planId={nudge.planId} />
+        <FeedbackForm
+          notifId={id}
+          existingFeedback={nudge.feedback}
+          planId={nudge.planId}
+          nudgeText={nudge.prompt || ''}
+        />
+
+        {/* Reflection Summary Section */}
+        {nudge.feedbackDetails?.aiSummary && (
+          <div className={styles.reflectionSummary}>
+            <div className={styles.summaryHeader}>
+              <h3 className={styles.summaryTitle}>
+                <span className={styles.summaryIcon}>📝</span>
+                Your Reflection Summary
+              </h3>
+            </div>
+            <p className={styles.summaryText}>{nudge.feedbackDetails.aiSummary}</p>
+
+            {/* Optional: Show metadata */}
+            {(nudge.feedbackDetails.messageCount || nudge.feedbackDetails.chatDuration) && (
+              <div className={styles.summaryMeta}>
+                {nudge.feedbackDetails.messageCount && (
+                  <span className={styles.metaItem}>
+                    💬 {nudge.feedbackDetails.messageCount} message{nudge.feedbackDetails.messageCount !== 1 ? 's' : ''}
+                  </span>
+                )}
+                {nudge.feedbackDetails.chatDuration && (
+                  <span className={styles.metaItem}>
+                    ⏱️ {Math.floor(nudge.feedbackDetails.chatDuration / 60)} min{Math.floor(nudge.feedbackDetails.chatDuration / 60) !== 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );

@@ -26,13 +26,22 @@ interface MilestoneCardProps {
   status: 'completed' | 'current' | 'future';
   notifications?: Notification[];
   isLoadingNotification?: boolean;
+  goalType?: string;
+  enneagramData?: {
+    type?: string;
+    summary?: string;
+    blindSpots?: string[];
+    strengths?: string[];
+  };
 }
 
-const MilestoneCard: React.FC<MilestoneCardProps> = ({ 
-  milestone, 
-  status, 
+const MilestoneCard: React.FC<MilestoneCardProps> = ({
+  milestone,
+  status,
   notifications = [],
-  isLoadingNotification = false
+  isLoadingNotification = false,
+  goalType,
+  enneagramData
 }) => {
   const [isMobile, setIsMobile] = React.useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -318,6 +327,10 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
               isLoading={isLoadingNotification}
               milestoneStartDate={milestone.startDate}
               milestoneDueDate={milestone.dueDate}
+              milestoneTitle={milestone.title}
+              milestoneDescription={milestone.description}
+              goalType={goalType}
+              enneagramData={enneagramData}
             />
           </div>
         </div>
