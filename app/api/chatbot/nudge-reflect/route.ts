@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
 
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_REACT_APP_OPENAI_API_KEY,
@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
       enneagramSummary,
       enneagramBlindSpots,
       enneagramStrengths,
-      goDeeper,
       userId,
       userEmail,
     } = context;
@@ -37,9 +36,9 @@ Context about the nudge:
 - Goal Type: "${goalType}"
 
 Context about the user's personality (use this to inform your coaching approach, but NEVER explicitly mention their type or label):
-${enneagramSummary ? `- Core patterns: ${enneagramSummary}` : ''}
-${enneagramStrengths && enneagramStrengths.length > 0 ? `- Natural strengths: ${enneagramStrengths.join(', ')}` : ''}
-${enneagramBlindSpots && enneagramBlindSpots.length > 0 ? `- Growth areas: ${enneagramBlindSpots.join(', ')}` : ''}
+${enneagramSummary ? `- Core patterns: ${enneagramSummary}` : ""}
+${enneagramStrengths && enneagramStrengths.length > 0 ? `- Natural strengths: ${enneagramStrengths.join(", ")}` : ""}
+${enneagramBlindSpots && enneagramBlindSpots.length > 0 ? `- Growth areas: ${enneagramBlindSpots.join(", ")}` : ""}
 
 Your role:
 - Ask thoughtful, open-ended questions informed by their personality patterns
@@ -59,15 +58,12 @@ CRITICAL Guidelines:
 - Don't suggest solutions unless asked
 - Focus on reflection, not problem-solving
 - Use empathetic, conversational language that feels personalized but not clinical
-${goDeeper ? '- The user wants to go deeper. Ask more probing, insightful questions that connect to their personality patterns and growth areas.' : ''}`;
+`;
 
     // Call OpenAI
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...messages,
-      ],
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
       temperature: 0.7,
       max_tokens: 200,
     });
@@ -76,28 +72,31 @@ ${goDeeper ? '- The user wants to go deeper. Ask more probing, insightful questi
 
     // Track usage
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/track-openai-usage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          promptTokens: completion.usage?.prompt_tokens || 0,
-          completionTokens: completion.usage?.completion_tokens || 0,
-          totalTokens: completion.usage?.total_tokens || 0,
-          operation: 'nudge_reflection_chat',
-          userId: userId || 'unknown',
-          userEmail: userEmail || 'unknown',
-        }),
-      });
+      await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/track-openai-usage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "gpt-4o-mini",
+            promptTokens: completion.usage?.prompt_tokens || 0,
+            completionTokens: completion.usage?.completion_tokens || 0,
+            totalTokens: completion.usage?.total_tokens || 0,
+            operation: "nudge_reflection_chat",
+            userId: userId || "unknown",
+            userEmail: userEmail || "unknown",
+          }),
+        }
+      );
     } catch (trackError) {
-      console.warn('Failed to track OpenAI usage:', trackError);
+      console.warn("Failed to track OpenAI usage:", trackError);
     }
 
     return NextResponse.json({ response });
   } catch (error) {
-    console.error('Error in nudge-reflect:', error);
+    console.error("Error in nudge-reflect:", error);
     return NextResponse.json(
-      { error: 'Failed to generate response' },
+      { error: "Failed to generate response" },
       { status: 500 }
     );
   }

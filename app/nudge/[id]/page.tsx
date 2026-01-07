@@ -1,12 +1,12 @@
-import React from 'react';
-import { db } from '../../../firebase';
-import { Timestamp } from 'firebase/firestore';
-import { TrackedFirestoreClient } from '../../../lib/trackedFirestoreClient';
-import Script from 'next/script';
-import styles from '../../../Styles/nudge.module.css';
-import FeedbackForm from '../../../Components/FeedbackForm';
-import NudgeFormatter from '../../../Components/NudgeFormatter';
-import { EnhancedNotification } from '../../../lib/notificationTracking';
+import React from "react";
+import { db } from "../../../firebase";
+import { Timestamp } from "firebase/firestore";
+import { TrackedFirestoreClient } from "../../../lib/trackedFirestoreClient";
+import Script from "next/script";
+import styles from "../../../Styles/nudge.module.css";
+import FeedbackForm from "../../../Components/FeedbackForm";
+import NudgeFormatter from "../../../Components/NudgeFormatter";
+import { EnhancedNotification } from "../../../lib/notificationTracking";
 
 interface NotificationData {
   id: string;
@@ -71,8 +71,8 @@ interface PlanData {
 const fetchNudge = async (id: string): Promise<NotificationData | null> => {
   try {
     const snap = await TrackedFirestoreClient.doc(`notifications/${id}`).get({
-      source: 'nudge_page',
-      functionName: 'fetch_nudge_notification'
+      source: "nudge_page",
+      functionName: "fetch_nudge_notification",
     });
     if (!snap.exists()) return null;
 
@@ -81,9 +81,12 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
     // Clean and normalize the data to avoid serialization issues
     const notificationData: NotificationData = {
       id,
-      userId: data.userId || '',
-      type: typeof data.type === 'string' ? data.type : String(data.type || ''),
-      prompt: typeof data.prompt === 'string' ? data.prompt : String(data.prompt || ''),
+      userId: data.userId || "",
+      type: typeof data.type === "string" ? data.type : String(data.type || ""),
+      prompt:
+        typeof data.prompt === "string"
+          ? data.prompt
+          : String(data.prompt || ""),
       createdAt: data.createdAt?.toDate?.() || data.createdAt || new Date(),
       read: Boolean(data.read),
       feedback: data.feedback || null,
@@ -91,7 +94,9 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
       // Milestone-specific fields (only if they exist)
       ...(data.planId && { planId: data.planId }),
       ...(data.milestoneId && { milestoneId: data.milestoneId }),
-      ...(data.milestoneTitle && { milestoneTitle: String(data.milestoneTitle) }),
+      ...(data.milestoneTitle && {
+        milestoneTitle: String(data.milestoneTitle),
+      }),
       ...(data.blindSpotTip && { blindSpotTip: String(data.blindSpotTip) }),
       ...(data.strengthHook && { strengthHook: String(data.strengthHook) }),
       ...(data.startDate && { startDate: String(data.startDate) }),
@@ -101,41 +106,51 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
       ...((data as any).feedbackDetails && {
         feedbackDetails: {
           aiSummary: (data as any).feedbackDetails.aiSummary || undefined,
-          chatStartTime: (data as any).feedbackDetails.chatStartTime?.toDate?.() || (data as any).feedbackDetails.chatStartTime,
-          chatEndTime: (data as any).feedbackDetails.chatEndTime?.toDate?.() || (data as any).feedbackDetails.chatEndTime,
+          chatStartTime:
+            (data as any).feedbackDetails.chatStartTime?.toDate?.() ||
+            (data as any).feedbackDetails.chatStartTime,
+          chatEndTime:
+            (data as any).feedbackDetails.chatEndTime?.toDate?.() ||
+            (data as any).feedbackDetails.chatEndTime,
           chatDuration: (data as any).feedbackDetails.chatDuration || undefined,
           messageCount: (data as any).feedbackDetails.messageCount || undefined,
           contextUsed: (data as any).feedbackDetails.contextUsed || undefined,
-        }
+        },
       }),
 
       // Enhanced tracking fields (if they exist)
       ...(data.emailStatus && {
         emailStatus: {
           sent: Boolean(data.emailStatus.sent),
-          sentAt: data.emailStatus.sentAt?.toDate?.() || data.emailStatus.sentAt,
+          sentAt:
+            data.emailStatus.sentAt?.toDate?.() || data.emailStatus.sentAt,
           attempts: Number(data.emailStatus.attempts || 0),
-          deliveryStatus: data.emailStatus.deliveryStatus || 'unknown'
-        }
+          deliveryStatus: data.emailStatus.deliveryStatus || "unknown",
+        },
       }),
       ...(data.notificationMeta && {
         notificationMeta: {
-          priority: data.notificationMeta.priority || 'low',
-          category: data.notificationMeta.category || 'daily_nudge',
-          expiresAt: data.notificationMeta.expiresAt?.toDate?.() || data.notificationMeta.expiresAt
-        }
-      })
+          priority: data.notificationMeta.priority || "low",
+          category: data.notificationMeta.category || "daily_nudge",
+          expiresAt:
+            data.notificationMeta.expiresAt?.toDate?.() ||
+            data.notificationMeta.expiresAt,
+        },
+      }),
     };
 
     // Mark notification as read
-    await TrackedFirestoreClient.doc(`notifications/${id}`).update({ read: true }, {
-      source: 'nudge_page',
-      functionName: 'mark_notification_as_read'
-    });
+    await TrackedFirestoreClient.doc(`notifications/${id}`).update(
+      { read: true },
+      {
+        source: "nudge_page",
+        functionName: "mark_notification_as_read",
+      }
+    );
 
     return notificationData;
   } catch (error) {
-    console.error('Error fetching nudge:', error);
+    console.error("Error fetching nudge:", error);
     return null;
   }
 };
@@ -143,57 +158,63 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
 const fetchPlanData = async (planId: string): Promise<PlanData | null> => {
   try {
     const planSnap = await TrackedFirestoreClient.doc(`plans/${planId}`).get({
-      source: 'nudge_page',
-      functionName: 'fetch_plan_data_for_milestone'
+      source: "nudge_page",
+      functionName: "fetch_plan_data_for_milestone",
     });
     if (!planSnap.exists()) return null;
 
     const planData = planSnap.data();
     return {
       id: planId,
-      goalType: planData.goalType || '',
-      goal: planData.goal || '',
-      targetDate: planData.targetDate || '',
-      milestones: planData.milestones || []
+      goalType: planData.goalType || "",
+      goal: planData.goal || "",
+      targetDate: planData.targetDate || "",
+      milestones: planData.milestones || [],
     };
   } catch (error) {
-    console.error('Error fetching plan data:', error);
+    console.error("Error fetching plan data:", error);
     return null;
   }
 };
 
 export async function generateStaticParams() {
   try {
-    const querySnapshot = await TrackedFirestoreClient.collection('notifications').get({
-      source: 'nudge_page_static',
-      functionName: 'generate_static_params'
+    const querySnapshot = await TrackedFirestoreClient.collection(
+      "notifications"
+    ).get({
+      source: "nudge_page_static",
+      functionName: "generate_static_params",
     });
     return querySnapshot.docs.map((doc) => ({ id: doc.id }));
   } catch (error) {
-    console.error('Error generating static params:', error);
+    console.error("Error generating static params:", error);
     return []; // Return empty array if there's an error
   }
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const nudge = await fetchNudge(id);
 
   if (!nudge) {
     return {
-      title: 'Nudge Not Found',
-      description: 'The requested nudge could not be found.'
+      title: "Nudge Not Found",
+      description: "The requested nudge could not be found.",
     };
   }
 
-  const isMilestoneReminder = nudge.type === 'milestone_reminder';
+  const isMilestoneReminder = nudge.type === "milestone_reminder";
   const title = isMilestoneReminder
-    ? `🎯 ${nudge.milestoneTitle || 'Milestone Reminder'}`
-    : `✨ ${nudge.prompt?.slice(0, 40) || 'Daily Reflection'}`;
+    ? `🎯 ${nudge.milestoneTitle || "Milestone Reminder"}`
+    : `✨ ${nudge.prompt?.slice(0, 40) || "Daily Reflection"}`;
 
   const description = isMilestoneReminder
-    ? `Milestone check-in: ${nudge.milestoneTitle || 'Keep progressing toward your goals'} - Due ${nudge.dueDate ? new Date(nudge.dueDate).toLocaleDateString() : 'soon'}`
-    : `Personal Enneagram reflection: ${nudge.prompt?.slice(0, 100) || 'Discover insights about your personality'}`;
+    ? `Milestone check-in: ${nudge.milestoneTitle || "Keep progressing toward your goals"} - Due ${nudge.dueDate ? new Date(nudge.dueDate).toLocaleDateString() : "soon"}`
+    : `Personal Enneagram reflection: ${nudge.prompt?.slice(0, 100) || "Discover insights about your personality"}`;
 
   return {
     title: `${title} - AgileLinks`,
@@ -205,21 +226,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title,
       description,
       url: `https://agilelinks.vercel.app/nudge/${id}`,
-      type: 'article',
-      siteName: 'AgileLinks'
+      type: "article",
+      siteName: "AgileLinks",
     },
     twitter: {
-      card: 'summary',
+      card: "summary",
       title,
       description,
-    }
+    },
   };
 }
 
 const feedbackOptions = [
-  'I like this nudge',
-  'You can do better next time',
-  'I really do not relate to that'
+  "I like this nudge",
+  "You can do better next time",
+  "I really do not relate to that",
 ];
 
 const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
@@ -238,21 +259,24 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
         <div className={styles.notFound}>
           <h1>Nudge Not Found</h1>
           <p>The requested nudge could not be found or may have expired.</p>
-          <a href="/profile" className={styles.backLink}>← Back to Profile</a>
+          <a href="/profile" className={styles.backLink}>
+            ← Back to Profile
+          </a>
         </div>
       </div>
     );
   }
 
-  const isMilestoneReminder = nudge.type === 'milestone_reminder';
+  const isMilestoneReminder = nudge.type === "milestone_reminder";
   const isExpired = nudge.notificationMeta?.expiresAt
     ? (() => {
         const expiresAt = nudge.notificationMeta.expiresAt;
-        const expirationDate = expiresAt instanceof Date
-          ? expiresAt
-          : typeof expiresAt === 'string'
-            ? new Date(expiresAt)
-            : (expiresAt as any)?.toDate?.() || new Date(expiresAt as any);
+        const expirationDate =
+          expiresAt instanceof Date
+            ? expiresAt
+            : typeof expiresAt === "string"
+              ? new Date(expiresAt)
+              : (expiresAt as any)?.toDate?.() || new Date(expiresAt as any);
         return expirationDate < new Date();
       })()
     : false;
@@ -261,7 +285,7 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const formatDate = (dateString: string | Date | Timestamp) => {
     try {
       let date: Date;
-      if (typeof dateString === 'string') {
+      if (typeof dateString === "string") {
         date = new Date(dateString);
       } else if (dateString instanceof Date) {
         date = dateString;
@@ -270,11 +294,11 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
         date = (dateString as any)?.toDate?.() || new Date(dateString as any);
       }
 
-      return date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      return date.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
     } catch {
       return String(dateString);
@@ -285,7 +309,7 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const getTimeAgo = (createdAt: Date | string | Timestamp) => {
     try {
       let date: Date;
-      if (typeof createdAt === 'string') {
+      if (typeof createdAt === "string") {
         date = new Date(createdAt);
       } else if (createdAt instanceof Date) {
         date = createdAt;
@@ -295,14 +319,17 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
       }
 
       const now = new Date();
-      const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+      const diffHours = Math.floor(
+        (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+      );
 
-      if (diffHours < 1) return 'Just now';
-      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      if (diffHours < 1) return "Just now";
+      if (diffHours < 24)
+        return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
       const diffDays = Math.floor(diffHours / 24);
-      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
     } catch {
-      return '';
+      return "";
     }
   };
 
@@ -312,16 +339,19 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
         {JSON.stringify({
           "@context": "https://schema.org",
           "@type": isMilestoneReminder ? "GoalProgress" : "CreativeWork",
-          "headline": isMilestoneReminder ? nudge.milestoneTitle : nudge.prompt,
-          "description": nudge.prompt,
-          "datePublished": new Date(nudge.createdAt instanceof Date ? nudge.createdAt : Date.now()).toISOString(),
-          "mainEntityOfPage": {
+          headline: isMilestoneReminder ? nudge.milestoneTitle : nudge.prompt,
+          description: nudge.prompt,
+          datePublished: new Date(
+            nudge.createdAt instanceof Date ? nudge.createdAt : Date.now()
+          ).toISOString(),
+          mainEntityOfPage: {
             "@type": "WebPage",
             "@id": `https://agilelinks.vercel.app/nudge/${id}`,
           },
-          ...(isMilestoneReminder && nudge.dueDate && {
-            "targetDate": new Date(nudge.dueDate).toISOString()
-          })
+          ...(isMilestoneReminder &&
+            nudge.dueDate && {
+              targetDate: new Date(nudge.dueDate).toISOString(),
+            }),
         })}
       </Script>
 
@@ -330,40 +360,21 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
         <div className={styles.metadata}>
           <span className={styles.timeAgo}>{getTimeAgo(nudge.createdAt)}</span>
           {nudge.notificationMeta && (
-            <span className={`${styles.priority} ${styles[`priority-${nudge.notificationMeta.priority}`]}`}>
+            <span
+              className={`${styles.priority} ${styles[`priority-${nudge.notificationMeta.priority}`]}`}
+            >
               {nudge.notificationMeta.priority.toUpperCase()}
             </span>
           )}
-          {isExpired && (
-            <span className={styles.expired}>EXPIRED</span>
-          )}
+          {isExpired && <span className={styles.expired}>EXPIRED</span>}
         </div>
 
         {isMilestoneReminder ? (
           <>
             <h1 className={styles.title}>🎯 Milestone Check-in</h1>
-            {planData?.goal && (
-              <p className={styles.goalContext}>
-                <span className={styles.goalLabel}>Goal:</span> {planData.goal}
-              </p>
-            )}
-            <h2 className={styles.milestoneTitle}>{nudge.milestoneTitle || 'Untitled Milestone'}</h2>
-
-            {/* Timeline information */}
-            <div className={styles.timelineInfo}>
-              {nudge.startDate && (
-                <div className={styles.dateInfo}>
-                  <span className={styles.dateLabel}>Started:</span>
-                  <span className={styles.dateValue}>{formatDate(nudge.startDate)}</span>
-                </div>
-              )}
-              {nudge.dueDate && (
-                <div className={styles.dateInfo}>
-                  <span className={styles.dateLabel}>Due:</span>
-                  <span className={styles.dateValue}>{formatDate(nudge.dueDate)}</span>
-                </div>
-              )}
-            </div>
+            <h2 className={styles.milestoneTitle}>
+              {nudge.milestoneTitle || "Untitled Milestone"}
+            </h2>
 
             <div className={styles.promptSection}>
               <NudgeFormatter text={nudge.prompt} />
@@ -396,7 +407,8 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
           <>
             <h1 className={styles.title}>✨ Daily Reflection</h1>
             <p className={styles.enneagramType}>
-              <span className={styles.typeLabel}>For:</span> {nudge.type || 'Your Personality Type'}
+              <span className={styles.typeLabel}>For:</span>{" "}
+              {nudge.type || "Your Personality Type"}
             </p>
             <div className={styles.promptSection}>
               <NudgeFormatter text={nudge.prompt} />
@@ -404,38 +416,57 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
           </>
         )}
 
-        <FeedbackForm
-          notifId={id}
-          existingFeedback={nudge.feedback}
-          planId={nudge.planId}
-          nudgeText={nudge.prompt || ''}
-        />
+        {/* Show FeedbackForm only if no feedback exists yet */}
+        {!nudge.feedback && (
+          <FeedbackForm
+            notifId={id}
+            existingFeedback={nudge.feedback}
+            planId={nudge.planId}
+            nudgeText={nudge.prompt || ""}
+          />
+        )}
 
-        {/* Reflection Summary Section */}
-        {nudge.feedbackDetails?.aiSummary && (
+        {/* Combined Feedback & Reflection Summary Section */}
+        {nudge.feedback && (
           <div className={styles.reflectionSummary}>
             <div className={styles.summaryHeader}>
               <h3 className={styles.summaryTitle}>
                 <span className={styles.summaryIcon}>📝</span>
-                Your Reflection Summary
+                Your Reflection
               </h3>
             </div>
-            <p className={styles.summaryText}>{nudge.feedbackDetails.aiSummary}</p>
 
-            {/* Optional: Show metadata */}
-            {(nudge.feedbackDetails.messageCount || nudge.feedbackDetails.chatDuration) && (
-              <div className={styles.summaryMeta}>
-                {nudge.feedbackDetails.messageCount && (
-                  <span className={styles.metaItem}>
-                    💬 {nudge.feedbackDetails.messageCount} message{nudge.feedbackDetails.messageCount !== 1 ? 's' : ''}
-                  </span>
+            {/* Show AI summary if available */}
+            {nudge.feedbackDetails?.aiSummary && (
+              <>
+                <div className={styles.summaryDivider}></div>
+                <p className={styles.summaryText}>
+                  {nudge.feedbackDetails.aiSummary}
+                </p>
+
+                {/* Optional: Show metadata */}
+                {(nudge.feedbackDetails.messageCount ||
+                  nudge.feedbackDetails.chatDuration) && (
+                  <div className={styles.summaryMeta}>
+                    {nudge.feedbackDetails.messageCount && (
+                      <span className={styles.metaItem}>
+                        💬 {nudge.feedbackDetails.messageCount} message
+                        {nudge.feedbackDetails.messageCount !== 1 ? "s" : ""}
+                      </span>
+                    )}
+                    {nudge.feedbackDetails.chatDuration && (
+                      <span className={styles.metaItem}>
+                        ⏱️ {Math.floor(nudge.feedbackDetails.chatDuration / 60)}{" "}
+                        min
+                        {Math.floor(nudge.feedbackDetails.chatDuration / 60) !==
+                        1
+                          ? "s"
+                          : ""}
+                      </span>
+                    )}
+                  </div>
                 )}
-                {nudge.feedbackDetails.chatDuration && (
-                  <span className={styles.metaItem}>
-                    ⏱️ {Math.floor(nudge.feedbackDetails.chatDuration / 60)} min{Math.floor(nudge.feedbackDetails.chatDuration / 60) !== 1 ? 's' : ''}
-                  </span>
-                )}
-              </div>
+              </>
             )}
           </div>
         )}

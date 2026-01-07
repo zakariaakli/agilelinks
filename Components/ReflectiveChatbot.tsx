@@ -29,7 +29,6 @@ interface ReflectiveChatbotProps {
 
   // Customization
   initialGreeting?: string;
-  showGoDeeper?: boolean;
   placeholder?: string;
 }
 
@@ -44,14 +43,12 @@ export default function ReflectiveChatbot({
   apiEndpoint,
   contextData,
   initialGreeting,
-  showGoDeeper = true,
   placeholder = "Type your thoughts..."
 }: ReflectiveChatbotProps) {
   const [messages, setMessages] = useState<ChatMessageData[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
-  const [goDeeper, setGoDeeper] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -143,10 +140,7 @@ export default function ReflectiveChatbot({
               role: msg.role,
               content: msg.content
             })),
-            context: {
-              ...contextData,
-              goDeeper
-            }
+            context: contextData
           })
         }),
         // Simulate natural typing delay (5 seconds)
@@ -178,7 +172,6 @@ export default function ReflectiveChatbot({
       setInputValue(userMessage.content); // Restore input
     } finally {
       setIsLoading(false);
-      setGoDeeper(false); // Reset go deeper flag
     }
   };
 
@@ -197,11 +190,6 @@ export default function ReflectiveChatbot({
     const textarea = e.target;
     textarea.style.height = 'auto';
     textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
-  };
-
-  const handleGoDeeper = () => {
-    setGoDeeper(true);
-    showToast('AI will ask deeper questions now', 'info');
   };
 
   const handleFinish = async () => {
@@ -329,15 +317,6 @@ export default function ReflectiveChatbot({
 
             {/* Action Buttons */}
             <div className={styles.chatbotActions}>
-              {showGoDeeper && messages.length > 2 && (
-                <button
-                  onClick={handleGoDeeper}
-                  disabled={isLoading || isSummarizing || goDeeper}
-                  className={`${styles.chatbotActionButton} ${styles.chatbotActionButtonSecondary}`}
-                >
-                  {goDeeper ? 'Going Deeper...' : 'Go Deeper'}
-                </button>
-              )}
               <button
                 onClick={handleFinish}
                 disabled={isSummarizing}

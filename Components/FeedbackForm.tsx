@@ -151,47 +151,9 @@ export default function FeedbackForm({
     }
   }, [submitted, router, planId]);
 
-  // If feedback already exists, show thank you message
+  // If feedback already exists, don't show anything (feedback will be shown in page as reflection summary)
   if (existingFeedback) {
-    return (
-      <div className={styles.thankYou}>
-        <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-          <CheckCircleIcon size={48} color="var(--color-success-500)" />
-        </div>
-        <h2>Thanks for your previous feedback!</h2>
-        <p>You already shared your thoughts on this nudge.</p>
-        <div
-          style={{
-            marginTop: "1rem",
-            padding: "0.75rem",
-            background: "var(--color-neutral-50)",
-            borderRadius: "var(--border-radius-lg)",
-            fontSize: "var(--font-size-sm)",
-            color: "var(--text-primary)",
-            border: "1px solid var(--border-primary)",
-          }}
-        >
-          <strong>Your feedback:</strong> {existingFeedback}
-        </div>
-        <p
-          style={{
-            fontSize: "var(--font-size-sm)",
-            color: "var(--text-secondary)",
-            marginTop: "1rem",
-          }}
-        >
-          <a
-            href="/profile"
-            style={{
-              color: "var(--color-primary-500)",
-              textDecoration: "none",
-            }}
-          >
-            ← Back to Profile
-          </a>
-        </p>
-      </div>
-    );
+    return null;
   }
 
   if (submitted) {
@@ -340,7 +302,6 @@ export default function FeedbackForm({
           planId,
         }}
         initialGreeting={getInitialGreeting()}
-        showGoDeeper={true}
         placeholder="Share your thoughts..."
       />
 
