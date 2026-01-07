@@ -59,6 +59,7 @@ export default function ReflectiveChatbot({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const chatStartTime = useRef<Date | null>(null);
   const [mounted, setMounted] = useState(false);
+  const scrollPositionRef = useRef(0);
 
   // Ensure component is mounted before using portal
   useEffect(() => {
@@ -87,21 +88,27 @@ export default function ReflectiveChatbot({
   // Focus input when opened & prevent body scroll
   useEffect(() => {
     if (isOpen) {
-      // Prevent background scrolling
-      document.body.style.overflow = 'hidden';
+      // Save current scroll position
+      scrollPositionRef.current = window.scrollY;
+
+      // Prevent background scrolling - mobile-first approach
+      const scrollY = window.scrollY;
       document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
       document.body.style.width = '100%';
-      document.body.style.height = '100%';
+      document.body.style.overflow = 'hidden';
 
       // Focus input after animation
       setTimeout(() => inputRef.current?.focus(), 350);
 
       return () => {
         // Restore scrolling
-        document.body.style.overflow = '';
+        const scrollY = document.body.style.top;
         document.body.style.position = '';
+        document.body.style.top = '';
         document.body.style.width = '';
-        document.body.style.height = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
       };
     }
   }, [isOpen]);
@@ -175,11 +182,21 @@ export default function ReflectiveChatbot({
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  // Auto-resize textarea
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value);
+
+    // Auto-resize textarea
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
   };
 
   const handleGoDeeper = () => {
@@ -292,8 +309,8 @@ export default function ReflectiveChatbot({
               <textarea
                 ref={inputRef}
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 className={styles.chatbotInput}
                 disabled={isLoading || isSummarizing}
