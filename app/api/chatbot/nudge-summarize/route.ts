@@ -4,7 +4,7 @@ import { db } from '../../../../firebase';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_REACT_APP_OPENAI_API_KEY,
 });
 
 export async function POST(request: NextRequest) {
