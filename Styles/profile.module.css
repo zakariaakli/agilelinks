@@ -90,7 +90,7 @@
 }
 
 .enneagramResultContainer {
-  margin-top: 40px;
+  margin-top: 10px;
 }
 
 .enneagramGrid {
@@ -237,6 +237,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 20px;
+  margin-bottom: 0;
 }
 
 .planCard {

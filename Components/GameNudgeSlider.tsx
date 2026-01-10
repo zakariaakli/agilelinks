@@ -28,6 +28,7 @@ interface GameNudgeSliderProps {
     strengths?: string[];
   };
   showOnlyLatest?: boolean;
+  hideFeedbackStatus?: boolean;
 }
 
 const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
@@ -40,10 +41,12 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   goalType,
   enneagramData,
   showOnlyLatest = false,
+  hideFeedbackStatus = false,
 }) => {
   // Filter to only show the latest notification if showOnlyLatest is true
+  // Since notifications are ordered by createdAt desc, the first item is the most recent
   const displayNotifications = showOnlyLatest && notifications.length > 0
-    ? [notifications[notifications.length - 1]]
+    ? [notifications[0]]
     : notifications;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -428,64 +431,64 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
           >
             📅 {formatDate(currentNotification.createdAt)}
           </div>
-          <div
-            style={{
-              background: hasReacted ? "#10b981" : "#f59e0b",
-              color: "white",
-              padding: "0.25rem 0.75rem",
-              borderRadius: "1rem",
-              fontSize: "clamp(0.65rem, 1.8vw, 0.75rem)",
-              fontWeight: "bold",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {hasReacted ? "✅ Completed" : "⏳ Awaiting feedback"}
-          </div>
+          {!hideFeedbackStatus && (
+            <div
+              style={{
+                background: hasReacted ? "#10b981" : "#f59e0b",
+                color: "white",
+                padding: "0.25rem 0.75rem",
+                borderRadius: "1rem",
+                fontSize: "clamp(0.65rem, 1.8vw, 0.75rem)",
+                fontWeight: "bold",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {hasReacted ? "✅ Completed" : "⏳ Awaiting feedback"}
+            </div>
+          )}
         </div>
 
         {/* Nudge Content */}
         {!isExpanded ? (
           <div
             style={{
-              fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
-              lineHeight: "1.5",
               marginBottom: isMobile ? "1rem" : "1.5rem",
-              color: "#2d3748",
-              wordBreak: "break-word",
             }}
           >
-            {(() => {
-              const cleanText = currentNotification.prompt.replace(/\*\*/g, '');
-              return cleanText.length > 150
-                ? `${cleanText.substring(0, 150)}...`
-                : cleanText;
-            })()}
-            <button
-              onClick={() => setIsExpanded(true)}
+            {/* Show formatted preview */}
+            <div
               style={{
-                display: "block",
-                marginTop: "0.75rem",
-                background: "#667eea",
-                color: "white",
-                border: "none",
-                padding: "0.5rem 1rem",
-                borderRadius: "0.5rem",
-                fontSize: "0.875rem",
-                fontWeight: "bold",
-                cursor: "pointer",
-                width: "100%",
+                fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
+                lineHeight: "1.5",
+                color: "#2d3748",
+                wordBreak: "break-word",
               }}
             >
-              📖 Read Full Nudge & Give Feedback
-            </button>
+              <NudgeFormatter text={currentNotification.prompt} />
+            </div>
+            {!hasReacted && (
+              <button
+                onClick={() => setIsExpanded(true)}
+                style={{
+                  display: "block",
+                  marginTop: "1rem",
+                  background: "#667eea",
+                  color: "white",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "0.5rem",
+                  fontSize: "0.875rem",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  width: "100%",
+                }}
+              >
+                💭 Reflect on this nudge
+              </button>
+            )}
           </div>
         ) : (
           <div>
-            {/* Full Formatted Nudge */}
-            <div style={{ marginBottom: "1.5rem" }}>
-              <NudgeFormatter text={currentNotification.prompt} />
-            </div>
-
             {/* Feedback Form */}
             {!hasReacted && (
               <div style={{ marginBottom: "1rem" }}>
@@ -524,7 +527,7 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
                 width: "100%",
               }}
             >
-              ↑ Collapse
+              ↑ Close
             </button>
           </div>
         )}

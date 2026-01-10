@@ -34,6 +34,8 @@ interface MilestoneCardProps {
     strengths?: string[];
   };
   showOnlyLatestNotification?: boolean;
+  hideFeedbackStatus?: boolean;
+  hideTimeline?: boolean;
 }
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({
@@ -43,7 +45,9 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
   isLoadingNotification = false,
   goalType,
   enneagramData,
-  showOnlyLatestNotification = false
+  showOnlyLatestNotification = false,
+  hideFeedbackStatus = false,
+  hideTimeline = false
 }) => {
   const [isMobile, setIsMobile] = React.useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -173,7 +177,53 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         </p>
       </div>
 
-      {/* Timeline - Always show for all milestones */}
+      {/* Timeline - Show unless hideTimeline is true */}
+      {!hideTimeline && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '1rem',
+          marginTop: '0.75rem',
+          paddingTop: '0.75rem',
+          borderTop: '1px solid rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.375rem'
+          }}>
+            <CalendarIcon size={14} color={statusStyles.titleColor} />
+            <span style={{
+              fontSize: isMobile ? '0.75rem' : '0.8125rem',
+              color: statusStyles.titleColor,
+              fontWeight: '500'
+            }}>
+              {formatDate(milestone.startDate)}
+            </span>
+          </div>
+          <span style={{
+            fontSize: isMobile ? '0.75rem' : '0.8125rem',
+            color: '#9ca3af'
+          }}>
+            →
+          </span>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.375rem'
+          }}>
+            <CalendarIcon size={14} color={statusStyles.titleColor} />
+            <span style={{
+              fontSize: isMobile ? '0.75rem' : '0.8125rem',
+              color: statusStyles.titleColor,
+              fontWeight: '500'
+            }}>
+              {formatDate(milestone.dueDate)}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Personality Tips - Only show for current milestones */}
       {status === 'current' && (milestone.blindSpotTip || milestone.strengthHook) && (
         <div style={{ marginBottom: isMobile ? '0.75rem' : '1rem' }}>
@@ -263,6 +313,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
               goalType={goalType}
               enneagramData={enneagramData}
               showOnlyLatest={showOnlyLatestNotification}
+              hideFeedbackStatus={hideFeedbackStatus}
             />
           </div>
         </div>

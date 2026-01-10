@@ -1,17 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { db, auth } from "../firebase";
-import { doc, updateDoc } from "firebase/firestore";
-import {
-  Form,
-  FormGroup,
-  RadioGroup,
-  RadioOption,
-  Textarea,
-  FormButton,
-  Field,
-} from "./Form";
+import { auth } from "../firebase";
 import { CheckCircleIcon } from "./Icons";
 import Toast, { ToastType } from "./Toast";
 import ChatbotEntry from "./ChatbotEntry";
@@ -46,12 +36,6 @@ interface Props {
   enneagramData?: EnneagramData;
 }
 
-const feedbackOptions = [
-  "I like this nudge",
-  "You can do better next time",
-  "I really do not relate to that",
-];
-
 export default function FeedbackForm({
   notifId,
   existingFeedback,
@@ -61,28 +45,14 @@ export default function FeedbackForm({
   goalType,
   enneagramData,
 }: Props) {
-  const [feedback, setFeedback] = useState("");
-  const [note, setNote] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState<{
     message: string;
     type: ToastType;
   } | null>(null);
-  const [showChatEntry, setShowChatEntry] = useState(false);
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const router = useRouter();
-
-  const showToast = (message: string, type: ToastType = "info") => {
-    setToast({ message, type });
-  };
-
-  // Handle radio selection - show chatbot entry
-  const handleFeedbackChange = (value: string) => {
-    setFeedback(value);
-    setShowChatEntry(true);
-  };
 
   // Handle chatbot finish
   const handleChatbotFinish = async (
@@ -101,38 +71,6 @@ export default function FeedbackForm({
         router.push("/profile");
       }
     }, 5000);
-  };
-
-  // Handle old-style text feedback submit (fallback)
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!feedback) {
-      showToast("Please select a feedback option first", "warning");
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      console.log("Submitting feedback:", { feedback, note, notifId });
-
-      const notificationRef = doc(db, "notifications", notifId);
-      const feedbackText = note ? `${feedback} | Note: ${note}` : feedback;
-
-      await updateDoc(notificationRef, {
-        feedback: feedbackText,
-        read: true,
-      });
-
-      console.log("Feedback saved successfully");
-      setSubmitted(true);
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      showToast("An error occurred. Please try again.", "error");
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // Redirect to profile after showing thank you message
@@ -162,8 +100,8 @@ export default function FeedbackForm({
         <div style={{ textAlign: "center", marginBottom: "1rem" }}>
           <CheckCircleIcon size={48} color="var(--color-success-500)" />
         </div>
-        <h2>Thank you for your feedback!</h2>
-        <p>Your response helps us improve your experience.</p>
+        <h2>Thank you for your reflection!</h2>
+        <p>Your insights help you grow on your journey.</p>
 
         {aiSummary && (
           <a
@@ -208,71 +146,15 @@ export default function FeedbackForm({
     );
   }
 
-  // Get initial greeting based on feedback choice
-  const getInitialGreeting = () => {
-    if (feedback === "I like this nudge") {
-      return "Hi! I'm here to help you reflect on this nudge. What about it resonated with you?";
-    } else if (feedback === "You can do better next time") {
-      return "Thanks for your feedback. I'd love to understand what could have been better. What didn't work for you?";
-    } else {
-      return "I appreciate your honesty. Let's explore why this nudge didn't connect with you. What felt off?";
-    }
-  };
-
   return (
     <div className={styles.feedbackBox}>
-      <Form onSubmit={handleSubmit}>
-        <Field label="How was this nudge for you?">
-          <RadioGroup
-            name="feedback"
-            value={feedback}
-            onChange={handleFeedbackChange}
-          >
-            {feedbackOptions.map((label) => (
-              <RadioOption key={label} value={label}>
-                {label}
-              </RadioOption>
-            ))}
-          </RadioGroup>
-        </Field>
-
-        {/* Show chatbot entry instead of text field when feedback selected */}
-        {feedback && !showChatEntry && (
-          <Field
-            label="Want to tell us more? (Optional)"
-            helperText="Share any additional thoughts or suggestions..."
-          >
-            <Textarea
-              placeholder="Your additional feedback..."
-              rows={3}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              name="note"
-            />
-          </Field>
-        )}
-
-        {/* Chatbot Entry */}
-        <ChatbotEntry
-          icon="💭"
-          promptText="Want to reflect on this nudge with an AI coach?"
-          visible={showChatEntry}
-          onExpand={() => setChatbotOpen(true)}
-        />
-
-        {/* Old-style submit button (only if not using chatbot) */}
-        {feedback && !showChatEntry && (
-          <FormButton
-            type="button"
-            onClick={handleSubmit}
-            loading={isLoading}
-            variant="primary"
-            fullWidth
-          >
-            {isLoading ? "Sending..." : "Send Feedback"}
-          </FormButton>
-        )}
-      </Form>
+      {/* Chatbot Entry - Always visible */}
+      <ChatbotEntry
+        icon="💭"
+        promptText="Want to reflect on this nudge with an AI coach?"
+        visible={true}
+        onExpand={() => setChatbotOpen(true)}
+      />
 
       {/* Reflective Chatbot */}
       <ReflectiveChatbot
@@ -280,13 +162,13 @@ export default function FeedbackForm({
         onClose={() => setChatbotOpen(false)}
         onFinish={handleChatbotFinish}
         contextTitle={`Reflecting on: "${milestoneContext?.title || "Your milestone"}"`}
-        contextSubtitle={`You selected: ${feedback}`}
+        contextSubtitle="Share your thoughts about this nudge"
         assistantName="AI Reflection Coach"
         assistantIcon="🤖"
         apiEndpoint="/api/chatbot/nudge-reflect"
         contextData={{
           nudgeText,
-          feedbackChoice: feedback,
+          feedbackChoice: "",
           milestoneTitle: milestoneContext?.title || "",
           milestoneDescription: milestoneContext?.description || "",
           milestoneDueDate: milestoneContext?.dueDate || "",
@@ -301,7 +183,7 @@ export default function FeedbackForm({
           notifId,
           planId,
         }}
-        initialGreeting={getInitialGreeting()}
+        initialGreeting="Hi! I'm here to help you reflect on this nudge. What are your thoughts about it?"
         placeholder="Share your thoughts..."
       />
 

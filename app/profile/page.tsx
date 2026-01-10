@@ -616,6 +616,8 @@ function ProfileContent() {
                                   : undefined
                               }
                               showOnlyLatestNotification={true}
+                              hideFeedbackStatus={true}
+                              hideTimeline={true}
                             />
                           );
                         } else {
