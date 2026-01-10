@@ -151,18 +151,20 @@ const Header = () => {
         <nav className={styles.nav}>
           <ul className={styles.navList}>
             <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
               <Link href="/articles">Articles</Link>
             </li>
             <li>
               <Link href="/about">About</Link>
             </li>
             {user && (
-              <li>
-                <Link href="/profile">Dashboard</Link>
-              </li>
+              <>
+                <li>
+                  <Link href="/personality">Personality</Link>
+                </li>
+                <li>
+                  <Link href="/profile">Dashboard</Link>
+                </li>
+              </>
             )}
           </ul>
         </nav>
@@ -248,6 +250,12 @@ const Header = () => {
                 <div className={styles.dropdownContent}>
                   <Link href="/profile" className={styles.dropdownItem}>
                     <UserIcon size={16} /> Dashboard
+                  </Link>
+                  <Link
+                    href="/personality"
+                    className={styles.dropdownItem}
+                  >
+                    <UserIcon size={16} /> Personality
                   </Link>
                   <Link
                     href="/profile/companion"

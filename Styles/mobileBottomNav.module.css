@@ -79,6 +79,33 @@
   box-shadow: var(--shadow-md);
 }
 
+/* Create Plan Button */
+.createPlanButton {
+  position: relative;
+}
+
+.createPlanIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--border-radius-full);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: var(--transition-all);
+  color: white;
+}
+
+.createPlanButton:hover .createPlanIcon {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.createPlanButton:active .createPlanIcon {
+  transform: scale(0.95) rotate(90deg);
+}
+
 /* Show only on mobile */
 @media (max-width: 768px) {
   .bottomNav {

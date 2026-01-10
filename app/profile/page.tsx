@@ -9,7 +9,6 @@ import Toast, { ToastType } from "../../Components/Toast";
 import styles from "../../Styles/profile.module.css";
 import { EnneagramResult } from "../../Models/EnneagramResult";
 import MilestoneCard from "../../Components/MilestoneCard";
-import GamifiedEnneagram from "../../Components/GamifiedEnneagram";
 import ConfirmationModal from "../../Components/ConfirmationModal";
 import Link from "next/link";
 import { LinkButton } from "../../Components/Button";
@@ -300,6 +299,13 @@ function ProfileContent() {
     }
   }, [userPlans, user]);
 
+  // Auto-expand first plan by default
+  useEffect(() => {
+    if (userPlans.length > 0 && expandedPlans.size === 0 && !newPlanId && !planIdFromFeedback) {
+      setExpandedPlans(new Set([userPlans[0].id]));
+    }
+  }, [userPlans, expandedPlans.size, newPlanId, planIdFromFeedback]);
+
   // Auto-expand and scroll to newly created plan OR plan from feedback redirect
   useEffect(() => {
     const targetPlanId = newPlanId || planIdFromFeedback;
@@ -534,32 +540,38 @@ function ProfileContent() {
               ref={(el) => {
                 planRefs.current[plan.id] = el;
               }}
-              className={`${styles.planCard} scaleHover slideInUp`}
+              className={`slideInUp`}
               style={{ animationDelay: `${0.1 * (index + 2)}s` }}
             >
               {/* Plan Summary (Always Visible) */}
               <div
-                className={styles.planSummary}
-                onClick={() => togglePlanExpansion(plan.id)}
+                className={styles.planSummarySimple}
+                onClick={() => userPlans.length > 1 ? togglePlanExpansion(plan.id) : undefined}
+                style={{ cursor: userPlans.length > 1 ? 'pointer' : 'default' }}
               >
-                <div className={styles.planHeader}>
-                  <div className={styles.planTitle}>
+                <div className={styles.planHeaderSimple}>
+                  <div className={styles.planTitleSimple}>
                     {plan.goalType
                       ? plan.goalType.charAt(0).toUpperCase() +
                         plan.goalType.slice(1) +
                         " Goal"
                       : "Personal Goal"}
                   </div>
+                  {userPlans.length > 1 && (
+                    <div className={styles.expandIconSimple}>
+                      {expandedPlans.has(plan.id) ? "▼" : "▶"}
+                    </div>
+                  )}
                 </div>
 
-                <div className={styles.planMetrics}>
-                  <div className={styles.metric}>
+                <div className={styles.planMetricsSimple}>
+                  <div className={styles.metricSimple}>
                     <span className={styles.metricLabel}>Target:</span>
                     <span className={styles.metricValue}>
                       {getDaysUntilTarget(plan.targetDate)}
                     </span>
                   </div>
-                  <div className={styles.metric}>
+                  <div className={styles.metricSimple}>
                     <span className={styles.metricLabel}>Milestones:</span>
                     <span className={styles.metricValue}>
                       {Math.min(
@@ -571,79 +583,73 @@ function ProfileContent() {
                     </span>
                   </div>
                 </div>
-
-                <div className={styles.expandIcon}>
-                  {expandedPlans.has(plan.id) ? "▼" : "▶"}
-                </div>
               </div>
 
               {/* Expanded Plan Details */}
               {expandedPlans.has(plan.id) && (
-                <div className={styles.planDetails}>
-                  <div className={styles.planDetailsSection}>
-                    <div className={styles.enhancedMilestonesList}>
-                      {(() => {
-                        // Find the current milestone
-                        const currentMilestone = plan.milestones?.find(
-                          (milestone) =>
-                            getMilestoneStatus(milestone) === "current"
+                <div className={styles.planDetailsSimple}>
+                  <div className={styles.milestoneCardWrapper}>
+                    {(() => {
+                      // Find the current milestone
+                      const currentMilestone = plan.milestones?.find(
+                        (milestone) =>
+                          getMilestoneStatus(milestone) === "current"
+                      );
+
+                      if (currentMilestone) {
+                        const notifications =
+                          milestoneNotifications[currentMilestone.id] || [];
+                        const isLoadingNotification =
+                          loadingNotifications[currentMilestone.id] || false;
+
+                        return (
+                          <MilestoneCard
+                            key={currentMilestone.id}
+                            milestone={currentMilestone}
+                            status="current"
+                            notifications={notifications}
+                            isLoadingNotification={isLoadingNotification}
+                            goalType={plan.goalType}
+                            enneagramData={
+                              enneagramResult
+                                ? {
+                                    type: getPrimaryEnneagramType(
+                                      enneagramResult
+                                    ),
+                                    summary: enneagramResult.summary,
+                                    blindSpots: undefined,
+                                    strengths: undefined,
+                                  }
+                                : undefined
+                            }
+                            showOnlyLatestNotification={true}
+                            hideFeedbackStatus={true}
+                            hideTimeline={true}
+                          />
                         );
-
-                        if (currentMilestone) {
-                          const notifications =
-                            milestoneNotifications[currentMilestone.id] || [];
-                          const isLoadingNotification =
-                            loadingNotifications[currentMilestone.id] || false;
-
-                          return (
-                            <MilestoneCard
-                              key={currentMilestone.id}
-                              milestone={currentMilestone}
-                              status="current"
-                              notifications={notifications}
-                              isLoadingNotification={isLoadingNotification}
-                              goalType={plan.goalType}
-                              enneagramData={
-                                enneagramResult
-                                  ? {
-                                      type: getPrimaryEnneagramType(
-                                        enneagramResult
-                                      ),
-                                      summary: enneagramResult.summary,
-                                      blindSpots: undefined,
-                                      strengths: undefined,
-                                    }
-                                  : undefined
-                              }
-                              showOnlyLatestNotification={true}
-                              hideFeedbackStatus={true}
-                              hideTimeline={true}
-                            />
-                          );
-                        } else {
-                          // No current milestone - show message
-                          const allCompleted = plan.milestones?.every(
-                            (m) => m.completed
-                          );
-                          return (
-                            <div
-                              style={{
-                                padding: "1.5rem",
-                                textAlign: "center",
-                                color: "#6b7280",
-                                background: "#f9fafb",
-                                borderRadius: "0.5rem",
-                                border: "1px dashed #d1d5db",
-                              }}
-                            >
-                              {allCompleted
-                                ? "🎉 All milestones completed! Great job!"
-                                : "📋 No active milestone right now. Check full details to see upcoming milestones."}
-                            </div>
-                          );
-                        }
-                      })()}
-                    </div>
+                      } else {
+                        // No current milestone - show message
+                        const allCompleted = plan.milestones?.every(
+                          (m) => m.completed
+                        );
+                        return (
+                          <div
+                            style={{
+                              padding: "1.5rem",
+                              textAlign: "center",
+                              color: "#6b7280",
+                              background: "#f9fafb",
+                              borderRadius: "0.5rem",
+                              border: "1px dashed #d1d5db",
+                            }}
+                          >
+                            {allCompleted
+                              ? "🎉 All milestones completed! Great job!"
+                              : "📋 No active milestone right now. Check full details to see upcoming milestones."}
+                          </div>
+                        );
+                      }
+                    })()}
                   </div>
 
                   {/* See Full Details Link */}
@@ -699,19 +705,6 @@ function ProfileContent() {
             Create Your First Plan
           </LinkButton>
         </div>
-      )}
-
-      {/* Enneagram Results Section */}
-      {enneagramResult ? (
-        <section
-          className={`${styles.enneagramResultContainer} section slideInUp staggerDelay4`}
-        >
-          <GamifiedEnneagram enneagramResult={enneagramResult} />
-        </section>
-      ) : (
-        <section className={`${styles.noData} section textCenter fadeIn`}>
-          <p>No Enneagram results found yet.</p>
-        </section>
       )}
 
       {/* Confirmation Modal */}

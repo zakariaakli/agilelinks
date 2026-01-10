@@ -128,7 +128,9 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         marginBottom: '0',
         position: 'relative',
         transition: 'all 0.2s ease',
-        boxShadow: 'none'
+        boxShadow: 'none',
+        borderTop: status === 'current' ? '4px solid' : statusStyles.border,
+        borderImage: status === 'current' ? 'linear-gradient(90deg, #667eea 0%, #764ba2 100%) 1' : 'none'
       }}
     >
       {/* Milestone Header */}
