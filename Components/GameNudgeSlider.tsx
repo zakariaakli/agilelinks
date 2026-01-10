@@ -315,38 +315,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
           <NudgeFormatter text={currentNotification.prompt} />
         </div>
 
-        {/* Reflection button */}
+        {/* Show feedback form directly if not reacted */}
         {!hasReacted && (
-          <button
-            onClick={() => setIsExpanded(true)}
-            style={{
-              display: 'block',
-              width: '100%',
-              background: '#667eea',
-              color: 'white',
-              border: 'none',
-              padding: isMobile ? '0.625rem 1rem' : '0.75rem 1.25rem',
-              borderRadius: '0.5rem',
-              fontSize: isMobile ? '0.8125rem' : '0.875rem',
-              fontWeight: '600',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#5568d3';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#667eea';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}
-          >
-            💭 Reflect on this nudge
-          </button>
-        )}
-
-        {/* Expanded feedback form */}
-        {isExpanded && !hasReacted && (
           <div style={{ marginTop: '1rem' }}>
             <FeedbackForm
               notifId={currentNotification.id}
@@ -362,23 +332,6 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
               goalType={goalType}
               enneagramData={enneagramData}
             />
-            <button
-              onClick={() => setIsExpanded(false)}
-              style={{
-                marginTop: '0.75rem',
-                background: 'transparent',
-                color: '#667eea',
-                border: '2px solid #667eea',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                width: '100%'
-              }}
-            >
-              ↑ Collapse
-            </button>
           </div>
         )}
       </div>

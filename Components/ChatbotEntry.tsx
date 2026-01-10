@@ -14,7 +14,7 @@ interface ChatbotEntryProps {
 
   // Styling props
   className?: string;
-  variant?: "default" | "compact" | "prominent";
+  variant?: "default" | "compact" | "prominent" | "inline";
 }
 
 export default function ChatbotEntry({

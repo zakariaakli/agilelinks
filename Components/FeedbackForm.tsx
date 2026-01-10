@@ -154,6 +154,7 @@ export default function FeedbackForm({
         promptText="Want to reflect on this nudge with an AI coach?"
         visible={true}
         onExpand={() => setChatbotOpen(true)}
+        variant="inline"
       />
 
       {/* Reflective Chatbot */}
