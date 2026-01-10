@@ -33,6 +33,7 @@ interface MilestoneCardProps {
     blindSpots?: string[];
     strengths?: string[];
   };
+  showOnlyLatestNotification?: boolean;
 }
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({
@@ -41,7 +42,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
   notifications = [],
   isLoadingNotification = false,
   goalType,
-  enneagramData
+  enneagramData,
+  showOnlyLatestNotification = false
 }) => {
   const [isMobile, setIsMobile] = React.useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -72,8 +74,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         titleColor: '#15803d'
       };
       case 'current': return {
-        background: 'linear-gradient(135deg, #dbeafe 0%, #fef3c7 100%)',
-        border: '2px solid #3b82f6',
+        background: 'transparent',
+        border: 'none',
         titleColor: '#1d4ed8'
       };
       case 'future': return {
@@ -117,39 +119,21 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
       style={{
         background: statusStyles.background,
         border: statusStyles.border,
-        borderRadius: '0.75rem',
+        borderRadius: '0',
         padding: isMobile ? '1rem' : '1.25rem',
-        marginBottom: isMobile ? '0.75rem' : '1rem',
+        marginBottom: '0',
         position: 'relative',
         transition: 'all 0.2s ease',
-        boxShadow: status === 'current' 
-          ? '0 8px 25px rgba(59, 130, 246, 0.15)' 
-          : '0 2px 8px rgba(0, 0, 0, 0.05)'
+        boxShadow: 'none'
       }}
     >
-      {/* Status Badge */}
-      <div style={{
-        position: 'absolute',
-        top: isMobile ? '0.75rem' : '1rem',
-        right: isMobile ? '0.75rem' : '1rem',
-        background: status === 'current' ? '#3b82f6' : 
-                   status === 'completed' ? '#22c55e' : '#6b7280',
-        color: 'white',
-        padding: isMobile ? '0.2rem 0.5rem' : '0.25rem 0.75rem',
-        borderRadius: '9999px',
-        fontSize: isMobile ? '0.65rem' : '0.75rem',
-        fontWeight: '600'
-      }}>
-        {getStatusIcon()} {getStatusLabel()}
-      </div>
-
       {/* Milestone Header */}
-      <div style={{ marginRight: isMobile ? '4rem' : '6rem' }}>
+      <div>
         <h4 style={{
           color: statusStyles.titleColor,
           fontSize: isMobile ? '1rem' : '1.125rem',
           fontWeight: '600',
-          margin: '0 0 0.5rem 0',
+          margin: '0',
           lineHeight: '1.4'
         }}>
           {milestone.title}
@@ -159,7 +143,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
           color: status === 'future' ? '#9ca3af' : '#6b7280',
           fontSize: isMobile ? '0.8rem' : '0.875rem',
           lineHeight: '1.5',
-          margin: '0 0 1rem 0',
+          margin: '0',
           fontStyle: status === 'future' ? 'italic' : 'normal'
         }}>
           {status === 'future' && '📋 Planned: '}
@@ -190,59 +174,6 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
       </div>
 
       {/* Timeline - Always show for all milestones */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: isMobile ? '0.5rem' : '1rem',
-        marginBottom: status === 'current' ? (isMobile ? '0.75rem' : '1rem') : '0'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.7)',
-          padding: isMobile ? '0.5rem' : '0.75rem',
-          borderRadius: '0.5rem',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            fontSize: isMobile ? '0.65rem' : '0.75rem',
-            color: '#6b7280',
-            fontWeight: '500',
-            marginBottom: '0.25rem'
-          }}>
-            Start Date
-          </div>
-          <div style={{
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            color: '#111827',
-            fontWeight: '600'
-          }}>
-            {formatDate(milestone.startDate)}
-          </div>
-        </div>
-
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.7)',
-          padding: isMobile ? '0.5rem' : '0.75rem',
-          borderRadius: '0.5rem',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            fontSize: isMobile ? '0.65rem' : '0.75rem',
-            color: '#6b7280',
-            fontWeight: '500',
-            marginBottom: '0.25rem'
-          }}>
-            Due Date
-          </div>
-          <div style={{
-            fontSize: isMobile ? '0.75rem' : '0.875rem',
-            color: '#111827',
-            fontWeight: '600'
-          }}>
-            {formatDate(milestone.dueDate)}
-          </div>
-        </div>
-      </div>
-
       {/* Personality Tips - Only show for current milestones */}
       {status === 'current' && (milestone.blindSpotTip || milestone.strengthHook) && (
         <div style={{ marginBottom: isMobile ? '0.75rem' : '1rem' }}>
@@ -331,6 +262,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
               milestoneDescription={milestone.description}
               goalType={goalType}
               enneagramData={enneagramData}
+              showOnlyLatest={showOnlyLatestNotification}
             />
           </div>
         </div>

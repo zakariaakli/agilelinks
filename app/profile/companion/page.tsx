@@ -6,6 +6,7 @@ import { TrackedFirestoreClient } from "../../../lib/trackedFirestoreClient";
 import { auth, db } from "../../../firebase"; // Adjust path as needed
 import { useRouter } from "next/navigation";
 import Toast, { ToastType } from "../../../Components/Toast";
+import AutoExpandingTextarea from "../../../Components/AutoExpandingTextarea";
 import styles from "../../../Styles/companion.module.css";
 
 interface PlanData {
@@ -1157,17 +1158,15 @@ const GoalWizard: React.FC = () => {
                       }`}
                     >
                       <div className={styles.milestoneHeader}>
-                        <input
-                          type="text"
+                        <AutoExpandingTextarea
                           value={milestone.title}
-                          onChange={(e) =>
-                            updateMilestone(
-                              milestone.id,
-                              "title",
-                              e.target.value
-                            )
+                          onChange={(value) =>
+                            updateMilestone(milestone.id, "title", value)
                           }
                           className={styles.milestoneTitle}
+                          placeholder="Enter milestone title"
+                          minRows={1}
+                          ariaLabel="Milestone title"
                         />
                         <button
                           onClick={() => deleteMilestone(milestone.id)}

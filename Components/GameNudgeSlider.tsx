@@ -27,6 +27,7 @@ interface GameNudgeSliderProps {
     blindSpots?: string[];
     strengths?: string[];
   };
+  showOnlyLatest?: boolean;
 }
 
 const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
@@ -38,7 +39,12 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   milestoneDescription,
   goalType,
   enneagramData,
+  showOnlyLatest = false,
 }) => {
+  // Filter to only show the latest notification if showOnlyLatest is true
+  const displayNotifications = showOnlyLatest && notifications.length > 0
+    ? [notifications[notifications.length - 1]]
+    : notifications;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -65,9 +71,9 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   }, []);
 
   // Gamification calculations
-  const reactedCount = notifications.filter((n) => n.feedback).length;
-  const totalCount = notifications.length;
-  const streakCount = calculateStreak(notifications);
+  const reactedCount = displayNotifications.filter((n) => n.feedback).length;
+  const totalCount = displayNotifications.length;
+  const streakCount = calculateStreak(displayNotifications);
   const completionRate =
     totalCount > 0 ? Math.round((reactedCount / totalCount) * 100) : 0;
 
@@ -264,7 +270,7 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
     );
   }
 
-  const currentNotification = notifications[currentIndex];
+  const currentNotification = displayNotifications[currentIndex];
   const hasReacted = currentNotification?.feedback;
 
   const handleCollapse = () => {
@@ -338,105 +344,48 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         </div>
       )}
 
-      {/* Header with Simple Gamification */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: isMobile ? "0.75rem" : "1rem",
-          flexWrap: "wrap",
-          gap: "0.5rem",
-          padding: isMobile ? "0.75rem 1rem" : "0",
-          background: isMobile
-            ? "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-            : "transparent",
-          borderRadius: isMobile ? "0.75rem" : "0",
-          color: isMobile ? "white" : "inherit",
-        }}
-      >
+      {/* Progress Indicator (Instagram Stories Style) - Hide if showing only latest */}
+      {!showOnlyLatest && (
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            flexWrap: "wrap",
+            gap: "clamp(0.125rem, 0.5vw, 0.25rem)",
+            marginBottom: "1rem",
           }}
         >
-          <span
-            style={{
-              fontSize: "clamp(1rem, 2.5vw, 1.2rem)",
-              fontWeight: "bold",
-            }}
-          >
-            📅 Weekly Check-ins
-          </span>
-          {streakCount > 0 && (
+          {displayNotifications.map((_, index) => (
             <div
+              key={index}
               style={{
-                background: isMobile ? "rgba(255,255,255,0.2)" : "#ff6b6b",
-                padding: "0.25rem 0.5rem",
-                borderRadius: "1rem",
-                fontSize: "0.75rem",
-                fontWeight: "bold",
-                whiteSpace: "nowrap",
+                flex: 1,
+                height: isMobile ? "3px" : "8px",
+                background:
+                  index <= currentIndex ? "#ffd700" : "rgba(255,255,255,0.3)",
+                borderRadius: "2px",
+                transition: "background 0.3s ease",
+                cursor: "pointer",
+                minHeight: "2px",
               }}
-            >
-              🔥 {streakCount} day streak!
-            </div>
-          )}
+              onClick={() => setCurrentIndex(index)}
+            />
+          ))}
         </div>
+      )}
+
+      {/* Navigation Indicator - Hide if showing only latest */}
+      {!showOnlyLatest && (
         <div
           style={{
-            textAlign: "right",
+            textAlign: "center",
             fontSize: "0.75rem",
-            opacity: isMobile ? 0.9 : 1,
+            opacity: 0.8,
+            marginBottom: "1rem",
           }}
         >
-          <div>
-            {reactedCount}/{totalCount} completed • {completionRate}%
-          </div>
+          {currentIndex + 1} of {displayNotifications.length} •{" "}
+          {getTimeAgo(currentNotification.createdAt)}
         </div>
-      </div>
-
-      {/* Progress Indicator (Instagram Stories Style) */}
-      <div
-        style={{
-          display: "flex",
-          gap: "clamp(0.125rem, 0.5vw, 0.25rem)",
-          marginBottom: "1rem",
-        }}
-      >
-        {notifications.map((_, index) => (
-          <div
-            key={index}
-            style={{
-              flex: 1,
-              height: isMobile ? "3px" : "8px",
-              background:
-                index <= currentIndex ? "#ffd700" : "rgba(255,255,255,0.3)",
-              borderRadius: "2px",
-              transition: "background 0.3s ease",
-              cursor: "pointer",
-              minHeight: "2px",
-            }}
-            onClick={() => setCurrentIndex(index)}
-          />
-        ))}
-      </div>
-
-      {/* Navigation Indicator */}
-      <div
-        style={{
-          textAlign: "center",
-          fontSize: "0.75rem",
-          opacity: 0.8,
-          marginBottom: "1rem",
-        }}
-      >
-        {currentIndex + 1} of {notifications.length} •{" "}
-        {getTimeAgo(currentNotification.createdAt)}
-      </div>
+      )}
 
       {/* Main Content Card */}
       <div
@@ -654,78 +603,79 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         )}
       </div>
 
-      {/* Navigation Controls */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginTop: "1rem",
-          fontSize: "clamp(0.65rem, 1.8vw, 0.75rem)",
-          gap: "0.5rem",
-        }}
-      >
-        <button
-          onClick={goToPrevious}
-          disabled={currentIndex === 0}
-          style={{
-            background:
-              currentIndex === 0
-                ? "rgba(255,255,255,0.2)"
-                : "rgba(255,255,255,0.9)",
-            color: currentIndex === 0 ? "rgba(255,255,255,0.5)" : "#4f46e5",
-            border: "none",
-            borderRadius: "0.5rem",
-            padding: "clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem)",
-            cursor: currentIndex === 0 ? "not-allowed" : "pointer",
-            fontWeight: "bold",
-            fontSize: "clamp(0.7rem, 1.8vw, 0.8rem)",
-            minHeight: "40px",
-            minWidth: "60px",
-          }}
-        >
-          ← Future
-        </button>
-
+      {/* Navigation Controls - Hide if showing only latest */}
+      {!showOnlyLatest && (
         <div
           style={{
-            textAlign: "center",
-            opacity: 0.9,
-            flex: 1,
-            padding: "0 0.5rem",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "1rem",
+            fontSize: "clamp(0.65rem, 1.8vw, 0.75rem)",
+            gap: "0.5rem",
           }}
         >
-          {isMobile ? (
-            <div style={{ fontSize: "0.75rem" }}>💡 Swipe to navigate</div>
-          ) : (
-            <>
-              <div style={{ marginBottom: "0.25rem" }}>
-                💡 Swipe to navigate
-              </div>
-              <div style={{ fontSize: "0.65rem", opacity: 0.7 }}>
-                Or use arrow keys • Double-tap for celebration
-              </div>
-            </>
-          )}
-        </div>
+          <button
+            onClick={goToPrevious}
+            disabled={currentIndex === 0}
+            style={{
+              background:
+                currentIndex === 0
+                  ? "rgba(255,255,255,0.2)"
+                  : "rgba(255,255,255,0.9)",
+              color: currentIndex === 0 ? "rgba(255,255,255,0.5)" : "#4f46e5",
+              border: "none",
+              borderRadius: "0.5rem",
+              padding: "clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem)",
+              cursor: currentIndex === 0 ? "not-allowed" : "pointer",
+              fontWeight: "bold",
+              fontSize: "clamp(0.7rem, 1.8vw, 0.8rem)",
+              minHeight: "40px",
+              minWidth: "60px",
+            }}
+          >
+            ← Future
+          </button>
 
-        <button
-          onClick={goToNext}
-          disabled={currentIndex === notifications.length - 1}
+          <div
+            style={{
+              textAlign: "center",
+              opacity: 0.9,
+              flex: 1,
+              padding: "0 0.5rem",
+            }}
+          >
+            {isMobile ? (
+              <div style={{ fontSize: "0.75rem" }}>💡 Swipe to navigate</div>
+            ) : (
+              <>
+                <div style={{ marginBottom: "0.25rem" }}>
+                  💡 Swipe to navigate
+                </div>
+                <div style={{ fontSize: "0.65rem", opacity: 0.7 }}>
+                  Or use arrow keys • Double-tap for celebration
+                </div>
+              </>
+            )}
+          </div>
+
+          <button
+            onClick={goToNext}
+            disabled={currentIndex === displayNotifications.length - 1}
           style={{
             background:
-              currentIndex === notifications.length - 1
+              currentIndex === displayNotifications.length - 1
                 ? "rgba(255,255,255,0.2)"
                 : "rgba(255,255,255,0.9)",
             color:
-              currentIndex === notifications.length - 1
+              currentIndex === displayNotifications.length - 1
                 ? "rgba(255,255,255,0.5)"
                 : "#4f46e5",
             border: "none",
             borderRadius: "0.5rem",
             padding: "clamp(0.5rem, 1.5vw, 0.75rem) clamp(0.75rem, 2vw, 1rem)",
             cursor:
-              currentIndex === notifications.length - 1
+              currentIndex === displayNotifications.length - 1
                 ? "not-allowed"
                 : "pointer",
             fontWeight: "bold",
@@ -736,7 +686,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         >
           Past →
         </button>
-      </div>
+        </div>
+      )}
 
       {/* CSS Animations */}
       <style jsx>{`

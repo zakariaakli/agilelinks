@@ -77,11 +77,6 @@ const Footer = () => {
             <h3 className={styles.sectionTitle}>Product</h3>
             <ul className={styles.linkList}>
               <li>
-                <Link href="/" className={styles.footerLink}>
-                  Enneagram Test
-                </Link>
-              </li>
-              <li>
                 <Link href="/profile/companion" className={styles.footerLink}>
                   Goal Planner
                 </Link>
@@ -106,12 +101,6 @@ const Footer = () => {
               <li>
                 <Link href="/about" className={styles.footerLink}>
                   About Us
-                </Link>
-              </li>
-
-              <li>
-                <Link href="/articles" className={styles.footerLink}>
-                  Blog
                 </Link>
               </li>
             </ul>

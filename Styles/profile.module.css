@@ -11,13 +11,14 @@
 }
 
 .profileContainer::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     var(--color-primary-500) 0%,
     var(--color-secondary-500) 50%,
     var(--color-accent-500) 100%
@@ -34,7 +35,11 @@
   color: var(--text-primary);
   text-align: center;
   margin-bottom: var(--space-2);
-  background: linear-gradient(135deg, var(--color-primary-600), var(--color-secondary-600));
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-600),
+    var(--color-secondary-600)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -69,21 +74,22 @@
 }
 
 .sectionTitle::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 60px;
   height: 3px;
-  background: linear-gradient(90deg, var(--color-primary-500), var(--color-secondary-500));
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-500),
+    var(--color-secondary-500)
+  );
   border-radius: var(--border-radius-full);
 }
 
 .enneagramResultContainer {
-  background: var(--bg-muted);
-  padding: 30px;
-  border-radius: 12px;
   margin-top: 40px;
 }
 
@@ -143,7 +149,8 @@
   color: var(--text-secondary);
 }
 
-.loading, .noData {
+.loading,
+.noData {
   text-align: center;
   color: var(--text-muted);
   margin-top: 40px;
@@ -178,13 +185,14 @@
 }
 
 .plansSection::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     rgba(99, 102, 241, 0.05) 50%,
     transparent 100%
@@ -205,7 +213,11 @@
 }
 
 .createPlanLink {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-700) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-500) 0%,
+    var(--color-primary-700) 100%
+  );
   color: white;
   padding: 12px 20px;
   border-radius: 8px;
@@ -239,13 +251,14 @@
 }
 
 .planCard::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     var(--color-primary-500) 0%,
     var(--color-secondary-500) 100%
   );
@@ -265,7 +278,7 @@
 }
 
 .planSummary {
-  padding: 20px;
+  padding: 20px 20px 0px 20px;
   cursor: pointer;
   position: relative;
 }
@@ -303,7 +316,6 @@
 .planMetrics {
   display: flex;
   gap: 20px;
-  margin-bottom: 10px;
 }
 
 .metric {
@@ -335,16 +347,15 @@
 }
 
 .planDetails {
-  padding: 0 20px 20px;
-  border-top: 1px solid var(--border-secondary);
+  padding: 0;
   background: var(--bg-primary);
   animation: expandPlan 0.3s ease-out;
   transform-origin: top;
 }
 
 .planDetailsSection {
-  margin-bottom: 20px;
-  padding-top: 20px;
+  margin-bottom: 0;
+  padding-top: 0;
 }
 
 .planDetailsSection h4 {
@@ -391,7 +402,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  margin-top: 0.5rem;
+  margin-top: 0;
 }
 
 .milestoneItem {
@@ -417,7 +428,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .milestoneCheckbox {
@@ -493,7 +504,11 @@
 
 .progressBarFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-secondary-500) 0%, var(--color-secondary-400) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-secondary-500) 0%,
+    var(--color-secondary-400) 100%
+  );
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -506,7 +521,8 @@
   border-top: 1px solid var(--border-primary);
 }
 
-.editPlanButton, .viewPlanButton {
+.editPlanButton,
+.viewPlanButton {
   padding: 8px 16px;
   border: none;
   border-radius: 6px;
@@ -558,7 +574,11 @@
 }
 
 .createFirstPlanButton {
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-700) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-500) 0%,
+    var(--color-primary-700) 100%
+  );
   color: white;
   padding: 15px 30px;
   border-radius: 8px;
@@ -615,7 +635,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -641,10 +662,18 @@
   animation-fill-mode: both;
 }
 
-.planCard:nth-child(1) { animation-delay: 0.1s; }
-.planCard:nth-child(2) { animation-delay: 0.2s; }
-.planCard:nth-child(3) { animation-delay: 0.3s; }
-.planCard:nth-child(4) { animation-delay: 0.4s; }
+.planCard:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.planCard:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.planCard:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.planCard:nth-child(4) {
+  animation-delay: 0.4s;
+}
 
 .createPlanLink {
   transition: var(--transition-all);
@@ -653,13 +682,14 @@
 }
 
 .createPlanLink::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg,
+  background: linear-gradient(
+    90deg,
     transparent 0%,
     rgba(255, 255, 255, 0.2) 50%,
     transparent 100%
@@ -679,13 +709,14 @@
 }
 
 .enneagramItem::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg,
+  background: linear-gradient(
+    135deg,
     rgba(99, 102, 241, 0.1) 0%,
     rgba(16, 185, 129, 0.1) 100%
   );
@@ -842,4 +873,3 @@
     transform: scale(1);
   }
 }
-

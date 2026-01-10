@@ -3,10 +3,12 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { auth, googleProvider } from "../firebase";
+import { auth, googleProvider, db } from "../firebase";
 import { onAuthStateChanged, signOut, signInWithPopup } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import styles from "../Styles/header.module.css";
 import { useRouter } from "next/navigation";
+import LevelIndicator from "./LevelIndicator";
 import {
   UserIcon,
   TargetIcon,
@@ -19,17 +21,91 @@ import {
 } from "./Icons";
 import NotificationBell from "./NotificationBell";
 
+interface UserStats {
+  totalPlans: number;
+  completedMilestones: number;
+  totalMilestones: number;
+  nudgeStreak: number;
+  totalNudgeResponses: number;
+  daysActive: number;
+}
+
 const Header = () => {
   const [user, setUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      if (user) {
+        fetchUserStats(user.uid);
+      } else {
+        setUserStats(null);
+      }
     });
     return () => unsubscribe();
   }, []);
+
+  const fetchUserStats = async (userId: string) => {
+    try {
+      // Fetch user plans
+      const plansQuery = query(
+        collection(db, "plans"),
+        where("userId", "==", userId)
+      );
+      const plansSnapshot = await getDocs(plansQuery);
+      const plans = plansSnapshot.docs.map((doc) => doc.data());
+
+      // Calculate stats
+      let completedMilestones = 0;
+      let totalMilestones = 0;
+      plans.forEach((plan: any) => {
+        if (plan.milestones) {
+          totalMilestones += plan.milestones.length;
+          completedMilestones += plan.milestones.filter((m: any) => m.completed).length;
+        }
+      });
+
+      // Fetch nudge responses
+      const nudgesQuery = query(
+        collection(db, "nudges"),
+        where("userId", "==", userId)
+      );
+      const nudgesSnapshot = await getDocs(nudgesQuery);
+      const nudges = nudgesSnapshot.docs.map((doc) => doc.data());
+      const totalNudgeResponses = nudges.filter((n: any) => n.feedback).length;
+
+      // Calculate streak (simplified - could be more sophisticated)
+      let nudgeStreak = 0;
+      const sortedNudges = nudges
+        .filter((n: any) => n.feedback)
+        .sort((a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+
+      for (let i = 0; i < sortedNudges.length; i++) {
+        if (sortedNudges[i].feedback) {
+          nudgeStreak++;
+        } else {
+          break;
+        }
+      }
+
+      // Calculate days active (simplified)
+      const daysActive = plans.length > 0 ? Math.ceil((Date.now() - plans[0].createdAt?.toMillis()) / (1000 * 60 * 60 * 24)) : 0;
+
+      setUserStats({
+        totalPlans: plans.length,
+        completedMilestones,
+        totalMilestones,
+        nudgeStreak,
+        totalNudgeResponses,
+        daysActive,
+      });
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+    }
+  };
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -95,32 +171,6 @@ const Header = () => {
         <div
           className={`${styles.mobileMenu} ${mobileMenuOpen ? styles.open : ""}`}
         >
-          {/* Navigation Links */}
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            <li>
-              <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-                Home
-              </Link>
-            </li>
-            <li>
-              <Link href="/articles" onClick={() => setMobileMenuOpen(false)}>
-                Articles
-              </Link>
-            </li>
-            <li>
-              <Link href="/about" onClick={() => setMobileMenuOpen(false)}>
-                About
-              </Link>
-            </li>
-            {user && (
-              <li>
-                <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
-                  Dashboard
-                </Link>
-              </li>
-            )}
-          </ul>
-
           {/* User Section */}
           {!user ? (
             <div className={styles.mobileButtons}>
@@ -141,28 +191,44 @@ const Header = () => {
             </div>
           ) : (
             <div className={styles.mobileUserInfo}>
-              <div className={styles.mobileUserHeader}>
-                <NotificationBell />
-                <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+              <div className={styles.mobileIconList}>
+                <div className={styles.iconButton}>
+                  <NotificationBell />
+                </div>
+                {userStats && (
+                  <Link
+                    href="/profile/levels"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={styles.iconButton}
+                  >
+                    <div className={styles.levelIconWrapper}>
+                      <span className={styles.levelNumber}>
+                        {Math.min(Math.floor(((userStats.completedMilestones * 100) + (userStats.totalNudgeResponses * 25) + (userStats.nudgeStreak * 10) + (userStats.totalPlans * 200) + (userStats.daysActive * 5)) / 500) + 1, 10)}
+                      </span>
+                    </div>
+                  </Link>
+                )}
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={styles.iconButton}
+                >
                   <img
                     src={user.photoURL}
                     alt="Profile"
-                    className={styles.mobileProfilePic}
+                    className={styles.profileIconPic}
                   />
                 </Link>
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`${styles.iconButton} ${styles.signOutIconButton}`}
+                >
+                  <LogOutIcon size={20} />
+                </button>
               </div>
-              <span className={styles.mobileUserName}>
-                {user.displayName || user.email}
-              </span>
-              <button
-                onClick={() => {
-                  handleSignOut();
-                  setMobileMenuOpen(false);
-                }}
-                className={styles.logoutButton}
-              >
-                Sign Out
-              </button>
             </div>
           )}
         </div>
@@ -171,6 +237,7 @@ const Header = () => {
         <div className={styles.cta}>
           {user ? (
             <div className={styles.userInfo}>
+              {userStats && <LevelIndicator userStats={userStats} />}
               <NotificationBell />
               <div className={styles.userDropdown}>
                 <img

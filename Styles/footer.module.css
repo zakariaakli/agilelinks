@@ -312,6 +312,10 @@
 
 /* Mobile */
 @media (max-width: 640px) {
+  .footer {
+    display: none;
+  }
+
   .container {
     padding: 0 var(--space-3);
   }

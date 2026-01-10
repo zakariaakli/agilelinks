@@ -9,7 +9,6 @@ import Toast, { ToastType } from "../../Components/Toast";
 import styles from "../../Styles/profile.module.css";
 import { EnneagramResult } from "../../Models/EnneagramResult";
 import MilestoneCard from "../../Components/MilestoneCard";
-import GamificationSystem from "../../Components/GamificationSystem";
 import GamifiedEnneagram from "../../Components/GamifiedEnneagram";
 import ConfirmationModal from "../../Components/ConfirmationModal";
 import Link from "next/link";
@@ -332,19 +331,6 @@ function ProfileContent() {
     }
   }, [newPlanId, planIdFromFeedback, userPlans]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "#10B981";
-      case "completed":
-        return "#6366F1";
-      case "paused":
-        return "#F59E0B";
-      default:
-        return "#6B7280";
-    }
-  };
-
   const getProgressPercentage = (milestones: Milestone[]) => {
     if (!milestones || milestones.length === 0) return 0;
     const completed = milestones.filter((m) => m.completed).length;
@@ -352,22 +338,26 @@ function ProfileContent() {
   };
 
   // Helper to get primary enneagram type from result
-  const getPrimaryEnneagramType = (result: EnneagramResult | null): string | undefined => {
+  const getPrimaryEnneagramType = (
+    result: EnneagramResult | null
+  ): string | undefined => {
     if (!result) return undefined;
 
     const types = [
-      { key: 'enneagramType1', label: 'Type 1', value: result.enneagramType1 },
-      { key: 'enneagramType2', label: 'Type 2', value: result.enneagramType2 },
-      { key: 'enneagramType3', label: 'Type 3', value: result.enneagramType3 },
-      { key: 'enneagramType4', label: 'Type 4', value: result.enneagramType4 },
-      { key: 'enneagramType5', label: 'Type 5', value: result.enneagramType5 },
-      { key: 'enneagramType6', label: 'Type 6', value: result.enneagramType6 },
-      { key: 'enneagramType7', label: 'Type 7', value: result.enneagramType7 },
-      { key: 'enneagramType8', label: 'Type 8', value: result.enneagramType8 },
-      { key: 'enneagramType9', label: 'Type 9', value: result.enneagramType9 },
+      { key: "enneagramType1", label: "Type 1", value: result.enneagramType1 },
+      { key: "enneagramType2", label: "Type 2", value: result.enneagramType2 },
+      { key: "enneagramType3", label: "Type 3", value: result.enneagramType3 },
+      { key: "enneagramType4", label: "Type 4", value: result.enneagramType4 },
+      { key: "enneagramType5", label: "Type 5", value: result.enneagramType5 },
+      { key: "enneagramType6", label: "Type 6", value: result.enneagramType6 },
+      { key: "enneagramType7", label: "Type 7", value: result.enneagramType7 },
+      { key: "enneagramType8", label: "Type 8", value: result.enneagramType8 },
+      { key: "enneagramType9", label: "Type 9", value: result.enneagramType9 },
     ];
 
-    const maxType = types.reduce((max, type) => type.value > max.value ? type : max);
+    const maxType = types.reduce((max, type) =>
+      type.value > max.value ? type : max
+    );
     return maxType.label;
   };
 
@@ -379,10 +369,10 @@ function ProfileContent() {
 
     if (diffDays > 30) {
       const months = Math.round(diffDays / 30);
-      return `${months} ${months === 1 ? 'month' : 'months'}`;
+      return `${months} ${months === 1 ? "month" : "months"}`;
     }
 
-    return `${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
+    return `${diffDays} ${diffDays === 1 ? "day" : "days"}`;
   };
 
   // Calculate gamification stats
@@ -535,227 +525,179 @@ function ProfileContent() {
 
   return (
     <div className={`${styles.profileContainer} container my20`}>
-      <div className={`${styles.profileHeader} slideInDown`}>
-        <h1 className={styles.profileTitle}>
-          Welcome back, {user.displayName}
-        </h1>
-      </div>
-
-      {/* Gamification Dashboard */}
-      <section
-        className={`${styles.gamificationSection} section slideInUp staggerDelay1`}
-      >
-        <GamificationSystem userStats={userStats} className="mb8" />
-      </section>
-
       {/* Plans Section */}
-      <section
-        className={`${styles.plansSection} section slideInUp staggerDelay3`}
-      >
-        <div
-          className={`${styles.plansSectionHeader} flex justifyBetween itemsCenter mb6`}
-        >
-          <h2 className={styles.sectionTitle}>Your Plans</h2>
-          <LinkButton
-            href="/profile/companion"
-            variant="primary"
-            icon={<PlusIcon size={16} />}
-            className={`${styles.createPlanLink} pulse`}
-          >
-            Create New Plan
-          </LinkButton>
-        </div>
-
-        {userPlans.length > 0 ? (
-          <div className={`${styles.plansGrid} gridAutoFit gapLg`}>
-            {userPlans.map((plan, index) => (
+      {userPlans.length > 0 ? (
+        <div className={`${styles.plansGrid} gridAutoFit gapLg`}>
+          {userPlans.map((plan, index) => (
+            <div
+              key={plan.id}
+              ref={(el) => {
+                planRefs.current[plan.id] = el;
+              }}
+              className={`${styles.planCard} scaleHover slideInUp`}
+              style={{ animationDelay: `${0.1 * (index + 2)}s` }}
+            >
+              {/* Plan Summary (Always Visible) */}
               <div
-                key={plan.id}
-                ref={(el) => {
-                  planRefs.current[plan.id] = el;
-                }}
-                className={`${styles.planCard} scaleHover slideInUp`}
-                style={{ animationDelay: `${0.1 * (index + 2)}s` }}
+                className={styles.planSummary}
+                onClick={() => togglePlanExpansion(plan.id)}
               >
-                {/* Plan Summary (Always Visible) */}
-                <div
-                  className={styles.planSummary}
-                  onClick={() => togglePlanExpansion(plan.id)}
-                >
-                  <div className={styles.planHeader}>
-                    <div className={styles.planTitle}>
-                      {plan.goalType
-                        ? plan.goalType.charAt(0).toUpperCase() +
-                          plan.goalType.slice(1) +
-                          " Goal"
-                        : "Personal Goal"}
-                    </div>
-                    <div
-                      className={styles.planStatus}
-                      style={{ backgroundColor: getStatusColor(plan.status) }}
-                    >
-                      {plan.status.toUpperCase()}
-                    </div>
-                  </div>
-
-                  <div className={styles.planMetrics}>
-                    <div className={styles.metric}>
-                      <span className={styles.metricLabel}>Progress:</span>
-                      <span className={styles.metricValue}>
-                        {getProgressPercentage(plan.milestones)}%
-                      </span>
-                    </div>
-                    <div className={styles.metric}>
-                      <span className={styles.metricLabel}>Target:</span>
-                      <span className={styles.metricValue}>
-                        {getDaysUntilTarget(plan.targetDate)}
-                      </span>
-                    </div>
-                    <div className={styles.metric}>
-                      <span className={styles.metricLabel}>Milestones:</span>
-                      <span className={styles.metricValue}>
-                        {plan.milestones?.filter((m) => m.completed).length ||
-                          0}
-                        /{plan.milestones?.length || 0}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className={styles.expandIcon}>
-                    {expandedPlans.has(plan.id) ? "▼" : "▶"}
+                <div className={styles.planHeader}>
+                  <div className={styles.planTitle}>
+                    {plan.goalType
+                      ? plan.goalType.charAt(0).toUpperCase() +
+                        plan.goalType.slice(1) +
+                        " Goal"
+                      : "Personal Goal"}
                   </div>
                 </div>
 
-                {/* Current Milestone Only */}
-                {expandedPlans.has(plan.id) && (
-                  <div className={styles.planDetails}>
-                    <div className={styles.planDetailsSection}>
-                      <h4>Current Milestone</h4>
-                      <div className={styles.enhancedMilestonesList}>
-                        {(() => {
-                          // Find the current milestone
-                          const currentMilestone = plan.milestones?.find(
-                            (milestone) => getMilestoneStatus(milestone) === "current"
+                <div className={styles.planMetrics}>
+                  <div className={styles.metric}>
+                    <span className={styles.metricLabel}>Target:</span>
+                    <span className={styles.metricValue}>
+                      {getDaysUntilTarget(plan.targetDate)}
+                    </span>
+                  </div>
+                  <div className={styles.metric}>
+                    <span className={styles.metricLabel}>Milestones:</span>
+                    <span className={styles.metricValue}>
+                      {Math.min(
+                        (plan.milestones?.filter((m) => m.completed).length ||
+                          0) + 1,
+                        plan.milestones?.length || 0
+                      )}
+                      /{plan.milestones?.length || 0}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.expandIcon}>
+                  {expandedPlans.has(plan.id) ? "▼" : "▶"}
+                </div>
+              </div>
+
+              {/* Expanded Plan Details */}
+              {expandedPlans.has(plan.id) && (
+                <div className={styles.planDetails}>
+                  <div className={styles.planDetailsSection}>
+                    <div className={styles.enhancedMilestonesList}>
+                      {(() => {
+                        // Find the current milestone
+                        const currentMilestone = plan.milestones?.find(
+                          (milestone) =>
+                            getMilestoneStatus(milestone) === "current"
+                        );
+
+                        if (currentMilestone) {
+                          const notifications =
+                            milestoneNotifications[currentMilestone.id] || [];
+                          const isLoadingNotification =
+                            loadingNotifications[currentMilestone.id] || false;
+
+                          return (
+                            <MilestoneCard
+                              key={currentMilestone.id}
+                              milestone={currentMilestone}
+                              status="current"
+                              notifications={notifications}
+                              isLoadingNotification={isLoadingNotification}
+                              goalType={plan.goalType}
+                              enneagramData={
+                                enneagramResult
+                                  ? {
+                                      type: getPrimaryEnneagramType(
+                                        enneagramResult
+                                      ),
+                                      summary: enneagramResult.summary,
+                                      blindSpots: undefined,
+                                      strengths: undefined,
+                                    }
+                                  : undefined
+                              }
+                              showOnlyLatestNotification={true}
+                            />
                           );
-
-                          if (currentMilestone) {
-                            const notifications = milestoneNotifications[currentMilestone.id] || [];
-                            const isLoadingNotification =
-                              loadingNotifications[currentMilestone.id] || false;
-
-                            return (
-                              <MilestoneCard
-                                key={currentMilestone.id}
-                                milestone={currentMilestone}
-                                status="current"
-                                notifications={notifications}
-                                isLoadingNotification={isLoadingNotification}
-                                goalType={plan.goalType}
-                                enneagramData={
-                                  enneagramResult
-                                    ? {
-                                        type: getPrimaryEnneagramType(enneagramResult),
-                                        summary: enneagramResult.summary,
-                                        blindSpots: undefined, // Not available in current model
-                                        strengths: undefined, // Not available in current model
-                                      }
-                                    : undefined
-                                }
-                              />
-                            );
-                          } else {
-                            // No current milestone - show message
-                            const allCompleted = plan.milestones?.every(m => m.completed);
-                            return (
-                              <div style={{
-                                padding: '1.5rem',
-                                textAlign: 'center',
-                                color: '#6b7280',
-                                background: '#f9fafb',
-                                borderRadius: '0.5rem',
-                                border: '1px dashed #d1d5db'
-                              }}>
-                                {allCompleted
-                                  ? "🎉 All milestones completed! Great job!"
-                                  : "📋 No active milestone right now. Check full details to see upcoming milestones."}
-                              </div>
-                            );
-                          }
-                        })()}
-                      </div>
-                    </div>
-
-                    <div className={styles.planDetailsSection}>
-                      <div className={styles.progressBar}>
-                        <div className={styles.progressBarLabel}>
-                          Overall Progress:{" "}
-                          {getProgressPercentage(plan.milestones)}%
-                        </div>
-                        <div className={styles.progressBarTrack}>
-                          <div
-                            className={styles.progressBarFill}
-                            style={{
-                              width: `${getProgressPercentage(plan.milestones)}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* See Full Details Link */}
-                    <div style={{
-                      marginTop: '1rem',
-                      paddingTop: '1rem',
-                      borderTop: '1px solid #e5e7eb',
-                      textAlign: 'center'
-                    }}>
-                      <Link
-                        href={`/profile/goals/${plan.id}`}
-                        className={styles.viewDetailsLink}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          color: '#3b82f6',
-                          fontWeight: '600',
-                          textDecoration: 'none',
-                          fontSize: '0.875rem',
-                          padding: '0.5rem 1rem',
-                          borderRadius: '0.5rem',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        <EyeIcon size={16} />
-                        View Full Goal Details
-                      </Link>
+                        } else {
+                          // No current milestone - show message
+                          const allCompleted = plan.milestones?.every(
+                            (m) => m.completed
+                          );
+                          return (
+                            <div
+                              style={{
+                                padding: "1.5rem",
+                                textAlign: "center",
+                                color: "#6b7280",
+                                background: "#f9fafb",
+                                borderRadius: "0.5rem",
+                                border: "1px dashed #d1d5db",
+                              }}
+                            >
+                              {allCompleted
+                                ? "🎉 All milestones completed! Great job!"
+                                : "📋 No active milestone right now. Check full details to see upcoming milestones."}
+                            </div>
+                          );
+                        }
+                      })()}
                     </div>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className={`${styles.noPlans} fadeIn textCenter py20`}>
-            <div className={`${styles.noPlansIcon} float mb6`}>
-              <TargetIcon size={64} color="var(--color-neutral-400)" />
+
+                  {/* See Full Details Link */}
+                  <div
+                    style={{
+                      marginTop: "1rem",
+                      paddingTop: "1rem",
+                      borderTop: "1px solid #e5e7eb",
+                      textAlign: "center",
+                    }}
+                  >
+                    <Link
+                      href={`/profile/goals/${plan.id}`}
+                      className={styles.viewDetailsLink}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        color: "#3b82f6",
+                        fontWeight: "600",
+                        textDecoration: "none",
+                        fontSize: "0.875rem",
+                        padding: "0.5rem 1rem",
+                        borderRadius: "0.5rem",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      <EyeIcon size={16} />
+                      View Full Goal Details
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
-            <h3 className="mb4">No plans yet!</h3>
-            <p className="mb8">
-              Create your first goal-oriented plan to get started on your
-              journey.
-            </p>
-            <LinkButton
-              href="/profile/companion"
-              variant="primary"
-              size="lg"
-              icon={<PlusIcon size={20} />}
-              className={`${styles.createFirstPlanButton} bounce`}
-            >
-              Create Your First Plan
-            </LinkButton>
+          ))}
+        </div>
+      ) : (
+        <div className={`${styles.noPlans} fadeIn textCenter py20`}>
+          <div className={`${styles.noPlansIcon} float mb6`}>
+            <TargetIcon size={64} color="var(--color-neutral-400)" />
           </div>
-        )}
-      </section>
+          <h3 className="mb4">No plans yet!</h3>
+          <p className="mb8">
+            Create your first goal-oriented plan to get started on your journey.
+          </p>
+          <LinkButton
+            href="/profile/companion"
+            variant="primary"
+            size="lg"
+            icon={<PlusIcon size={20} />}
+            className={`${styles.createFirstPlanButton} bounce`}
+          >
+            Create Your First Plan
+          </LinkButton>
+        </div>
+      )}
 
       {/* Enneagram Results Section */}
       {enneagramResult ? (
