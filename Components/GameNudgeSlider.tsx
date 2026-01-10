@@ -29,6 +29,8 @@ interface GameNudgeSliderProps {
   };
   showOnlyLatest?: boolean;
   hideFeedbackStatus?: boolean;
+  compactView?: boolean;
+  flatLayout?: boolean;
 }
 
 const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
@@ -42,6 +44,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   enneagramData,
   showOnlyLatest = false,
   hideFeedbackStatus = false,
+  compactView = false,
+  flatLayout = false,
 }) => {
   // Filter to only show the latest notification if showOnlyLatest is true
   // Since notifications are ordered by createdAt desc, the first item is the most recent
@@ -287,6 +291,101 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
     }, 100);
   };
 
+  // Flat layout mode for profile page - no boxes, just inline content
+  if (flatLayout) {
+    return (
+      <div style={{ marginTop: isMobile ? '0.75rem' : '1rem' }}>
+        {/* Simple date header */}
+        <div style={{
+          fontSize: isMobile ? '0.75rem' : '0.8125rem',
+          fontWeight: '600',
+          color: '#667eea',
+          marginBottom: '0.5rem'
+        }}>
+          📅 {formatDate(currentNotification.createdAt)}
+        </div>
+
+        {/* Nudge content - no box wrapper */}
+        <div style={{
+          fontSize: isMobile ? '0.875rem' : '1rem',
+          lineHeight: '1.6',
+          color: '#2d3748',
+          marginBottom: '1rem'
+        }}>
+          <NudgeFormatter text={currentNotification.prompt} />
+        </div>
+
+        {/* Reflection button */}
+        {!hasReacted && (
+          <button
+            onClick={() => setIsExpanded(true)}
+            style={{
+              display: 'block',
+              width: '100%',
+              background: '#667eea',
+              color: 'white',
+              border: 'none',
+              padding: isMobile ? '0.625rem 1rem' : '0.75rem 1.25rem',
+              borderRadius: '0.5rem',
+              fontSize: isMobile ? '0.8125rem' : '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#5568d3';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#667eea';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            💭 Reflect on this nudge
+          </button>
+        )}
+
+        {/* Expanded feedback form */}
+        {isExpanded && !hasReacted && (
+          <div style={{ marginTop: '1rem' }}>
+            <FeedbackForm
+              notifId={currentNotification.id}
+              existingFeedback={currentNotification.feedback}
+              planId={currentNotification.planId}
+              nudgeText={currentNotification.prompt}
+              milestoneContext={{
+                title: milestoneTitle,
+                description: milestoneDescription,
+                startDate: milestoneStartDate,
+                dueDate: milestoneDueDate,
+              }}
+              goalType={goalType}
+              enneagramData={enneagramData}
+            />
+            <button
+              onClick={() => setIsExpanded(false)}
+              style={{
+                marginTop: '0.75rem',
+                background: 'transparent',
+                color: '#667eea',
+                border: '2px solid #667eea',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                width: '100%'
+              }}
+            >
+              ↑ Collapse
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Default boxed layout for goal-specific pages
   return (
     <div
       ref={containerRef}
@@ -462,6 +561,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
                 lineHeight: "1.5",
                 color: "#2d3748",
                 wordBreak: "break-word",
+                maxHeight: compactView ? "none" : undefined,
+                overflow: compactView ? "visible" : undefined,
               }}
             >
               <NudgeFormatter text={currentNotification.prompt} />

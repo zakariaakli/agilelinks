@@ -300,7 +300,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
       {(notifications.length > 0 || isLoadingNotification) && (
         <div>
           <div style={{
-            borderTop: '1px solid rgba(59, 130, 246, 0.2)',
+            borderTop: showOnlyLatestNotification ? 'none' : '1px solid rgba(59, 130, 246, 0.2)',
             paddingTop: isMobile ? '0.75rem' : '1rem'
           }}>
             <GameNudgeSlider
@@ -314,6 +314,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
               enneagramData={enneagramData}
               showOnlyLatest={showOnlyLatestNotification}
               hideFeedbackStatus={hideFeedbackStatus}
+              compactView={showOnlyLatestNotification}
+              flatLayout={showOnlyLatestNotification}
             />
           </div>
         </div>
