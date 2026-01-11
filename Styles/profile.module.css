@@ -273,16 +273,30 @@
 }
 
 /* Simplified plan styles for profile page */
-.planSummarySimple {
-  padding: 0.75rem 0;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border-primary);
-  margin-bottom: 1rem;
+.planCardContainer {
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  margin-bottom: 1.5rem;
+  padding: 1rem;
   transition: var(--transition-all);
+  overflow: hidden;
+}
+
+.planCardContainer:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.planSummarySimple {
+  padding: 0;
+  cursor: pointer;
+  margin-bottom: 0;
+  transition: var(--transition-all);
+  border-radius: 0.5rem;
 }
 
 .planSummarySimple:hover {
-  background: var(--color-neutral-50);
 }
 
 .planHeaderSimple {

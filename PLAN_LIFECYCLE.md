@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document explains the complete lifecycle of a plan from creation to automated notifications, AI interactions, and email delivery.
+This document explains the complete lifecycle of a plan from automated monitoring to email delivery.
+
+**For Goal Creation**: See [GOAL_WIZARD.md](Functional%20Documentation/GOAL_WIZARD.md) for product documentation and [GOAL_WIZARD_ARCHITECTURE.md](Functional%20Documentation/GOAL_WIZARD_ARCHITECTURE.md) for technical details.
 
 ---
 
@@ -10,82 +12,11 @@ This document explains the complete lifecycle of a plan from creation to automat
 
 ### Phase 1: Plan Creation
 
-**Location**: `/app/profile/companion/page.tsx` (Goal Wizard)
+**Covered in separate documentation**:
+- **Product Documentation**: [GOAL_WIZARD.md](Functional%20Documentation/GOAL_WIZARD.md)
+- **Technical Architecture**: [GOAL_WIZARD_ARCHITECTURE.md](Functional%20Documentation/GOAL_WIZARD_ARCHITECTURE.md)
 
-#### 1.1 User Input Collection
-1. **Goal Type Selection**: User selects goal category (consultant, manager, or custom)
-2. **Goal Description**: User provides detailed goal description
-3. **Target Date**: User sets the final completion deadline
-4. **Time Pressure**: User indicates if accelerated timeline is needed
-5. **Nudge Frequency**: User selects daily or weekly reminder preference
-
-#### 1.2 AI-Enhanced Question Generation
-**API**: `/api/openAi` route handler
-**Function**: `callOpenAIAssistant()`
-
-- System sends goal + user's Enneagram personality to OpenAI
-- AI generates 3-5 personalized clarifying questions based on:
-  - Goal context
-  - Personality type blind spots
-  - Missing critical details
-
-**User answers clarifying questions** to provide additional context.
-
-#### 1.3 Milestone Generation
-**Function**: `generateMilestones()` in companion page
-
-**Two Generation Methods**:
-
-**A. Template-Based (for predefined goals)**
-- Uses `goalTemplateItems` for consultant/manager goals
-- Automatically calculates dates based on `defaultOffsetDays`
-- Milestones are evenly distributed from target date backwards
-
-**B. AI-Generated (for custom goals)**
-**API**: `/api/openAi` route handler
-**Function**: `callOpenAIMilestonesGenerator()`
-
-Input sent to OpenAI:
-```typescript
-{
-  goalType: string,
-  goalDescription: string,
-  clarifyingAnswers: string[],
-  enneagramSummary: string,
-  targetDate: string,
-  hasTimePressure: boolean
-}
-```
-
-OpenAI generates:
-- 5-8 sequential milestones
-- Each with title, description, dates
-- Personality-specific `blindSpotTip` (warnings)
-- Personality-specific `strengthHook` (leverage points)
-
-#### 1.4 Plan Storage
-**Function**: `savePlan()` in companion page
-**Collection**: `plans` in Firestore
-
-```typescript
-{
-  userId: string,
-  goalType: string,
-  goal: string,
-  targetDate: string,
-  hasTimePressure: boolean,
-  nudgeFrequency: 'daily' | 'weekly',
-  clarifyingQuestions: [...],
-  milestones: [...],
-  createdAt: serverTimestamp(),
-  status: 'active'
-}
-```
-
-**Post-Creation**:
-- Plan appears immediately in user's dashboard (`/app/profile/page.tsx`)
-- User earns **200 XP** for plan creation
-- Plan count updated in user document
+**Summary**: Users create goal plans through the Goal Wizard UI, which uses a 5-pass AI system to generate personalized milestones with personality-specific guidance.
 
 ---
 
@@ -96,6 +27,7 @@ OpenAI generates:
 **Schedule**: **Every day at 9:00 AM UTC** (configured in `vercel.json`)
 
 #### 2.1 Active Plan Detection
+
 **Function**: `processMilestoneReminders()`
 
 1. Queries all plans with `status: 'active'`
@@ -104,38 +36,41 @@ OpenAI generates:
    - Iterates through all milestones
 
 #### 2.2 Current Milestone Detection
+
 **Logic**: A milestone is "current" if:
+
 ```typescript
 const today = new Date();
 const startDate = new Date(milestone.startDate);
 const dueDate = new Date(milestone.dueDate);
 
 const isCurrentMilestone =
-  startDate <= today &&
-  today <= dueDate &&
-  !milestone.completed;
+  startDate <= today && today <= dueDate && !milestone.completed;
 ```
 
 **Milestone States**:
+
 - **Future**: `startDate > today` - Not yet active
 - **Current**: `startDate ≤ today ≤ dueDate` and not completed - **Triggers notifications**
 - **Completed**: `milestone.completed === true` - Skipped
 - **Overdue**: `dueDate < today` and not completed - Still sends reminders
 
 #### 2.3 Duplicate Prevention
+
 Before creating a reminder, system checks for existing notifications:
 
 **Lookback Period**:
+
 - **Daily nudges**: Checks last 1 day
 - **Weekly nudges**: Checks last 7 days
 
 ```typescript
-const lookbackDays = nudgeFrequency === 'daily' ? 1 : 7;
+const lookbackDays = nudgeFrequency === "daily" ? 1 : 7;
 const existingReminders = query(
   notifications,
-  where('userId', '==', userId),
-  where('milestoneId', '==', milestoneId),
-  where('createdAt', '>=', lastNDays)
+  where("userId", "==", userId),
+  where("milestoneId", "==", milestoneId),
+  where("createdAt", ">=", lastNDays)
 );
 
 if (existingReminders.empty) {
@@ -153,10 +88,12 @@ if (existingReminders.empty) {
 **Phase 3B - AI Processing**: `.github/scripts/process-milestone-reminders.mjs`
 
 #### 3.1 Background Processing Architecture
+
 **Problem Solved**: Vercel has 10-second timeout for serverless functions
 **Solution**: GitHub Actions for unlimited processing time
 
 **Flow**:
+
 1. API endpoint creates notifications with empty prompts (< 1 second)
 2. GitHub Actions script queries pending notifications
 3. AI processing runs without time limits (30-60 seconds per notification)
@@ -164,9 +101,11 @@ if (existingReminders.empty) {
 5. Emails sent immediately after AI completion
 
 #### 3.2 AI Prompt Construction
+
 **Function**: `generateMilestoneNudge()` in `.github/scripts/process-milestone-reminders.mjs`
 
 **Advanced Personalization Data**:
+
 ```javascript
 {
   goalContext: string,           // Full goal description
@@ -190,12 +129,14 @@ if (existingReminders.empty) {
 ```
 
 **AI System**:
+
 - **Technology**: OpenAI Assistants API (not Chat Completions)
 - **Assistant ID**: Configured in GitHub Secrets
 - **Personalization**: Enneagram type + growth advice + feedback history
 - **Output**: 2-3 sentence personalized nudge with reflection question
 
 **AI Task**:
+
 - Generate personalized nudge based on Enneagram type
 - Reference current progress timeline
 - Incorporate personality-specific guidance from growth advice
@@ -204,11 +145,13 @@ if (existingReminders.empty) {
 - Maintain encouraging, motivational tone
 
 #### 3.3 Fallback System
+
 If AI fails (API error, timeout, etc.):
 
 **Function**: `generateFallbackNudge()`
 
 Creates structured message:
+
 ```
 Week X of your "[Milestone Title]" milestone!
 [Random encouragement]
@@ -221,6 +164,7 @@ What's one key action you can take this week to move closer to completion?
 ```
 
 #### 3.4 Notification Creation
+
 **Collection**: `notifications` in Firestore
 
 ```typescript
@@ -267,44 +211,47 @@ What's one key action you can take this week to move closer to completion?
 **Trigger**: Immediately after notification creation in background process
 
 #### 4.1 Email Eligibility Check
+
 **Function**: `sendMilestoneEmail()`
 
 **Requirements**:
+
 1. User has `companionSettings` document
 2. `companionSettings.emailNudgesOptIn === true`
 3. User has valid email address
 4. Notification has not been sent before (`emailStatus.sent === false`)
 
 #### 4.2 Email Content Generation
+
 **Template**: HTML email with SendGrid
 
 **Structure**:
-```html
-Subject: 🎯 Milestone Check-in: [Milestone Title]
 
-Body:
-- Personalized greeting
-- AI-generated nudge message
-- Milestone progress context
-- Blind Spot Alert (if available)
-- Strength Leverage Tip (if available)
-- Call-to-action button linking to notification page
+```html
+Subject: 🎯 Milestone Check-in: [Milestone Title] Body: - Personalized greeting
+- AI-generated nudge message - Milestone progress context - Blind Spot Alert (if
+available) - Strength Leverage Tip (if available) - Call-to-action button
+linking to notification page
 ```
 
 **CTA Link**: `https://yourdomain.com/nudge/[notificationId]`
 
 #### 4.3 SendGrid API Call
+
 **Service**: SendGrid Email API
 **Configuration**:
+
 - From: `noreply@yourdomain.com`
 - Reply-To: User's support email
 - Template: Dynamic HTML template
 - Tracking: Click and open tracking enabled
 
 #### 4.4 Delivery Status Tracking
+
 **Function**: `markNotificationAsSent()` or `markNotificationSendFailed()`
 
 **Success Path**:
+
 ```typescript
 emailStatus: {
   sent: true,
@@ -316,6 +263,7 @@ emailStatus: {
 ```
 
 **Failure Path**:
+
 ```typescript
 emailStatus: {
   sent: false,
@@ -333,12 +281,15 @@ emailStatus: {
 **Location**: `/app/nudge/[id]/page.tsx`
 
 #### 5.1 Notification Access Methods
+
 1. **Email Link**: User clicks CTA button in email
 2. **Dashboard**: GameNudgeSlider in milestone cards
 3. **Direct URL**: `/nudge/[notificationId]`
 
 #### 5.2 Auto-Read Marking
+
 When user opens notification page:
+
 ```typescript
 useEffect(() => {
   updateDoc(notificationRef, { read: true });
@@ -346,20 +297,25 @@ useEffect(() => {
 ```
 
 #### 5.3 Feedback Collection
+
 **Component**: `FeedbackForm.tsx`
 
 **Options**:
+
 - 👍 "I like this nudge"
 - 🤔 "You can do better"
 - 🤷 "I don't relate"
 - 💬 Optional text feedback
 
 **XP Rewards**:
+
 - Feedback submission: **25 XP**
 - Consecutive responses: **+10 XP per day streak**
 
 #### 5.4 Engagement Tracking
+
 **Updates**:
+
 ```typescript
 {
   feedback: userFeedback,
@@ -369,6 +325,7 @@ useEffect(() => {
 ```
 
 **Analytics Use**:
+
 - Nudge quality scoring
 - Personality type effectiveness analysis
 - User engagement patterns
@@ -384,18 +341,20 @@ useEffect(() => {
   "crons": [
     {
       "path": "/api/milestoneReminders",
-      "schedule": "0 9 * * *"  // 9:00 AM UTC daily
+      "schedule": "0 9 * * *" // 9:00 AM UTC daily
     }
   ]
 }
 ```
 
 **Cron Schedule**: `0 9 * * *`
+
 - **Frequency**: Every day
 - **Time**: 9:00 AM UTC
 - **Timezone**: Coordinated Universal Time
 
 **User Experience**:
+
 - **Daily frequency users**: Receive reminder every day at 9 AM UTC
 - **Weekly frequency users**: Receive reminder once per week (when no reminder exists in last 7 days)
 
@@ -430,26 +389,31 @@ User receives email within 1 minute of notification creation
 ## 🔥 Key Features & Optimizations
 
 ### 1. Intelligent Scheduling
+
 - **Frequency Preference**: Users choose daily or weekly reminders
 - **Duplicate Prevention**: Automatic lookback checks prevent spam
 - **Current Milestone Detection**: Only active milestones trigger reminders
 
 ### 2. Personality-Driven Content
+
 - **Blind Spot Tips**: Warnings about personality-based challenges
 - **Strength Hooks**: Leverage points for personality advantages
 - **AI Personalization**: Nudges tailored to Enneagram type
 
 ### 3. Robust Error Handling
+
 - **AI Fallback**: Template-based messages if AI fails
 - **Email Retry**: Failed sends tracked for manual retry
 - **Background Processing**: Avoids timeout errors
 
 ### 4. Cost Tracking
+
 - **OpenAI Usage**: Token consumption per AI generation
 - **Firebase Operations**: Read/write tracking for billing
 - **User Attribution**: Costs tracked per user for analytics
 
 ### 5. User Engagement
+
 - **XP Rewards**: Gamification for feedback responses
 - **Streak Tracking**: Consecutive response bonuses
 - **Interactive UI**: Swipe-able notification slider
@@ -522,27 +486,33 @@ User receives email within 1 minute of notification creation
 ## 📁 Key Files Reference
 
 ### Plan Creation
+
 - `/app/profile/companion/page.tsx` - Goal wizard UI
 - `/app/api/openAi/route.ts` - AI question & milestone generation
 
 ### Automated Monitoring
+
 - `/app/api/milestoneReminders/route.ts` - Main cron processor
 - `/vercel.json` - Cron schedule configuration
 
 ### AI Generation
+
 - `/lib/generateMilestoneNudgeFromAI.ts` - AI nudge creation
 - `/lib/firebaseTracker.ts` - Cost tracking utilities
 
 ### Email Delivery
+
 - `/lib/sendMilestoneEmail.ts` - Email sending logic
 - `/lib/notificationTracking.ts` - Status management
 
 ### User Interaction
+
 - `/app/nudge/[id]/page.tsx` - Notification display page
 - `/Components/GameNudgeSlider.tsx` - Interactive slider UI
 - `/Components/FeedbackForm.tsx` - Feedback collection
 
 ### Database Collections
+
 - `plans` - User goal plans with milestones
 - `notifications` - AI-generated nudges and reminders
 - `companionSettings` - Email preferences and opt-ins
@@ -553,6 +523,7 @@ User receives email within 1 minute of notification creation
 ## 🚀 Future Enhancements
 
 ### Planned Features
+
 1. **Smart Send Time Optimization**: Send emails based on user timezone and engagement patterns
 2. **A/B Testing**: Test different nudge formats and measure effectiveness
 3. **Retry Logic**: Automatic retry for failed email deliveries
@@ -562,6 +533,7 @@ User receives email within 1 minute of notification creation
 7. **Milestone Auto-Completion**: Detect completion signals and auto-mark milestones
 
 ### Technical Improvements
+
 1. **Batch Processing**: Process multiple users in parallel for faster execution
 2. **Queue System**: Use job queue for better background task management
 3. **Rate Limiting**: Prevent API abuse with intelligent rate limits
@@ -582,6 +554,7 @@ User receives email within 1 minute of notification creation
 5. **Interaction**: User opens, reads, provides feedback → Earns XP and engagement data
 
 **Key Automation**:
+
 - **Runs**: Every day at 9:00 AM UTC
 - **Triggers**: Automatic for current milestones only
 - **Frequency**: Daily or weekly based on user preference

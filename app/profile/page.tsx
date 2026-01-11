@@ -534,20 +534,36 @@ function ProfileContent() {
       {/* Plans Section */}
       {userPlans.length > 0 ? (
         <div className={`${styles.plansGrid} gridAutoFit gapLg`}>
-          {userPlans.map((plan, index) => (
+          {userPlans.map((plan, index) => {
+            // Define color palette for plan cards
+            const planColors = [
+              '#4F46E5', // Indigo
+              '#059669', // Emerald
+              '#7C3AED', // Violet
+              '#EA580C', // Orange
+              '#DB2777', // Pink
+            ];
+            const planColor = planColors[index % planColors.length];
+
+            return (
             <div
               key={plan.id}
               ref={(el) => {
                 planRefs.current[plan.id] = el;
               }}
-              className={`slideInUp`}
-              style={{ animationDelay: `${0.1 * (index + 2)}s` }}
+              className={`${styles.planCardContainer} slideInUp`}
+              style={{
+                animationDelay: `${0.1 * (index + 2)}s`,
+                borderLeft: `4px solid ${planColor}`
+              }}
             >
               {/* Plan Summary (Always Visible) */}
               <div
                 className={styles.planSummarySimple}
                 onClick={() => userPlans.length > 1 ? togglePlanExpansion(plan.id) : undefined}
-                style={{ cursor: userPlans.length > 1 ? 'pointer' : 'default' }}
+                style={{
+                  cursor: userPlans.length > 1 ? 'pointer' : 'default'
+                }}
               >
                 <div className={styles.planHeaderSimple}>
                   <div className={styles.planTitleSimple}>
@@ -586,7 +602,7 @@ function ProfileContent() {
               </div>
 
               {/* Expanded Plan Details */}
-              {expandedPlans.has(plan.id) && (
+              {(userPlans.length === 1 || expandedPlans.has(plan.id)) && (
                 <div className={styles.planDetailsSimple}>
                   <div className={styles.milestoneCardWrapper}>
                     {(() => {
@@ -652,39 +668,41 @@ function ProfileContent() {
                     })()}
                   </div>
 
-                  {/* See Full Details Link */}
-                  <div
-                    style={{
-                      marginTop: "1rem",
-                      paddingTop: "1rem",
-                      borderTop: "1px solid #e5e7eb",
-                      textAlign: "center",
-                    }}
-                  >
-                    <Link
-                      href={`/profile/goals/${plan.id}`}
-                      className={styles.viewDetailsLink}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.5rem",
-                        color: "#3b82f6",
-                        fontWeight: "600",
-                        textDecoration: "none",
-                        fontSize: "0.875rem",
-                        padding: "0.5rem 1rem",
-                        borderRadius: "0.5rem",
-                        transition: "all 0.2s ease",
-                      }}
-                    >
-                      <EyeIcon size={16} />
-                      View Full Goal Details
-                    </Link>
-                  </div>
                 </div>
               )}
+
+              {/* See Full Details Link - Always visible at bottom of card */}
+              <div
+                style={{
+                  marginTop: (userPlans.length === 1 || expandedPlans.has(plan.id)) ? "1rem" : "0.5rem",
+                  paddingTop: "1rem",
+                  borderTop: "1px solid #e5e7eb",
+                  textAlign: "center",
+                }}
+              >
+                <Link
+                  href={`/profile/goals/${plan.id}`}
+                  className={styles.viewDetailsLink}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    color: "#3b82f6",
+                    fontWeight: "600",
+                    textDecoration: "none",
+                    fontSize: "0.875rem",
+                    padding: "0.5rem 1rem",
+                    borderRadius: "0.5rem",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  <EyeIcon size={16} />
+                  View Full Goal Details
+                </Link>
+              </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className={`${styles.noPlans} fadeIn textCenter py20`}>
