@@ -7,6 +7,8 @@ import { auth, db } from "../../../firebase"; // Adjust path as needed
 import { useRouter } from "next/navigation";
 import Toast, { ToastType } from "../../../Components/Toast";
 import AutoExpandingTextarea from "../../../Components/AutoExpandingTextarea";
+import MilestoneEditorModal from "../../../Components/MilestoneEditorModal";
+import MilestoneCardCollapsed from "../../../Components/MilestoneCardCollapsed";
 import styles from "../../../Styles/companion.module.css";
 
 interface PlanData {
@@ -252,6 +254,11 @@ const GoalWizard: React.FC = () => {
   >([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [editingMilestone, setEditingMilestone] = useState<{
+    milestone: Milestone;
+    index: number;
+  } | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [loadingStep, setLoadingStep] = useState<string>("");
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -1147,109 +1154,41 @@ const GoalWizard: React.FC = () => {
               <>
                 <div className={styles.milestonesContainer}>
                   {milestones.map((milestone, index) => (
-                    <div
+                    <MilestoneCardCollapsed
                       key={milestone.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, index)}
-                      onDragOver={handleDragOver}
-                      onDrop={(e) => handleDrop(e, index)}
-                      className={`${styles.milestoneItem} ${
-                        draggedItem === index ? styles.dragging : ""
-                      }`}
-                    >
-                      <div className={styles.milestoneHeader}>
-                        <AutoExpandingTextarea
-                          value={milestone.title}
-                          onChange={(value) =>
-                            updateMilestone(milestone.id, "title", value)
-                          }
-                          className={styles.milestoneTitle}
-                          placeholder="Enter milestone title"
-                          minRows={1}
-                          ariaLabel="Milestone title"
-                        />
-                        <button
-                          onClick={() => deleteMilestone(milestone.id)}
-                          className={styles.deleteButton}
-                        >
-                          ×
-                        </button>
-                      </div>
-                      <textarea
-                        value={milestone.description}
-                        onChange={(e) =>
-                          updateMilestone(
-                            milestone.id,
-                            "description",
-                            e.target.value
-                          )
-                        }
-                        className={styles.milestoneDescription}
-                        rows={2}
-                      />
-                      <div className={styles.milestoneDates}>
-                        <div className={styles.dateField}>
-                          <label className={styles.dateLabel}>
-                            Start Date:
-                          </label>
-                          <input
-                            type="date"
-                            value={milestone.startDate}
-                            onChange={(e) =>
-                              updateMilestone(
-                                milestone.id,
-                                "startDate",
-                                e.target.value
-                              )
-                            }
-                            className={styles.milestoneStartDate}
-                          />
-                        </div>
-                        <div className={styles.dateField}>
-                          <label className={styles.dateLabel}>Due Date:</label>
-                          <input
-                            type="date"
-                            value={milestone.dueDate}
-                            onChange={(e) =>
-                              updateMilestone(
-                                milestone.id,
-                                "dueDate",
-                                e.target.value
-                              )
-                            }
-                            className={styles.milestoneDueDate}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Personality-based tips */}
-                      {(milestone.blindSpotTip || milestone.strengthHook) && (
-                        <div className={styles.personalityTips}>
-                          {milestone.blindSpotTip && (
-                            <div className={styles.blindSpotTip}>
-                              <span className={styles.tipIcon}>⚠️</span>
-                              <span className={styles.tipLabel}>
-                                Blind Spot:
-                              </span>
-                              <span className={styles.tipText}>
-                                {milestone.blindSpotTip}
-                              </span>
-                            </div>
-                          )}
-                          {milestone.strengthHook && (
-                            <div className={styles.strengthHook}>
-                              <span className={styles.tipIcon}>💪</span>
-                              <span className={styles.tipLabel}>Leverage:</span>
-                              <span className={styles.tipText}>
-                                {milestone.strengthHook}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                      milestone={milestone}
+                      milestoneNumber={index + 1}
+                      onEdit={() => setEditingMilestone({ milestone, index })}
+                      onDelete={() => setShowDeleteConfirm(milestone.id)}
+                      isDragging={draggedItem === index}
+                    />
                   ))}
                 </div>
+
+                {/* Milestone Editor Modal */}
+                {editingMilestone && (
+                  <MilestoneEditorModal
+                    milestone={editingMilestone.milestone}
+                    milestoneNumber={editingMilestone.index + 1}
+                    totalMilestones={milestones.length}
+                    isOpen={!!editingMilestone}
+                    onClose={() => setEditingMilestone(null)}
+                    onSave={(updatedMilestone) => {
+                      setMilestones(
+                        milestones.map((m) =>
+                          m.id === updatedMilestone.id ? updatedMilestone : m
+                        )
+                      );
+                      setEditingMilestone(null);
+                    }}
+                    onDelete={(milestoneId) => {
+                      deleteMilestone(milestoneId);
+                      setEditingMilestone(null);
+                    }}
+                  />
+                )}
+
+                {/* Delete Confirmation (Simple approach - handled in modal) */}
 
                 <button
                   onClick={addCustomMilestone}

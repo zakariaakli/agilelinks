@@ -293,6 +293,7 @@ export default function ReflectiveChatbot({
         {/* Input Area */}
         <div className={styles.chatbotInputArea}>
           <div className={styles.chatbotInputContent}>
+            {/* Text Input - Full Width */}
             <div className={styles.chatbotInputWrapper}>
               <textarea
                 ref={inputRef}
@@ -305,22 +306,25 @@ export default function ReflectiveChatbot({
                 aria-label="Type your message"
                 rows={1}
               />
+            </div>
+
+            {/* Action Buttons - Stacked */}
+            <div className={styles.chatbotActions}>
+              {/* Send Button - Primary Action */}
               <button
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim() || isLoading || isSummarizing}
-                className={styles.chatbotSendButton}
+                className={`${styles.chatbotActionButton} ${styles.chatbotActionButtonPrimary}`}
                 aria-label="Send message"
               >
                 {isLoading ? 'Sending...' : 'Send'}
               </button>
-            </div>
 
-            {/* Action Buttons */}
-            <div className={styles.chatbotActions}>
+              {/* Finish & Save Button - Secondary/Exit Action */}
               <button
                 onClick={handleFinish}
                 disabled={isSummarizing}
-                className={`${styles.chatbotActionButton} ${styles.chatbotActionButtonPrimary}`}
+                className={`${styles.chatbotActionButton} ${styles.chatbotActionButtonDanger}`}
               >
                 {isSummarizing ? 'Saving...' : 'Finish & Save'}
               </button>
