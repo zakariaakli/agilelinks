@@ -7,6 +7,7 @@ import Footer from "../Components/Footer";
 import MobileBottomNav from "../Components/MobileBottomNav";
 import CookieConsent from "../Components/CookieConsent";
 import ClientProviders from "../Components/ClientProviders";
+import FeedbackButton from "../Components/FeedbackButton";
 
 // app/layout.tsx
 export const metadata = {
@@ -53,6 +54,7 @@ export default function RootLayout({
         <Footer />
         <MobileBottomNav />
         <CookieConsent />
+        <FeedbackButton />
         <ClientProviders />
       </body>
     </html>
