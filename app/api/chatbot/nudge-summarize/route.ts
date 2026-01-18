@@ -15,6 +15,7 @@ export async function POST(request: NextRequest) {
       feedbackChoice,
       userId,
       userEmail,
+      userName,
       milestoneTitle,
       goalType,
       enneagramType,
@@ -27,17 +28,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Extract first name from userName (if provided)
+    const firstName = userName
+      ? userName.split(' ')[0]
+      : 'The user';
+
     // Build conversation text
     const conversationText = transcript
       .map((msg: any) => `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.content}`)
       .join('\n');
 
     const systemPrompt = `Summarize the following reflection conversation in 2-3 sentences. Capture:
-1. Key insights the user shared
+1. Key insights ${firstName} shared
 2. Main themes or patterns
 3. Any actionable takeaways (if mentioned)
 
-Be concise and focus on the user's perspective.
+Be concise and use a neutral, personal tone. Refer to the person as "${firstName}" (not "the user").
 
 Conversation:
 ${conversationText}`;

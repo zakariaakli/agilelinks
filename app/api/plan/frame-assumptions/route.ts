@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
     await createPlanDocument(planId, input);
     console.log('✅ Plan document created');
 
-    // PASS 1: Generate goal frame (Chat Completion - gpt-4o-mini)
-    console.log('📋 PASS 1: Generating goal frame...');
-    const goalFrame = await generateGoalFrame(goalDescription, targetDate, personalitySummary);
-    console.log('✅ Goal frame generated');
+    // PASS 1: Generate goal frame + goal name (Chat Completion - gpt-4o-mini)
+    console.log('📋 PASS 1: Generating goal frame and name...');
+    const { goalFrame, goalName } = await generateGoalFrame(goalDescription, targetDate, personalitySummary);
+    console.log('✅ Goal frame and name generated');
 
     // PASS 2: Generate assumptions (Chat Completion - gpt-4o-mini)
     console.log('🧠 PASS 2: Generating assumptions...');
@@ -50,13 +50,14 @@ export async function POST(request: NextRequest) {
     console.log('✅ Assumptions generated');
 
     // Save to Firestore
-    await updatePlanWithFrame(planId, goalFrame, assumptions);
-    console.log('✅ Plan updated with frame and assumptions');
+    await updatePlanWithFrame(planId, goalFrame, assumptions, goalName);
+    console.log('✅ Plan updated with frame, assumptions, and goal name');
 
     return NextResponse.json({
       planId,
       goalFrame,
       assumptions,
+      goalName,
       status: 'framed',
     });
 
@@ -72,12 +73,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PASS 1: Context Lock - Frame the goal with specificity (Chat Completion)
+// PASS 1: Context Lock - Frame the goal with specificity + generate concise name (Chat Completion)
 async function generateGoalFrame(
   goalDescription: string,
   targetDate: string,
   personalitySummary: string
-): Promise<GoalFrame> {
+): Promise<{ goalFrame: GoalFrame; goalName: string }> {
   try {
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
@@ -94,13 +95,22 @@ Goal: ${goalDescription}
 Target Date: ${targetDate}
 ${personalitySummary ? `Personality: ${personalitySummary}` : ''}
 
-Explicitly state:
-1. What success looks like (observable, measurable)
-2. What failure looks like (concrete warning signs)
-3. What must be avoided (anti-patterns, traps)
+Generate:
+1. **Goal Name**: A concise, action-oriented title (3-5 words max) that captures the essence.
+   - Start with an action verb (Launch, Secure, Finish, Reach, Build, Run, Get)
+   - Include key metric or deliverable
+   - Sound natural and conversational
+   Examples: "Finish capstone project", "Secure first 3 clients", "Reach 10k MRR", "Run first marathon"
+
+2. **Success Criteria**: What success looks like (observable, measurable)
+
+3. **Failure Criteria**: What failure looks like (concrete warning signs)
+
+4. **Must Avoid**: Anti-patterns, traps (3 items)
 
 Return ONLY valid JSON:
 {
+  "goalName": "...",
   "successCriteria": "...",
   "failureCriteria": "...",
   "mustAvoid": ["...", "...", "..."]
@@ -112,13 +122,25 @@ Return ONLY valid JSON:
 
     const content = completion.choices[0].message.content || '{}';
     const cleaned = content.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    return JSON.parse(cleaned);
+    const parsed = JSON.parse(cleaned);
+
+    return {
+      goalFrame: {
+        successCriteria: parsed.successCriteria,
+        failureCriteria: parsed.failureCriteria,
+        mustAvoid: parsed.mustAvoid
+      },
+      goalName: parsed.goalName || "Personal Goal"
+    };
   } catch (error) {
     console.error('Error in generateGoalFrame:', error);
     return {
-      successCriteria: 'Complete the goal by target date',
-      failureCriteria: 'Miss the deadline or abandon the goal',
-      mustAvoid: ['Procrastination', 'Lack of accountability', 'Unclear metrics']
+      goalFrame: {
+        successCriteria: 'Complete the goal by target date',
+        failureCriteria: 'Miss the deadline or abandon the goal',
+        mustAvoid: ['Procrastination', 'Lack of accountability', 'Unclear metrics']
+      },
+      goalName: "Personal Goal"
     };
   }
 }

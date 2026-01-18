@@ -24,6 +24,7 @@ interface PlanData {
   userId: string;
   goalType: string;
   goal: string;
+  goalName?: string;
   targetDate: string;
   hasTimePressure: boolean;
   milestones: Milestone[];
@@ -567,7 +568,9 @@ function ProfileContent() {
               >
                 <div className={styles.planHeaderSimple}>
                   <div className={styles.planTitleSimple}>
-                    {plan.goalType
+                    {plan.goalName
+                      ? plan.goalName
+                      : plan.goalType
                       ? plan.goalType.charAt(0).toUpperCase() +
                         plan.goalType.slice(1) +
                         " Goal"

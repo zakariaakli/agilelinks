@@ -98,43 +98,55 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
       }
     }
 
-    // Query for ALL previous notifications for this milestone to build feedback history
-    let feedbackHistory: Array<{ nudge: string; feedback: string; timestamp: Date }> = [];
+    // Query for previous reflections with AI summaries
+    let feedbackHistory: Array<{
+      nudge: string;
+      feedback: string;
+      daysAgo: number;
+    }> = [];
+
     try {
-      console.log('Querying for ALL previous nudges for milestone:', input.milestone.id);
+      console.log('Querying for previous reflections with AI summaries for milestone:', input.milestone.id);
       const notificationsQuery = query(
         collection(db, 'notifications'),
         where('userId', '==', input.userId),
         where('planId', '==', input.milestone.planId),
         where('milestoneId', '==', input.milestone.id),
         where('type', '==', 'milestone_reminder'),
-        orderBy('createdAt', 'desc')
-        // NO LIMIT - get all feedback history
+        orderBy('createdAt', 'desc'),
+        limit(5)
       );
 
       const notificationsSnapshot = await getDocs(notificationsQuery);
+      const today = new Date();
 
-      if (!notificationsSnapshot.empty) {
-        console.log(`Retrieved ${notificationsSnapshot.docs.length} previous nudge(s) with feedback`);
-
-        feedbackHistory = notificationsSnapshot.docs.map(doc => {
+      feedbackHistory = notificationsSnapshot.docs
+        .map(doc => {
           const data = doc.data();
+          const aiSummary = data.feedbackDetails?.aiSummary;
+
+          if (!aiSummary) return null; // Skip if no AI summary
+
+          const createdAt = data.createdAt?.toDate?.() || new Date();
+          const daysAgo = Math.floor(
+            (today.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24)
+          );
+
           return {
             nudge: data.prompt || data.message || '',
-            feedback: data.feedback || '',
-            timestamp: data.createdAt?.toDate?.() || new Date()
+            feedback: aiSummary,  // Use AI summary instead of radio button
+            daysAgo,
           };
-        }).filter(item => item.feedback); // Only include items with feedback
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 
-        console.log(`Found ${feedbackHistory.length} nudge(s) with user feedback`);
-        feedbackHistory.forEach((item, index) => {
-          console.log(`Feedback ${index + 1}:`, item.feedback);
-        });
-      } else {
-        console.log('No previous nudges found for this milestone');
-      }
-    } catch (firebaseError) {
-      console.error('Error fetching previous nudges:', firebaseError);
+      console.log(`✅ Retrieved ${feedbackHistory.length} previous reflections with AI summaries`);
+      feedbackHistory.forEach((item, index) => {
+        console.log(`Reflection ${index + 1} (${item.daysAgo} days ago):`, item.feedback);
+      });
+    } catch (error) {
+      console.error('⚠️ Error fetching feedback history:', error);
+      // Continue with empty array
     }
 
     const thread = await openai.beta.threads.create();
@@ -146,16 +158,6 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
     const totalDays = Math.ceil((dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const daysInProgress = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-    // Prepare feedback history with recency context
-    const feedbackHistoryFormatted = feedbackHistory.map(item => {
-      const daysAgo = Math.floor((today.getTime() - item.timestamp.getTime()) / (1000 * 60 * 60 * 24));
-      return {
-        nudge: item.nudge,
-        feedback: item.feedback,
-        daysAgo
-      };
-    });
 
     // Prepare assistant input in the exact format requested
     const assistantInput: AssistantInput = {
@@ -171,7 +173,7 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
       },
       personalityContext,
       growthAdvice,
-      feedbackHistory: feedbackHistoryFormatted
+      feedbackHistory  // Already formatted with AI summaries
     };
 
     console.log('Sending to assistant:', JSON.stringify(assistantInput, null, 2));

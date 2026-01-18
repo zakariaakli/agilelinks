@@ -15,6 +15,7 @@ interface PlanData {
   id?: string;
   userId: string;
   goal: string;
+  goalName?: string;
   targetDate: string;
   hasTimePressure: boolean;
   nudgeFrequency: "daily" | "weekly";
@@ -282,6 +283,7 @@ const GoalWizard: React.FC = () => {
     risks: string[];
     nonGoals: string[];
   } | null>(null);
+  const [goalName, setGoalName] = useState<string>("");
   const [toast, setToast] = useState<{
     message: string;
     type: ToastType;
@@ -454,7 +456,8 @@ const GoalWizard: React.FC = () => {
       const frameData = await frameResponse.json();
       console.log("✅ ROUTE 1 completed:", frameData);
 
-      const { planId, goalFrame, assumptions } = frameData;
+      const { planId, goalFrame, assumptions, goalName } = frameData;
+      setGoalName(goalName || ""); // Store AI-generated goal name
 
       // ROUTE 2: Generate draft milestones (Pass 3)
       setLoadingStep(
@@ -905,6 +908,7 @@ const GoalWizard: React.FC = () => {
       const planData: PlanData = {
         userId: user.uid,
         goal,
+        goalName,
         targetDate,
         hasTimePressure,
         nudgeFrequency,

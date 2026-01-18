@@ -10,7 +10,7 @@
  * Uses advanced AI personalization with:
  * - User's Enneagram personality type
  * - Personalized growth advice
- * - Feedback history from previous nudges
+ * - AI-generated reflection summaries from previous nudges
  * - OpenAI Assistants API for sophisticated prompting
  *
  * Environment variables required:
@@ -131,7 +131,7 @@ async function generateMilestoneNudge(
       }
     }
 
-    // Query for ALL previous notifications for this milestone to build feedback history
+    // Query for previous notifications with AI summaries
     let feedbackHistory = [];
     try {
       const notificationsSnapshot = await db
@@ -141,22 +141,31 @@ async function generateMilestoneNudge(
         .where("milestoneId", "==", milestone.id)
         .where("type", "==", "milestone_reminder")
         .orderBy("createdAt", "desc")
+        .limit(5)
         .get();
 
       if (!notificationsSnapshot.empty) {
         feedbackHistory = notificationsSnapshot.docs
           .map((doc) => {
             const data = doc.data();
+            const aiSummary = data.feedbackDetails?.aiSummary;
+
+            if (!aiSummary) return null; // Skip if no AI summary
+
+            const daysAgo = Math.floor(
+              (today.getTime() - data.createdAt?.toDate?.().getTime()) / (1000 * 60 * 60 * 24)
+            );
+
             return {
               nudge: data.prompt || data.message || "",
-              feedback: data.feedback || "",
-              timestamp: data.createdAt?.toDate?.() || new Date(),
+              feedback: aiSummary,  // Use AI summary instead of radio button
+              daysAgo,
             };
           })
-          .filter((item) => item.feedback); // Only include items with feedback
+          .filter(item => item !== null);
 
         console.log(
-          `   ✅ Found ${feedbackHistory.length} previous nudge(s) with feedback`
+          `   ✅ Found ${feedbackHistory.length} previous reflection(s) with AI summaries`
         );
       }
     } catch (firebaseError) {
@@ -164,19 +173,8 @@ async function generateMilestoneNudge(
         `   ⚠️ Error fetching feedback history:`,
         firebaseError.message
       );
+      // Continue with empty array
     }
-
-    // Prepare feedback history with recency context
-    const feedbackHistoryFormatted = feedbackHistory.map((item) => {
-      const daysAgo = Math.floor(
-        (today.getTime() - item.timestamp.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      return {
-        nudge: item.nudge,
-        feedback: item.feedback,
-        daysAgo,
-      };
-    });
 
     // Prepare assistant input in the exact format expected
     const assistantInput = {
@@ -192,7 +190,7 @@ async function generateMilestoneNudge(
       },
       personalityContext,
       growthAdvice,
-      feedbackHistory: feedbackHistoryFormatted,
+      feedbackHistory,
     };
 
     console.log(`   🧠 Sending to OpenAI Assistant with personalization data`);

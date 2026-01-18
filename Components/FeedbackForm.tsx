@@ -52,6 +52,7 @@ export default function FeedbackForm({
   } | null>(null);
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [fadeOut, setFadeOut] = useState(false);
   const router = useRouter();
 
   // Handle chatbot finish
@@ -62,32 +63,31 @@ export default function FeedbackForm({
     setChatbotOpen(false);
     setAiSummary(summary);
     setSubmitted(true);
-
-    // Redirect after showing success message (5 seconds to allow viewing link)
-    setTimeout(() => {
-      if (planId) {
-        router.push(`/profile?plan=${planId}`);
-      } else {
-        router.push("/profile");
-      }
-    }, 5000);
   };
 
-  // Redirect to profile after showing thank you message
+  // Redirect to profile after showing thank you message with fade out
   useEffect(() => {
     if (submitted) {
-      const timer = setTimeout(() => {
-        // Redirect with planId to auto-expand and scroll to plan
+      // Start fade out after 2 seconds
+      const fadeTimer = setTimeout(() => {
+        setFadeOut(true);
+      }, 2000);
+
+      // Redirect after fade out completes
+      const redirectTimer = setTimeout(() => {
         if (planId) {
           router.push(`/profile?plan=${planId}`);
         } else {
           router.push("/profile");
         }
-      }, 5000); // Wait 5 seconds before redirecting (allows time to click summary link)
+      }, 2800); // 2s display + 0.8s fade = 2.8s total
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(redirectTimer);
+      };
     }
-  }, [submitted, router, planId]);
+  }, [submitted, router, planId, setFadeOut]);
 
   // If feedback already exists, don't show anything (feedback will be shown in page as reflection summary)
   if (existingFeedback) {
@@ -96,52 +96,20 @@ export default function FeedbackForm({
 
   if (submitted) {
     return (
-      <div className={styles.thankYou}>
+      <div
+        className={styles.thankYou}
+        style={{
+          opacity: fadeOut ? 0 : 1,
+          maxHeight: fadeOut ? '0' : '500px',
+          overflow: 'hidden',
+          transition: 'opacity 0.8s ease-out, max-height 0.8s ease-out',
+        }}
+      >
         <div style={{ textAlign: "center", marginBottom: "1rem" }}>
           <CheckCircleIcon size={48} color="var(--color-success-500)" />
         </div>
         <h2>Thank you for your reflection!</h2>
         <p>Your insights help you grow on your journey.</p>
-
-        {aiSummary && (
-          <a
-            href={`/nudge/${notifId}`}
-            style={{
-              display: "inline-block",
-              marginTop: "1.5rem",
-              padding: "0.75rem 1.5rem",
-              background: "var(--color-primary-500)",
-              color: "white",
-              borderRadius: "var(--border-radius-xl)",
-              textDecoration: "none",
-              fontWeight: "var(--font-weight-semibold)",
-              fontSize: "var(--font-size-base)",
-              transition: "var(--transition-all)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "var(--color-primary-600)";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "var(--color-primary-500)";
-              e.currentTarget.style.transform = "translateY(0)";
-            }}
-          >
-            📝 View your reflection summary
-          </a>
-        )}
-
-        <p
-          style={{
-            fontSize: "var(--font-size-sm)",
-            color: "var(--text-secondary)",
-            marginTop: "1.5rem",
-          }}
-        >
-          {aiSummary
-            ? "Redirecting to your profile in 5 seconds... or view your summary above"
-            : "Redirecting to your profile in 5 seconds..."}
-        </p>
       </div>
     );
   }
@@ -181,6 +149,7 @@ export default function FeedbackForm({
           enneagramStrengths: enneagramData?.strengths || [],
           userId: auth.currentUser?.uid || "",
           userEmail: auth.currentUser?.email || "",
+          userName: auth.currentUser?.displayName || "",
           notifId,
           planId,
         }}

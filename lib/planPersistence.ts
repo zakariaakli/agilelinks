@@ -31,6 +31,7 @@ export interface PlanDocument {
   input: PlanInput;
   goalFrame?: GoalFrame;
   assumptions?: Assumptions;
+  goalName?: string;
   draftMilestones?: any[];
   finalMilestones?: any[];
   reviewNotes?: string[];
@@ -50,17 +51,19 @@ export async function createPlanDocument(planId: string, input: PlanInput): Prom
   });
 }
 
-// Update plan with goalFrame and assumptions (after Pass 1 + 2)
+// Update plan with goalFrame, assumptions, and goalName (after Pass 1 + 2)
 export async function updatePlanWithFrame(
   planId: string,
   goalFrame: GoalFrame,
-  assumptions: Assumptions
+  assumptions: Assumptions,
+  goalName?: string
 ): Promise<void> {
   const planRef = doc(db, 'plans', planId);
   await updateDoc(planRef, {
     status: 'framed',
     goalFrame,
     assumptions,
+    ...(goalName && { goalName }),
     updatedAt: serverTimestamp(),
   });
 }
