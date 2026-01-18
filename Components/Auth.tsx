@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { auth, googleProvider, db } from '../firebase';
 import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { TrackedFirestoreClient } from '../lib/trackedFirestoreClient';
+import { trackAuthSignIn, identifyUser, setUserProperties } from '../lib/analytics';
 import Link from 'next/link';
 
 const Auth = () => {
@@ -48,7 +49,9 @@ const Auth = () => {
         functionName: 'check_user_exists_on_signin'
       });
 
-      if (!userDoc.exists()) {
+      const isNewUser = !userDoc.exists();
+
+      if (isNewUser) {
         await TrackedFirestoreClient.doc(`users/${user.uid}`).set({
           name: user.displayName,
           email: user.email,
@@ -72,6 +75,16 @@ const Auth = () => {
           functionName: 'create_default_companion_settings'
         });
       }
+
+      // Track authentication event
+      trackAuthSignIn('google');
+
+      // Identify user in PostHog
+      identifyUser(user.uid, {
+        email: user.email,
+        name: user.displayName,
+        is_new_user: isNewUser,
+      });
 
       router.push('/');
     } catch (error) {

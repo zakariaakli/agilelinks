@@ -6,6 +6,7 @@ import { auth } from "../firebase";
 import { FeedbackSentiment } from "../types/feedback";
 import Toast, { ToastType } from "./Toast";
 import styles from "../Styles/quickFeedbackModal.module.css";
+import { trackAppFeedback } from "../lib/analytics";
 
 interface Props {
   isOpen: boolean;
@@ -69,6 +70,17 @@ export default function QuickFeedbackModal({ isOpen, onClose }: Props) {
       if (!response.ok) {
         throw new Error("Failed to submit feedback");
       }
+
+      // Track feedback submission
+      const userAgent = navigator.userAgent;
+      const deviceType = /mobile|android|iphone|ipad|ipod/i.test(userAgent) ? 'mobile' : 'desktop';
+
+      trackAppFeedback({
+        sentiment: selectedSentiment,
+        page: pathname || "/",
+        hasComment: comment.trim().length > 0,
+        deviceType,
+      });
 
       setToast({ message: "Thank you for your feedback! 🙏", type: "success" });
 

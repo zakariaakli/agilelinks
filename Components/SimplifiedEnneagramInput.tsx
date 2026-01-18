@@ -9,6 +9,7 @@ import { db } from "../firebase";
 import { EnneagramResult } from "../Models/EnneagramResult";
 import styles from "../Styles/simplifiedEnneagram.module.css";
 import { getEnneagramTypeInfo } from "../Data/enneagramTypeData";
+import { trackEnneagramCompleted } from "../lib/analytics";
 
 interface SimplifiedEnneagramInputProps {
   onComplete?: (result: EnneagramResult) => void;
@@ -170,6 +171,12 @@ const SimplifiedEnneagramInput: React.FC<SimplifiedEnneagramInputProps> = ({
         localStorage.setItem("userTestResult", JSON.stringify(result));
         console.log("✅ Enneagram result saved to localStorage");
       }
+
+      // Track enneagram completion
+      trackEnneagramCompleted(
+        `${selectedType}`,
+        wing ? `${wing}` : undefined
+      );
 
       // Redirect to signup page
       router.push("/signup");

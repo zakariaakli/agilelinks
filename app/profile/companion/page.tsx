@@ -10,6 +10,7 @@ import AutoExpandingTextarea from "../../../Components/AutoExpandingTextarea";
 import MilestoneEditorModal from "../../../Components/MilestoneEditorModal";
 import MilestoneCardCollapsed from "../../../Components/MilestoneCardCollapsed";
 import styles from "../../../Styles/companion.module.css";
+import { trackGoalCreated, trackWizardStepComplete, trackMilestoneEdited } from "../../../lib/analytics";
 
 interface PlanData {
   id?: string;
@@ -944,6 +945,19 @@ const GoalWizard: React.FC = () => {
       );
 
       console.log("Plan created successfully with ID:", docRef.id);
+
+      // Track goal creation event
+      const targetDays = targetDate
+        ? Math.ceil((new Date(targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+        : undefined;
+
+      trackGoalCreated({
+        goalType: goalName || undefined,
+        milestoneCount: milestones.length,
+        hasTimePressure,
+        nudgeFrequency,
+        targetDays,
+      });
 
       // Optional: Update user's document to track their plans
       await updateUserPlansCount(user.uid);

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostHog Direct Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log div {
+            margin-bottom: 8px;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+        .info { color: #00bfff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 PostHog Direct API Test</h1>
+        <p>This bypasses Next.js to test PostHog directly.</p>
+
+        <button onclick="testPostHogAPI()">Send Test Event via API</button>
+        <button onclick="checkNetwork()">Check Network</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const POSTHOG_KEY = 'phc_FzoPmYaHl8l5N1BRI4f1eKWc6VUTU2msOrLQHo0iFS4';
+        const POSTHOG_HOST = 'https://eu.i.posthog.com';
+
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = `[${time}] ${message}`;
+            logEl.appendChild(div);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function testPostHogAPI() {
+            log('🚀 Sending test event to PostHog...', 'info');
+
+            const event = {
+                api_key: POSTHOG_KEY,
+                event: 'test_direct_api',
+                properties: {
+                    test: true,
+                    timestamp: new Date().toISOString(),
+                    source: 'direct_html_test'
+                },
+                timestamp: new Date().toISOString(),
+                distinct_id: 'test_user_' + Date.now()
+            };
+
+            log('📦 Event payload: ' + JSON.stringify(event, null, 2), 'info');
+
+            try {
+                const response = await fetch(`${POSTHOG_HOST}/capture/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(event)
+                });
+
+                log('📡 Response status: ' + response.status, 'info');
+
+                const data = await response.json();
+                log('📥 Response data: ' + JSON.stringify(data), 'success');
+
+                if (response.ok && data.status === 1) {
+                    log('✅ SUCCESS! Event sent to PostHog!', 'success');
+                    log('👉 Check PostHog dashboard in 10-30 seconds', 'success');
+                } else {
+                    log('❌ Failed to send event', 'error');
+                    log('Response: ' + JSON.stringify(data), 'error');
+                }
+            } catch (error) {
+                log('❌ ERROR: ' + error.message, 'error');
+                log('This might be due to CORS, ad blocker, or network issues', 'error');
+            }
+        }
+
+        function checkNetwork() {
+            log('🔍 Network Check Instructions:', 'info');
+            log('1. Open DevTools (F12)', 'info');
+            log('2. Go to Network tab', 'info');
+            log('3. Click "Send Test Event" again', 'info');
+            log('4. Look for POST to "capture/"', 'info');
+            log('5. Click it and check:','info');
+            log('   - Status: should be 200', 'info');
+            log('   - Response: {"status": 1}', 'info');
+        }
+
+        function clearLogs() {
+            document.getElementById('log').innerHTML = '';
+            log('Logs cleared', 'info');
+        }
+
+        // Auto-log on load
+        window.onload = () => {
+            log('✅ Test page loaded', 'success');
+            log('PostHog Key: ' + POSTHOG_KEY.substring(0, 10) + '...', 'info');
+            log('PostHog Host: ' + POSTHOG_HOST, 'info');
+            log('', 'info');
+            log('Click "Send Test Event" to test the API', 'info');
+        };
+    </script>
+</body>
+</html>
