@@ -40,6 +40,7 @@ export const initPostHog = () => {
       capture_pageview: false, // We'll handle page views manually
       capture_pageleave: true,
       autocapture: false, // Disable autocapture for better control
+      capture_performance: false, // Disable Web Vitals to prevent warnings
       debug: process.env.NODE_ENV === 'development', // Enable debug mode in development
     });
 
@@ -181,6 +182,7 @@ export const trackGoalCreated = (data: {
   milestoneCount: number;
   hasTimePressure: boolean;
   nudgeFrequency: string;
+  nudgeDays?: number[]; // Custom day selection for nudges
   targetDays?: number;
 }) => {
   trackEvent('goal_created', data);

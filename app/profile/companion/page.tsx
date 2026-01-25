@@ -19,7 +19,8 @@ interface PlanData {
   goalName?: string;
   targetDate: string;
   hasTimePressure: boolean;
-  nudgeFrequency: "daily" | "weekly";
+  nudgeFrequency: "daily" | "custom";
+  nudgeDays?: number[]; // Day indices: 0=Sunday, 1=Monday, ..., 6=Saturday
   goalFrame?: {
     successCriteria: string;
     failureCriteria: string;
@@ -267,9 +268,10 @@ const GoalWizard: React.FC = () => {
   const [enneagramResult, setEnneagramResult] =
     useState<EnneagramResult | null>(null);
   const [hasTimePressure, setHasTimePressure] = useState<boolean>(false);
-  const [nudgeFrequency, setNudgeFrequency] = useState<"daily" | "weekly">(
-    "weekly"
+  const [nudgeFrequency, setNudgeFrequency] = useState<"daily" | "custom">(
+    "custom"
   );
+  const [nudgeDays, setNudgeDays] = useState<number[]>([0, 3]); // Sunday, Wednesday as default
   const [personalizationInfo, setPersonalizationInfo] = useState<{
     isPersonalized: boolean;
     level: string;
@@ -913,6 +915,7 @@ const GoalWizard: React.FC = () => {
         targetDate,
         hasTimePressure,
         nudgeFrequency,
+        nudgeDays: nudgeFrequency === "custom" ? nudgeDays : (nudgeFrequency === "daily" ? [0, 1, 2, 3, 4, 5, 6] : undefined),
         goalFrame: goalFrame || undefined,
         assumptions: assumptions || undefined,
         milestones,
@@ -956,6 +959,7 @@ const GoalWizard: React.FC = () => {
         milestoneCount: milestones.length,
         hasTimePressure,
         nudgeFrequency,
+        nudgeDays: nudgeFrequency === "custom" ? nudgeDays : undefined,
         targetDays,
       });
 
@@ -1123,7 +1127,10 @@ const GoalWizard: React.FC = () => {
                     name="nudgeFrequency"
                     value="daily"
                     checked={nudgeFrequency === "daily"}
-                    onChange={() => setNudgeFrequency("daily")}
+                    onChange={() => {
+                      setNudgeFrequency("daily");
+                      setNudgeDays([0, 1, 2, 3, 4, 5, 6]); // All days
+                    }}
                   />
                   <div className={styles.nudgeOptionContent}>
                     <span className={styles.nudgeOptionTitle}>
@@ -1139,20 +1146,71 @@ const GoalWizard: React.FC = () => {
                   <input
                     type="radio"
                     name="nudgeFrequency"
-                    value="weekly"
-                    checked={nudgeFrequency === "weekly"}
-                    onChange={() => setNudgeFrequency("weekly")}
+                    value="custom"
+                    checked={nudgeFrequency === "custom"}
+                    onChange={() => {
+                      setNudgeFrequency("custom");
+                      // Keep current nudgeDays selection
+                    }}
                   />
                   <div className={styles.nudgeOptionContent}>
                     <span className={styles.nudgeOptionTitle}>
-                      Weekly Reminders
+                      Custom Schedule
                     </span>
                     <span className={styles.nudgeOptionDescription}>
-                      Receive weekly progress updates for a balanced approach
+                      Choose specific days of the week for reminders
                     </span>
                   </div>
                 </label>
               </div>
+
+              {/* Day selector - only shown when custom is selected */}
+              {nudgeFrequency === "custom" && (
+                <div className={styles.daySelector}>
+                  <h3 className={styles.daySelectorTitle}>Select Days</h3>
+                  <p className={styles.daySelectorHelper}>
+                    Choose which days you'd like to receive reminders:
+                  </p>
+                  <div className={styles.dayButtonsGrid}>
+                    {[
+                      { day: 0, label: "Sun", fullName: "Sunday" },
+                      { day: 1, label: "Mon", fullName: "Monday" },
+                      { day: 2, label: "Tue", fullName: "Tuesday" },
+                      { day: 3, label: "Wed", fullName: "Wednesday" },
+                      { day: 4, label: "Thu", fullName: "Thursday" },
+                      { day: 5, label: "Fri", fullName: "Friday" },
+                      { day: 6, label: "Sat", fullName: "Saturday" },
+                    ].map(({ day, label, fullName }) => (
+                      <button
+                        key={day}
+                        type="button"
+                        className={`${styles.dayButton} ${
+                          nudgeDays.includes(day) ? styles.dayButtonActive : ""
+                        }`}
+                        onClick={() => {
+                          if (nudgeDays.includes(day)) {
+                            // Don't allow deselecting if only one day left
+                            if (nudgeDays.length > 1) {
+                              setNudgeDays(nudgeDays.filter((d) => d !== day));
+                            }
+                          } else {
+                            setNudgeDays([...nudgeDays, day].sort());
+                          }
+                        }}
+                        aria-label={`Toggle ${fullName} reminders`}
+                        aria-pressed={nudgeDays.includes(day)}
+                      >
+                        <span className={styles.dayButtonLabel}>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className={styles.daySelectionSummary}>
+                    {nudgeDays.length === 7
+                      ? "Every day"
+                      : `${nudgeDays.length} day${nudgeDays.length !== 1 ? "s" : ""} selected`}
+                  </p>
+                </div>
+              )}
             </div>
           </>
         );

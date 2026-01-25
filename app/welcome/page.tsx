@@ -13,11 +13,6 @@ export default function WelcomePage() {
       content: (
         <div className={styles.welcomeContent}>
           <div className={styles.hero}>
-            <img
-              src="/stepiva-logo-blue.svg"
-              alt="Stepiva"
-              className={styles.logo}
-            />
             <h2>Know yourself. Grow every day.</h2>
             <p className={styles.tagline}>
               Thank you for being an early tester! This guide will help you get
@@ -88,7 +83,8 @@ export default function WelcomePage() {
                 <h3>Enable Notifications</h3>
                 <p>
                   When prompted, click "Enable Notifications" to receive
-                  personalized milestone reminders at your chosen frequency (daily or weekly).
+                  personalized milestone reminders at your chosen frequency
+                  (daily or weekly).
                 </p>
                 <div className={styles.notificationDemo}>
                   <img
@@ -189,7 +185,8 @@ export default function WelcomePage() {
                   <h3>Enable Notifications</h3>
                   <p>
                     When prompted, tap <strong>"Allow"</strong> to enable push
-                    notifications. You'll receive personalized reminders based on your preference!
+                    notifications. You'll receive personalized reminders based
+                    on your preference!
                   </p>
                 </div>
               </div>
@@ -398,14 +395,6 @@ export default function WelcomePage() {
                 Create a Goal
               </a>
             </div>
-          </div>
-
-          <div className={styles.support}>
-            <p>Need help? Have questions?</p>
-            <p className={styles.email}>
-              Contact us:{" "}
-              <a href="mailto:support@stepiva.com">support@stepiva.com</a>
-            </p>
           </div>
         </div>
       ),

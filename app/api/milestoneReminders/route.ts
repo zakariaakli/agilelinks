@@ -37,7 +37,8 @@ interface PlanData {
   goal: string;
   targetDate: string;
   hasTimePressure: boolean;
-  nudgeFrequency?: "daily" | "weekly"; // Optional for backward compatibility
+  nudgeFrequency?: "daily" | "weekly" | "custom"; // Optional for backward compatibility
+  nudgeDays?: number[]; // Day indices: 0=Sunday, 1=Monday, ..., 6=Saturday
   milestones: Milestone[];
   status: "active" | "completed" | "paused";
   createdAt: any;
@@ -95,9 +96,21 @@ async function processMilestoneReminders(_request: Request) {
 
       // Get plan's nudge frequency preference (default to weekly for backward compatibility)
       const nudgeFrequency = planData.nudgeFrequency || "weekly";
+
+      // Get nudge days (default based on frequency for backward compatibility)
+      let nudgeDays: number[];
+      if (planData.nudgeDays && planData.nudgeDays.length > 0) {
+        nudgeDays = planData.nudgeDays;
+      } else if (nudgeFrequency === "daily") {
+        nudgeDays = [0, 1, 2, 3, 4, 5, 6]; // All days
+      } else {
+        nudgeDays = [1]; // Monday for weekly (backward compatibility)
+      }
+
       console.log(
         `📅 Plan nudge frequency: ${nudgeFrequency}${!planData.nudgeFrequency ? " (default - plan needs migration)" : ""}`
       );
+      console.log(`📅 Nudge days: ${nudgeDays.join(", ")} (${nudgeDays.map(d => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d]).join(", ")})`);
 
       // Check each milestone in the plan
       for (const milestone of planData.milestones || []) {
@@ -120,11 +133,26 @@ async function processMilestoneReminders(_request: Request) {
             `📋 Current milestone found: ${milestone.title} (${milestone.startDate} to ${milestone.dueDate})`
           );
 
+          // Check if today is a nudge day for this plan
+          const todayDayOfWeek = today.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+          const isTodayNudgeDay = nudgeDays.includes(todayDayOfWeek);
+
+          if (!isTodayNudgeDay) {
+            console.log(
+              `⏭️ Today (${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][todayDayOfWeek]}) is not a nudge day for this plan. Skipping.`
+            );
+            continue;
+          }
+
+          console.log(
+            `✅ Today (${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][todayDayOfWeek]}) is a nudge day for this plan.`
+          );
+
           // Check if we already sent a reminder for this milestone recently
-          // Daily: within last 1 day, Weekly: within last 7 days
+          // Daily: within last 1 day, Custom: within last 1 day
 
           // Calculate the lookback period based on nudge frequency
-          const lookbackDays = nudgeFrequency === "daily" ? 1 : 7;
+          const lookbackDays = 1; // Always check for reminders within last 1 day to avoid duplicates
           const lookbackDate = new Date();
           lookbackDate.setDate(lookbackDate.getDate() - lookbackDays);
 
@@ -177,8 +205,9 @@ async function processMilestoneReminders(_request: Request) {
 
           // If no recent reminder exists, create one
           if (shouldCreateReminder) {
+            const dayNames = nudgeDays.map(d => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d]).join(", ");
             console.log(
-              `📬 Creating pending ${nudgeFrequency} reminder for current milestone: ${milestone.title}`
+              `📬 Creating pending reminder for current milestone: ${milestone.title} (schedule: ${dayNames})`
             );
 
             // Create pending notification (AI will process later via GitHub Actions)
@@ -215,7 +244,7 @@ async function processMilestoneReminders(_request: Request) {
             remindersCreated++;
 
             console.log(
-              `✅ Pending ${nudgeFrequency} reminder created: ${milestone.title} (ID: ${notificationRef.id})`
+              `✅ Pending reminder created: ${milestone.title} (ID: ${notificationRef.id})`
             );
           } else {
             console.log(

@@ -140,6 +140,37 @@
   background-clip: text;
 }
 
+.openingContent {
+  max-width: 900px;
+  margin: 60px auto 0;
+  text-align: center;
+}
+
+.openingParagraph {
+  margin-bottom: 40px;
+  font-size: clamp(24px, 3.5vw, 36px);
+  line-height: 1.5;
+  font-weight: 400;
+  color: #ffffff;
+}
+
+.openingParagraphEmphasis {
+  margin-bottom: 48px;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.4;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.openingParagraphSubtext {
+  font-size: clamp(20px, 2.8vw, 28px);
+  line-height: 1.6;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
 .scrollHint {
   position: absolute;
   bottom: 100px;

@@ -119,24 +119,46 @@ export default function LevelsPage() {
     }
   };
 
+  // Progressive XP requirements for each level
+  const getXPRequiredForLevel = (level: number): number => {
+    const xpRequirements: { [key: number]: number } = {
+      1: 0,      // Starting level
+      2: 50,     // Level 1 → 2
+      3: 150,    // Level 2 → 3 (50 + 100)
+      4: 300,    // Level 3 → 4 (150 + 150)
+      5: 500,    // Level 4 → 5 (300 + 200)
+      6: 800,    // Level 5 → 6 (500 + 300)
+      7: 1200,   // Level 6 → 7 (800 + 400)
+      8: 1700,   // Level 7 → 8 (1200 + 500)
+      9: 2300,   // Level 8 → 9 (1700 + 600)
+      10: 3000,  // Level 9 → 10 (2300 + 700)
+    };
+    return xpRequirements[level] || 3000;
+  };
+
   const calculateLevel = (stats: UserStats) => {
     const totalXP =
-      (stats.completedMilestones * 100) +
-      (stats.totalNudgeResponses * 25) +
-      (stats.nudgeStreak * 10) +
-      (stats.totalPlans * 200) +
-      (stats.daysActive * 5);
+      (stats.completedMilestones * 150) +
+      (stats.totalNudgeResponses * 40) +
+      (stats.nudgeStreak * 20) +
+      (stats.totalPlans * 300) +
+      (stats.daysActive * 10);
 
-    return Math.min(Math.floor(totalXP / 500) + 1, MAX_LEVEL);
+    for (let level = MAX_LEVEL; level >= 1; level--) {
+      if (totalXP >= getXPRequiredForLevel(level)) {
+        return level;
+      }
+    }
+    return 1;
   };
 
   const calculateTotalXP = (stats: UserStats) => {
     return (
-      (stats.completedMilestones * 100) +
-      (stats.totalNudgeResponses * 25) +
-      (stats.nudgeStreak * 10) +
-      (stats.totalPlans * 200) +
-      (stats.daysActive * 5)
+      (stats.completedMilestones * 150) +
+      (stats.totalNudgeResponses * 40) +
+      (stats.nudgeStreak * 20) +
+      (stats.totalPlans * 300) +
+      (stats.daysActive * 10)
     );
   };
 
@@ -144,22 +166,26 @@ export default function LevelsPage() {
     const currentLevel = calculateLevel(stats);
 
     if (currentLevel >= MAX_LEVEL) {
+      const maxXP = getXPRequiredForLevel(MAX_LEVEL);
       return {
-        currentXP: 500,
+        currentXP: maxXP,
         neededXP: 0,
         progressPercentage: 100
       };
     }
 
     const totalXP = calculateTotalXP(stats);
-    const xpForCurrentLevel = (currentLevel - 1) * 500;
+    const xpForCurrentLevel = getXPRequiredForLevel(currentLevel);
+    const xpForNextLevel = getXPRequiredForLevel(currentLevel + 1);
+    const xpNeededForThisLevel = xpForNextLevel - xpForCurrentLevel;
     const currentLevelProgress = totalXP - xpForCurrentLevel;
-    const progressPercentage = (currentLevelProgress / 500) * 100;
+    const progressPercentage = (currentLevelProgress / xpNeededForThisLevel) * 100;
 
     return {
       currentXP: currentLevelProgress,
-      neededXP: 500 - currentLevelProgress,
-      progressPercentage: Math.min(progressPercentage, 100)
+      neededXP: xpNeededForThisLevel - currentLevelProgress,
+      progressPercentage: Math.min(progressPercentage, 100),
+      xpNeededForThisLevel
     };
   };
 
@@ -238,7 +264,7 @@ export default function LevelsPage() {
 
   const currentLevel = calculateLevel(userStats);
   const totalXP = calculateTotalXP(userStats);
-  const { currentXP, neededXP, progressPercentage } = calculateXPForNextLevel(userStats);
+  const { currentXP, neededXP, progressPercentage, xpNeededForThisLevel } = calculateXPForNextLevel(userStats);
   const achievements = generateAchievements(userStats);
   const unlockedAchievements = achievements.filter(a => a.unlocked);
   const isMaxLevel = currentLevel >= MAX_LEVEL;
@@ -286,8 +312,8 @@ export default function LevelsPage() {
                   />
                 </div>
                 <div className={styles.xpText}>
-                  {currentXP} / 500 XP
-                  <span className={styles.xpNeeded}>({neededXP} XP needed)</span>
+                  {Math.round(currentXP)} / {xpNeededForThisLevel} XP
+                  <span className={styles.xpNeeded}>({Math.round(neededXP)} XP needed)</span>
                 </div>
               </>
             )}
@@ -305,27 +331,27 @@ export default function LevelsPage() {
             <div className={styles.xpItem}>
               <span className={styles.xpIcon}>🎯</span>
               <span className={styles.xpAction}>Create a Plan</span>
-              <span className={styles.xpValue}>+200 XP</span>
+              <span className={styles.xpValue}>+300 XP</span>
             </div>
             <div className={styles.xpItem}>
               <span className={styles.xpIcon}>✅</span>
               <span className={styles.xpAction}>Complete a Milestone</span>
-              <span className={styles.xpValue}>+100 XP</span>
+              <span className={styles.xpValue}>+150 XP</span>
             </div>
             <div className={styles.xpItem}>
               <span className={styles.xpIcon}>💬</span>
               <span className={styles.xpAction}>Respond to a Nudge</span>
-              <span className={styles.xpValue}>+25 XP</span>
+              <span className={styles.xpValue}>+40 XP</span>
             </div>
             <div className={styles.xpItem}>
               <span className={styles.xpIcon}>🔥</span>
               <span className={styles.xpAction}>Maintain Streak (per day)</span>
-              <span className={styles.xpValue}>+10 XP</span>
+              <span className={styles.xpValue}>+20 XP</span>
             </div>
             <div className={styles.xpItem}>
               <span className={styles.xpIcon}>📅</span>
               <span className={styles.xpAction}>Daily Activity</span>
-              <span className={styles.xpValue}>+5 XP</span>
+              <span className={styles.xpValue}>+10 XP</span>
             </div>
           </div>
         </div>

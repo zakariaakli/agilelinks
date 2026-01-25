@@ -3,7 +3,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "../globals.css";
 import Seo from "../Components/Seo";
 import Header from "../Components/Header";
-import Footer from "../Components/Footer";
 import MobileBottomNav from "../Components/MobileBottomNav";
 import CookieConsent from "../Components/CookieConsent";
 import ClientProviders from "../Components/ClientProviders";
@@ -51,7 +50,6 @@ export default function RootLayout({
         <main>
           {children}
         </main>
-        <Footer />
         <MobileBottomNav />
         <CookieConsent />
         <FeedbackButton />
