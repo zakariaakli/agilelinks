@@ -21,6 +21,14 @@ export default function Home() {
       } else {
         // User is not signed in, allow them to see the homepage
         setIsCheckingAuth(false);
+
+        // Check if URL has #test hash to auto-show onboarding
+        if (window.location.hash === '#test') {
+          setShowOnboarding(true);
+          setTimeout(() => {
+            document.getElementById('test')?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }
       }
     });
 

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import styles from '../Styles/pushNotificationManager.module.css';
 
 const PushNotificationManager: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -186,44 +187,19 @@ const PushNotificationManager: React.FC = () => {
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      right: '20px',
-      backgroundColor: '#7c3aed',
-      color: 'white',
-      padding: '16px 20px',
-      borderRadius: '12px',
-      boxShadow: '0 4px 12px rgba(124, 58, 237, 0.3)',
-      zIndex: 1000,
-      maxWidth: '320px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '24px' }}>🔔</span>
-        <strong style={{ fontSize: '15px' }}>Get notified about your milestones</strong>
+    <div className={styles.banner} data-push-banner="true">
+      <div className={styles.header}>
+        <span className={styles.icon}>🔔</span>
+        <strong className={styles.title}>Get notified about your milestones</strong>
       </div>
-      <p style={{ margin: 0, fontSize: '13px', opacity: 0.95, lineHeight: '1.5' }}>
+      <p className={styles.description}>
         Never miss a milestone reminder. Enable browser notifications to stay on track with your goals.
       </p>
-      <div style={{ display: 'flex', gap: '8px' }}>
+      <div className={styles.actions}>
         <button
           onClick={subscribeToPush}
           disabled={isLoading}
-          style={{
-            flex: 1,
-            padding: '10px 16px',
-            backgroundColor: 'white',
-            color: '#7c3aed',
-            border: 'none',
-            borderRadius: '8px',
-            fontWeight: 600,
-            cursor: isLoading ? 'not-allowed' : 'pointer',
-            fontSize: '14px',
-            opacity: isLoading ? 0.7 : 1
-          }}
+          className={styles.enableButton}
         >
           {isLoading ? 'Enabling...' : 'Enable Notifications'}
         </button>
@@ -233,15 +209,7 @@ const PushNotificationManager: React.FC = () => {
             const banner = document.querySelector('[data-push-banner]') as HTMLElement;
             if (banner) banner.style.display = 'none';
           }}
-          style={{
-            padding: '10px',
-            backgroundColor: 'transparent',
-            color: 'white',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px'
-          }}
+          className={styles.laterButton}
         >
           Later
         </button>

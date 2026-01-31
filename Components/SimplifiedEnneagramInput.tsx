@@ -4,12 +4,11 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
-import { db } from "../firebase";
 import { EnneagramResult } from "../Models/EnneagramResult";
 import styles from "../Styles/simplifiedEnneagram.module.css";
 import { getEnneagramTypeInfo } from "../Data/enneagramTypeData";
 import { trackEnneagramCompleted } from "../lib/analytics";
+import { TrackedFirestoreClient } from "../lib/trackedFirestoreClient";
 
 interface SimplifiedEnneagramInputProps {
   onComplete?: (result: EnneagramResult) => void;
@@ -141,6 +140,9 @@ const SimplifiedEnneagramInput: React.FC<SimplifiedEnneagramInputProps> = ({
         ? `You are an Enneagram Type ${selectedType}w${wing} - ${TYPE_NAMES[selectedType]}${wingStrengthText} ${TYPE_NAMES[wing]} wing. ${getTypeDescription(selectedType, wing)}`
         : `You are an Enneagram Type ${selectedType} - ${TYPE_NAMES[selectedType]}.`;
 
+      // Get complete type information for detailed personality data
+      const typeInfo = getEnneagramTypeInfo(selectedType, wing);
+
       // Create EnneagramResult object with scores
       // Main type: 15, Wing: varies by strength (12/9/6), Others: 3
       const wingScore = getWingScore();
@@ -155,31 +157,54 @@ const SimplifiedEnneagramInput: React.FC<SimplifiedEnneagramInputProps> = ({
         enneagramType8: selectedType === 8 ? 15 : (wing === 8 ? wingScore : 3),
         enneagramType9: selectedType === 9 ? 15 : (wing === 9 ? wingScore : 3),
         summary,
+        // Save complete personality data
+        coreMotivation: typeInfo.coreMotivation,
+        keyStrengths: typeInfo.keyStrengths,
+        growthAreas: typeInfo.growthAreas,
+        blindSpots: typeInfo.blindSpots,
       };
 
       // Save to Firestore if user is logged in
       const user = auth.currentUser;
       if (user) {
-        await setDoc(
-          doc(db, "users", user.uid),
+        await TrackedFirestoreClient.doc(`users/${user.uid}`).set(
           { enneagramResult: result },
-          { merge: true }
+          {
+            userId: user.uid,
+            userEmail: user.email || undefined,
+            source: 'enneagram_onboarding',
+            functionName: 'save_enneagram_result',
+          }
         );
         console.log("✅ Enneagram result saved to Firestore");
+
+        // Track enneagram completion
+        trackEnneagramCompleted(
+          `${selectedType}`,
+          wing ? `${wing}` : undefined
+        );
+
+        // Check if we're in callback mode (profile catch-up) or redirect mode (signup)
+        if (onComplete) {
+          // Profile page catch-up mode - let parent handle next steps
+          onComplete(result);
+        } else {
+          // Original signup flow
+          router.push("/signup");
+        }
       } else {
         // Save to localStorage as fallback for signup page
         localStorage.setItem("userTestResult", JSON.stringify(result));
         console.log("✅ Enneagram result saved to localStorage");
+
+        // Track enneagram completion
+        trackEnneagramCompleted(
+          `${selectedType}`,
+          wing ? `${wing}` : undefined
+        );
+
+        router.push("/signup");
       }
-
-      // Track enneagram completion
-      trackEnneagramCompleted(
-        `${selectedType}`,
-        wing ? `${wing}` : undefined
-      );
-
-      // Redirect to signup page
-      router.push("/signup");
     } catch (error) {
       console.error("Error saving Enneagram result:", error);
       setIsSubmitting(false);

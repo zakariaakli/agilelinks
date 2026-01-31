@@ -293,12 +293,12 @@ const Header = () => {
               >
                 Log In
               </Link>
-              <Link
-                href="/signup"
+              <a
+                href="/#test"
                 className={`${styles.button} ${styles.signupButton}`}
               >
                 <SparklesIcon size={16} /> Get Started
-              </Link>
+              </a>
             </>
           )}
         </div>

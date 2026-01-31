@@ -60,8 +60,27 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
       const userData = userDoc.data();
       const enneagramResult = userData.enneagramResult;
       if (enneagramResult && enneagramResult.summary) {
+        // Start with summary
         personalityContext = enneagramResult.summary;
-        console.log('Personality context found:', personalityContext);
+
+        // Enhance with detailed personality data if available
+        if (enneagramResult.coreMotivation) {
+          personalityContext += `\n\nCore Motivation: ${enneagramResult.coreMotivation}`;
+        }
+
+        if (enneagramResult.keyStrengths && enneagramResult.keyStrengths.length > 0) {
+          personalityContext += `\n\nKey Strengths:\n${enneagramResult.keyStrengths.map((s: string) => `- ${s}`).join('\n')}`;
+        }
+
+        if (enneagramResult.growthAreas && enneagramResult.growthAreas.length > 0) {
+          personalityContext += `\n\nGrowth Areas:\n${enneagramResult.growthAreas.map((g: string) => `- ${g}`).join('\n')}`;
+        }
+
+        if (enneagramResult.blindSpots && enneagramResult.blindSpots.length > 0) {
+          personalityContext += `\n\nBlind Spots:\n${enneagramResult.blindSpots.map((b: string) => `- ${b}`).join('\n')}`;
+        }
+
+        console.log('Enhanced personality context with detailed data:', personalityContext);
 
         // Extract Enneagram type number from summary
         const typeMatch = personalityContext.match(/enneagram type (\d+)/i);

@@ -938,3 +938,95 @@
     transform: scale(1);
   }
 }
+
+/* Enneagram Onboarding Modal Styles */
+.onboardingModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.onboardingModalContent {
+  background: white;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  animation: slideUpModal 0.4s ease-out;
+  margin: auto;
+}
+
+.onboardingHeader {
+  padding: 2rem 2rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.onboardingTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.onboardingSubtitle {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  opacity: 0.95;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpModal {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsiveness for modal */
+@media (max-width: 768px) {
+  .onboardingModalContent {
+    max-width: 95%;
+    max-height: 95vh;
+  }
+
+  .onboardingHeader {
+    padding: 1.5rem 1rem 0.75rem;
+  }
+
+  .onboardingTitle {
+    font-size: 1.5rem;
+  }
+
+  .onboardingSubtitle {
+    font-size: 0.9rem;
+  }
+}

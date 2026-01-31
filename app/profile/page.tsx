@@ -18,6 +18,7 @@ import {
   EyeIcon,
   TargetIcon,
 } from "../../Components/Icons";
+import SimplifiedEnneagramInput from "../../Components/SimplifiedEnneagramInput";
 
 interface PlanData {
   id: string;
@@ -76,6 +77,7 @@ function ProfileContent() {
   const [userPlans, setUserPlans] = useState<PlanData[]>([]);
   const [expandedPlans, setExpandedPlans] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [showEnneagramOnboarding, setShowEnneagramOnboarding] = useState(false);
   const [milestoneNotifications, setMilestoneNotifications] = useState<
     Record<string, Notification[]>
   >({});
@@ -103,6 +105,15 @@ function ProfileContent() {
     setToast({ message, type });
   };
 
+  const handleEnneagramComplete = async (result: EnneagramResult) => {
+    // Update local state
+    setEnneagramResult(result);
+    setShowEnneagramOnboarding(false);
+
+    // Show success feedback
+    showToast("Personality profile completed! 🎉", "success");
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -126,6 +137,11 @@ function ProfileContent() {
       if (userDoc.exists()) {
         const data = userDoc.data();
         setEnneagramResult(data?.enneagramResult as EnneagramResult);
+
+        // Check if enneagramResult is missing and show onboarding modal
+        if (!data?.enneagramResult) {
+          setShowEnneagramOnboarding(true);
+        }
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
@@ -532,6 +548,24 @@ function ProfileContent() {
 
   return (
     <div className={`${styles.profileContainer} container my20`}>
+      {/* Enneagram Onboarding Modal */}
+      {showEnneagramOnboarding && (
+        <div className={styles.onboardingModalOverlay}>
+          <div className={styles.onboardingModalContent}>
+            <div className={styles.onboardingHeader}>
+              <h2 className={styles.onboardingTitle}>
+                Complete Your Personality Profile
+              </h2>
+              <p className={styles.onboardingSubtitle}>
+                To personalize your goal milestones and provide tailored coaching,
+                we need to understand your personality type. This will only take a minute!
+              </p>
+            </div>
+            <SimplifiedEnneagramInput onComplete={handleEnneagramComplete} />
+          </div>
+        </div>
+      )}
+
       {/* Plans Section */}
       {userPlans.length > 0 ? (
         <div className={`${styles.plansGrid} gridAutoFit gapLg`}>

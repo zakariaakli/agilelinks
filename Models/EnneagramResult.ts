@@ -8,5 +8,9 @@
       enneagramType7: number,
       enneagramType8: number,
       enneagramType9: number,
-      summary: string
+      summary: string,
+      coreMotivation?: string,
+      keyStrengths?: string[],
+      growthAreas?: string[],
+      blindSpots?: string[]
       }
