@@ -1,4 +1,55 @@
-# Claude Development Guidelines
+# Project Configuration
+
+## Development Philosophy
+
+- Implement ONLY explicitly requested features
+- Choose the simplest solution that meets requirements
+- Write production-grade code from the start (no placeholders)
+- Design for scalability, but avoid premature optimization
+
+## Code Architecture Standards
+
+### General Principles
+
+- Follow SOLID principles and clean architecture patterns
+- Maximum file size: 300 lines (refactor into modules if needed)
+- Design for testability with clear separation of concerns
+- Use dependency injection where appropriate
+
+### Quality Requirements
+
+- Include comprehensive type safety (TypeScript/Python type hints)
+- Implement proper error handling and validation
+- Add logging hooks for observability
+- Document architectural decisions in code comments
+
+## Implementation Workflow
+
+Before implementing:
+
+1. Analyze the request and existing codebase context
+2. Propose approach and identify potential issues
+3. Wait for confirmation before proceeding
+4. Implement with proper error handling and tests
+5. Explain architectural decisions made
+
+## Constraints
+
+- No dummy implementations - all code must be functional
+- Avoid over-engineering: implement only requested features
+- No speculative features or "nice to have" additions
+- Follow established patterns in the existing codebase
+
+## Available Customizations
+
+- Rules: See `.claude/rules/` for domain-specific patterns
+- Skills: Use `/list-skills` to see available workflows
+
+## Documentation
+
+- Each time you are asked for a commit message, check first if the changes where documented. if not, ask the user if a documentation is needed. If the response is yes, look into the existing .md files and see if the changes documentatin can be done there, if not create a new md. file and document the changes
+- Documentation should be always consice and expert level without overdetailing technical implemntation
+- All documentation should go in the folder: Functional Documentation
 
 ## Commit Message Format
 
