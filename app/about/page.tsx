@@ -277,7 +277,7 @@ export default function AboutPage() {
         className={styles.scene}
         style={{
           background:
-            "radial-gradient(circle at center, rgba(34, 211, 238, 0.1) 0%, rgba(0, 0, 0, 1) 60%)",
+            "rgba(61, 122, 74, 0.05)",
         }}
       >
         <div className={styles.sceneContent} style={{ maxWidth: "1000px" }}>
@@ -326,8 +326,8 @@ export default function AboutPage() {
                   alignItems: "center",
                   gap: "20px",
                   padding: "20px 28px",
-                  background: "rgba(139, 92, 246, 0.08)",
-                  border: "1px solid rgba(139, 92, 246, 0.2)",
+                  background: "rgba(156, 75, 32, 0.08)",
+                  border: "1px solid rgba(156, 75, 32, 0.2)",
                   borderRadius: "16px",
                   transition: "all 0.3s ease",
                 }}
@@ -338,12 +338,12 @@ export default function AboutPage() {
                     height: "48px",
                     minWidth: "48px",
                     borderRadius: "12px",
-                    background: "linear-gradient(135deg, #8b5cf6, #a78bfa)",
+                    background: "#9C4B20",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "24px",
-                    boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
+                    boxShadow: "0 4px 12px rgba(156, 75, 32, 0.3)",
                   }}
                 >
                   🧬
@@ -369,8 +369,8 @@ export default function AboutPage() {
                   alignItems: "center",
                   gap: "20px",
                   padding: "20px 28px",
-                  background: "rgba(236, 72, 153, 0.08)",
-                  border: "1px solid rgba(236, 72, 153, 0.2)",
+                  background: "rgba(198, 139, 44, 0.08)",
+                  border: "1px solid rgba(198, 139, 44, 0.2)",
                   borderRadius: "16px",
                   transition: "all 0.3s ease",
                 }}
@@ -381,12 +381,12 @@ export default function AboutPage() {
                     height: "48px",
                     minWidth: "48px",
                     borderRadius: "12px",
-                    background: "linear-gradient(135deg, #ec4899, #f472b6)",
+                    background: "#C68B2C",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "24px",
-                    boxShadow: "0 4px 12px rgba(236, 72, 153, 0.3)",
+                    boxShadow: "0 4px 12px rgba(198, 139, 44, 0.3)",
                   }}
                 >
                   💬
@@ -412,8 +412,8 @@ export default function AboutPage() {
                   alignItems: "center",
                   gap: "20px",
                   padding: "20px 28px",
-                  background: "rgba(34, 211, 238, 0.08)",
-                  border: "1px solid rgba(34, 211, 238, 0.2)",
+                  background: "rgba(61, 122, 74, 0.08)",
+                  border: "1px solid rgba(61, 122, 74, 0.2)",
                   borderRadius: "16px",
                   transition: "all 0.3s ease",
                 }}
@@ -424,12 +424,12 @@ export default function AboutPage() {
                     height: "48px",
                     minWidth: "48px",
                     borderRadius: "12px",
-                    background: "linear-gradient(135deg, #22d3ee, #67e8f9)",
+                    background: "#6BA375",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "24px",
-                    boxShadow: "0 4px 12px rgba(34, 211, 238, 0.3)",
+                    boxShadow: "0 4px 12px rgba(61, 122, 74, 0.3)",
                   }}
                 >
                   🎯
@@ -455,8 +455,8 @@ export default function AboutPage() {
                   alignItems: "center",
                   gap: "20px",
                   padding: "20px 28px",
-                  background: "rgba(139, 92, 246, 0.08)",
-                  border: "1px solid rgba(139, 92, 246, 0.2)",
+                  background: "rgba(156, 75, 32, 0.08)",
+                  border: "1px solid rgba(156, 75, 32, 0.2)",
                   borderRadius: "16px",
                   transition: "all 0.3s ease",
                 }}
@@ -467,12 +467,12 @@ export default function AboutPage() {
                     height: "48px",
                     minWidth: "48px",
                     borderRadius: "12px",
-                    background: "linear-gradient(135deg, #8b5cf6, #a78bfa)",
+                    background: "#9C4B20",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "24px",
-                    boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)",
+                    boxShadow: "0 4px 12px rgba(156, 75, 32, 0.3)",
                   }}
                 >
                   🔔
@@ -498,8 +498,8 @@ export default function AboutPage() {
                   alignItems: "center",
                   gap: "20px",
                   padding: "20px 28px",
-                  background: "rgba(236, 72, 153, 0.08)",
-                  border: "1px solid rgba(236, 72, 153, 0.2)",
+                  background: "rgba(198, 139, 44, 0.08)",
+                  border: "1px solid rgba(198, 139, 44, 0.2)",
                   borderRadius: "16px",
                   transition: "all 0.3s ease",
                 }}
@@ -510,12 +510,12 @@ export default function AboutPage() {
                     height: "48px",
                     minWidth: "48px",
                     borderRadius: "12px",
-                    background: "linear-gradient(135deg, #ec4899, #f472b6)",
+                    background: "#C68B2C",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "24px",
-                    boxShadow: "0 4px 12px rgba(236, 72, 153, 0.3)",
+                    boxShadow: "0 4px 12px rgba(198, 139, 44, 0.3)",
                   }}
                 >
                   🧠
@@ -593,14 +593,14 @@ export default function AboutPage() {
                 style={{
                   padding: "40px 28px",
                   background:
-                    "linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(139, 92, 246, 0.15))",
-                  border: "1px solid rgba(139, 92, 246, 0.3)",
+                    "rgba(156, 75, 32, 0.1)",
+                  border: "1px solid rgba(156, 75, 32, 0.3)",
                   borderRadius: "24px",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  boxShadow: "0 8px 32px rgba(139, 92, 246, 0.2)",
+                  boxShadow: "0 8px 32px rgba(156, 75, 32, 0.2)",
                   backdropFilter: "blur(10px)",
                 }}
               >
@@ -609,7 +609,7 @@ export default function AboutPage() {
                     width: "72px",
                     height: "72px",
                     borderRadius: "20px",
-                    background: "linear-gradient(135deg, #8b5cf6, #ec4899)",
+                    background: "#9C4B20",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -618,7 +618,7 @@ export default function AboutPage() {
                     color: "#ffffff",
                     marginBottom: "24px",
                     boxShadow:
-                      "0 8px 24px rgba(139, 92, 246, 0.5), inset 0 -2px 8px rgba(0, 0, 0, 0.2)",
+                      "0 8px 24px rgba(156, 75, 32, 0.5), inset 0 -2px 8px rgba(0, 0, 0, 0.2)",
                     position: "relative",
                   }}
                 >
@@ -670,14 +670,14 @@ export default function AboutPage() {
                 style={{
                   padding: "40px 28px",
                   background:
-                    "linear-gradient(135deg, rgba(236, 72, 153, 0.05), rgba(236, 72, 153, 0.15))",
-                  border: "1px solid rgba(236, 72, 153, 0.3)",
+                    "rgba(198, 139, 44, 0.1)",
+                  border: "1px solid rgba(198, 139, 44, 0.3)",
                   borderRadius: "24px",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  boxShadow: "0 8px 32px rgba(236, 72, 153, 0.2)",
+                  boxShadow: "0 8px 32px rgba(198, 139, 44, 0.2)",
                   backdropFilter: "blur(10px)",
                 }}
               >
@@ -686,7 +686,7 @@ export default function AboutPage() {
                     width: "72px",
                     height: "72px",
                     borderRadius: "20px",
-                    background: "linear-gradient(135deg, #ec4899, #22d3ee)",
+                    background: "#C68B2C",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -695,7 +695,7 @@ export default function AboutPage() {
                     color: "#ffffff",
                     marginBottom: "24px",
                     boxShadow:
-                      "0 8px 24px rgba(236, 72, 153, 0.5), inset 0 -2px 8px rgba(0, 0, 0, 0.2)",
+                      "0 8px 24px rgba(198, 139, 44, 0.5), inset 0 -2px 8px rgba(0, 0, 0, 0.2)",
                     position: "relative",
                   }}
                 >
@@ -746,14 +746,14 @@ export default function AboutPage() {
                 style={{
                   padding: "40px 28px",
                   background:
-                    "linear-gradient(135deg, rgba(34, 211, 238, 0.05), rgba(34, 211, 238, 0.15))",
-                  border: "1px solid rgba(34, 211, 238, 0.3)",
+                    "rgba(61, 122, 74, 0.1)",
+                  border: "1px solid rgba(61, 122, 74, 0.3)",
                   borderRadius: "24px",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  boxShadow: "0 8px 32px rgba(34, 211, 238, 0.2)",
+                  boxShadow: "0 8px 32px rgba(61, 122, 74, 0.2)",
                   backdropFilter: "blur(10px)",
                 }}
               >
@@ -762,7 +762,7 @@ export default function AboutPage() {
                     width: "72px",
                     height: "72px",
                     borderRadius: "20px",
-                    background: "linear-gradient(135deg, #22d3ee, #8b5cf6)",
+                    background: "#6BA375",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -771,7 +771,7 @@ export default function AboutPage() {
                     color: "#ffffff",
                     marginBottom: "24px",
                     boxShadow:
-                      "0 8px 24px rgba(34, 211, 238, 0.5), inset 0 -2px 8px rgba(0, 0, 0, 0.2)",
+                      "0 8px 24px rgba(61, 122, 74, 0.5), inset 0 -2px 8px rgba(0, 0, 0, 0.2)",
                     position: "relative",
                   }}
                 >
@@ -823,14 +823,14 @@ export default function AboutPage() {
                 style={{
                   padding: "40px 28px",
                   background:
-                    "linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(139, 92, 246, 0.15))",
-                  border: "1px solid rgba(139, 92, 246, 0.3)",
+                    "rgba(156, 75, 32, 0.1)",
+                  border: "1px solid rgba(156, 75, 32, 0.3)",
                   borderRadius: "24px",
                   position: "relative",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  boxShadow: "0 8px 32px rgba(139, 92, 246, 0.2)",
+                  boxShadow: "0 8px 32px rgba(156, 75, 32, 0.2)",
                   backdropFilter: "blur(10px)",
                 }}
               >
@@ -839,7 +839,7 @@ export default function AboutPage() {
                     width: "72px",
                     height: "72px",
                     borderRadius: "20px",
-                    background: "linear-gradient(135deg, #8b5cf6, #22d3ee)",
+                    background: "#9C4B20",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -848,7 +848,7 @@ export default function AboutPage() {
                     color: "#ffffff",
                     marginBottom: "24px",
                     boxShadow:
-                      "0 8px 24px rgba(139, 92, 246, 0.5), inset 0 -2px 8px rgba(0, 0, 0, 0.2)",
+                      "0 8px 24px rgba(156, 75, 32, 0.5), inset 0 -2px 8px rgba(0, 0, 0, 0.2)",
                     position: "relative",
                   }}
                 >

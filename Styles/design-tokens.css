@@ -1,84 +1,84 @@
 /**
- * AgileLinks Design System - Design Tokens
- * Foundation for consistent styling across the platform
+ * Stepiva Design System - Design Tokens
+ * Warm Study palette: copper accent, warm neutrals, content-first
  */
 
 :root {
   /* ==========================================
-     COLORS - Professional Modern Palette
+     COLORS - Warm Study Palette
      ========================================== */
-  
-  /* Primary Brand Colors - Indigo */
-  --color-primary-50: #eef2ff;
-  --color-primary-100: #e0e7ff;
-  --color-primary-200: #c7d2fe;
-  --color-primary-300: #a5b4fc;
-  --color-primary-400: #818cf8;
-  --color-primary-500: #6366f1;  /* Main brand color */
-  --color-primary-600: #4f46e5;
-  --color-primary-700: #4338ca;
-  --color-primary-800: #3730a3;
-  --color-primary-900: #312e81;
-  --color-primary-950: #1e1b4b;
 
-  /* Secondary Colors - Emerald (Success/Growth) */
-  --color-secondary-50: #ecfdf5;
-  --color-secondary-100: #d1fae5;
-  --color-secondary-200: #a7f3d0;
-  --color-secondary-300: #6ee7b7;
-  --color-secondary-400: #34d399;
-  --color-secondary-500: #10b981;  /* Main secondary */
-  --color-secondary-600: #059669;
-  --color-secondary-700: #047857;
-  --color-secondary-800: #065f46;
-  --color-secondary-900: #064e3b;
+  /* Primary Brand Colors - Deep Copper */
+  --color-primary-50: #FDF0E7;
+  --color-primary-100: #FAE0CE;
+  --color-primary-200: #F0C4A0;
+  --color-primary-300: #D9996A;
+  --color-primary-400: #C27A3E;
+  --color-primary-500: #9C4B20;  /* Main brand color - deep copper */
+  --color-primary-600: #7D3C19;
+  --color-primary-700: #632F14;
+  --color-primary-800: #4A2310;
+  --color-primary-900: #35190B;
+  --color-primary-950: #1F0E06;
 
-  /* Accent Colors - Amber (Energy/Attention) */
-  --color-accent-50: #fffbeb;
-  --color-accent-100: #fef3c7;
-  --color-accent-200: #fde68a;
-  --color-accent-300: #fcd34d;
-  --color-accent-400: #fbbf24;
-  --color-accent-500: #f59e0b;  /* Main accent */
-  --color-accent-600: #d97706;
-  --color-accent-700: #b45309;
-  --color-accent-800: #92400e;
-  --color-accent-900: #78350f;
+  /* Secondary Colors - Forest Sage (Success/Growth) */
+  --color-secondary-50: #EEF5EF;
+  --color-secondary-100: #DCEADE;
+  --color-secondary-200: #B8D5BC;
+  --color-secondary-300: #8FBC96;
+  --color-secondary-400: #6BA273;
+  --color-secondary-500: #3D7A4A;  /* Main secondary - forest sage */
+  --color-secondary-600: #32653D;
+  --color-secondary-700: #274F30;
+  --color-secondary-800: #1D3A24;
+  --color-secondary-900: #132618;
+
+  /* Accent Colors - Warm Gold (Active/Energy) */
+  --color-accent-50: #FDF6E7;
+  --color-accent-100: #FAEDCF;
+  --color-accent-200: #F3D89A;
+  --color-accent-300: #E6BF65;
+  --color-accent-400: #D4A843;
+  --color-accent-500: #C68B2C;  /* Main accent - warm gold */
+  --color-accent-600: #A07023;
+  --color-accent-700: #7A561B;
+  --color-accent-800: #543C13;
+  --color-accent-900: #3B2A0D;
 
   /* Semantic Colors */
-  --color-success-50: #ecfdf5;
-  --color-success-500: #10b981;
-  --color-success-600: #059669;
-  --color-success-700: #047857;
+  --color-success-50: #EEF5EF;
+  --color-success-500: #3D7A4A;
+  --color-success-600: #32653D;
+  --color-success-700: #274F30;
 
-  --color-warning-50: #fffbeb;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
+  --color-warning-50: #FDF6E7;
+  --color-warning-500: #C68B2C;
+  --color-warning-600: #A07023;
+  --color-warning-700: #7A561B;
 
-  --color-error-50: #fef2f2;
-  --color-error-500: #ef4444;
-  --color-error-600: #dc2626;
-  --color-error-700: #b91c1c;
+  --color-error-50: #FDF0EE;
+  --color-error-500: #B84A42;
+  --color-error-600: #9C3D36;
+  --color-error-700: #7F312B;
 
-  --color-info-50: #eff6ff;
-  --color-info-500: #3b82f6;
-  --color-info-600: #2563eb;
-  --color-info-700: #1d4ed8;
+  --color-info-50: #EEF2F7;
+  --color-info-500: #4A7194;
+  --color-info-600: #3C5D7D;
+  --color-info-700: #2F4A65;
 
-  /* Neutral Colors - Modern Gray Scale */
+  /* Neutral Colors - Warm Stone Scale */
   --color-neutral-0: #ffffff;
-  --color-neutral-50: #f9fafb;
-  --color-neutral-100: #f3f4f6;
-  --color-neutral-200: #e5e7eb;
-  --color-neutral-300: #d1d5db;
-  --color-neutral-400: #9ca3af;
-  --color-neutral-500: #6b7280;
-  --color-neutral-600: #4b5563;
-  --color-neutral-700: #374151;
-  --color-neutral-800: #1f2937;
-  --color-neutral-900: #111827;
-  --color-neutral-950: #030712;
+  --color-neutral-50: #FAF9F7;
+  --color-neutral-100: #F5F3F0;
+  --color-neutral-200: #E8E4DF;
+  --color-neutral-300: #D5CFC8;
+  --color-neutral-400: #9C9690;
+  --color-neutral-500: #6B6560;
+  --color-neutral-600: #57524D;
+  --color-neutral-700: #44403C;
+  --color-neutral-800: #302C28;
+  --color-neutral-900: #1A1714;
+  --color-neutral-950: #0D0B0A;
 
   /* ==========================================
      TYPOGRAPHY - Inter Font System

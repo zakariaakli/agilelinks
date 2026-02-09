@@ -143,7 +143,7 @@ export default function CommitmentsPage() {
   if (loading) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
-        <LoaderIcon size={32} color="#6366f1" />
+        <LoaderIcon size={32} color="#9C4B20" />
       </div>
     );
   }
@@ -159,13 +159,13 @@ export default function CommitmentsPage() {
           style={{
             display: "flex",
             alignItems: "center",
-            color: "#6b7280",
+            color: "#6B6560",
             textDecoration: "none",
           }}
         >
           <ArrowLeftIcon size={20} />
         </Link>
-        <h1 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#111827", margin: 0 }}>
+        <h1 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#1A1714", margin: 0 }}>
           My Commitments
         </h1>
       </div>
@@ -176,7 +176,7 @@ export default function CommitmentsPage() {
           display: "flex",
           gap: "0.5rem",
           marginBottom: "1.5rem",
-          background: "#f3f4f6",
+          background: "#F5F3F0",
           borderRadius: "0.5rem",
           padding: "0.25rem",
         }}
@@ -192,7 +192,7 @@ export default function CommitmentsPage() {
             fontWeight: 600,
             cursor: "pointer",
             background: activeTab === "active" ? "#fff" : "transparent",
-            color: activeTab === "active" ? "#4f46e5" : "#6b7280",
+            color: activeTab === "active" ? "#9C4B20" : "#6B6560",
             boxShadow: activeTab === "active" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
             transition: "all 0.15s ease",
           }}
@@ -210,7 +210,7 @@ export default function CommitmentsPage() {
             fontWeight: 600,
             cursor: "pointer",
             background: activeTab === "done" ? "#fff" : "transparent",
-            color: activeTab === "done" ? "#15803d" : "#6b7280",
+            color: activeTab === "done" ? "#3D7A4A" : "#6B6560",
             boxShadow: activeTab === "done" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
             transition: "all 0.15s ease",
           }}
@@ -225,7 +225,7 @@ export default function CommitmentsPage() {
           style={{
             textAlign: "center",
             padding: "3rem 1rem",
-            color: "#9ca3af",
+            color: "#9C9690",
             fontSize: "0.875rem",
           }}
         >
@@ -240,7 +240,7 @@ export default function CommitmentsPage() {
               style={{
                 fontSize: "0.75rem",
                 fontWeight: 600,
-                color: "#6b7280",
+                color: "#6B6560",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 margin: "0 0 0.5rem",

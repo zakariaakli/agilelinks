@@ -10,12 +10,12 @@
 
   .cta a {
     font-size: 1.5rem;
-    color: #34D399; /* Green for CTA button */
+    color: #9C4B20;
     text-decoration: none;
   }
 
   .cta a:hover {
     text-decoration: underline;
     font-weight: bold;
-    color: #34D399; /* Darker green on hover */
+    color: #7D3C19;
   }

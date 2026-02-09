@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import Toast, { ToastType } from "../../Components/Toast";
 import styles from "../../Styles/profile.module.css";
 import { EnneagramResult } from "../../Models/EnneagramResult";
-import MilestoneCard from "../../Components/MilestoneCard";
+import MilestoneCard, { AccentTheme } from "../../Components/MilestoneCard";
 import ConfirmationModal from "../../Components/ConfirmationModal";
 import Link from "next/link";
 import { LinkButton } from "../../Components/Button";
@@ -584,15 +584,15 @@ function ProfileContent() {
       {userPlans.length > 0 ? (
         <div className={`${styles.plansGrid} gridAutoFit gapLg`}>
           {userPlans.map((plan, index) => {
-            // Define color palette for plan cards
-            const planColors = [
-              '#4F46E5', // Indigo
-              '#059669', // Emerald
-              '#7C3AED', // Violet
-              '#EA580C', // Orange
-              '#DB2777', // Pink
+            // Define accent theme palette for plan cards
+            const planThemes: AccentTheme[] = [
+              { bg: '#FDF0E7', badgeBg: '#FAE0CE', border: '#C27A3E', text: '#9C4B20', darkText: '#7D3C19', shadow: 'rgba(156, 75, 32, 0.12)' },
+              { bg: '#EEF5EF', badgeBg: '#DCEADE', border: '#6BA375', text: '#3D7A4A', darkText: '#274F30', shadow: 'rgba(61, 122, 74, 0.12)' },
+              { bg: '#FDF6E7', badgeBg: '#FAE8C4', border: '#D9A84E', text: '#C68B2C', darkText: '#7A561B', shadow: 'rgba(198, 139, 44, 0.12)' },
+              { bg: '#EEF2F7', badgeBg: '#D8E4EF', border: '#6B90B0', text: '#4A7194', darkText: '#2F4A65', shadow: 'rgba(74, 113, 148, 0.12)' },
+              { bg: '#FDF0EE', badgeBg: '#F8D8D5', border: '#D06B62', text: '#B84A42', darkText: '#7F312B', shadow: 'rgba(184, 74, 66, 0.12)' },
             ];
-            const planColor = planColors[index % planColors.length];
+            const planTheme = planThemes[index % planThemes.length];
 
             return (
             <div
@@ -603,7 +603,7 @@ function ProfileContent() {
               className={`${styles.planCardContainer} slideInUp`}
               style={{
                 animationDelay: `${0.1 * (index + 2)}s`,
-                borderLeft: `4px solid ${planColor}`
+                borderLeft: `4px solid ${planTheme.text}`
               }}
             >
               {/* Plan Summary (Always Visible) */}
@@ -680,6 +680,7 @@ function ProfileContent() {
                             notifications={notifications}
                             isLoadingNotification={isLoadingNotification}
                             goalType={plan.goalType}
+                            accentTheme={planTheme}
                             enneagramData={
                               enneagramResult
                                 ? {
@@ -708,10 +709,10 @@ function ProfileContent() {
                             style={{
                               padding: "1.5rem",
                               textAlign: "center",
-                              color: "#6b7280",
-                              background: "#f9fafb",
+                              color: "#6B6560",
+                              background: "#F5F3F0",
                               borderRadius: "0.5rem",
-                              border: "1px dashed #d1d5db",
+                              border: "1px dashed #D5CFC8",
                             }}
                           >
                             {allCompleted
@@ -731,7 +732,7 @@ function ProfileContent() {
                 style={{
                   marginTop: (userPlans.length === 1 || expandedPlans.has(plan.id)) ? "1rem" : "0.5rem",
                   paddingTop: "1rem",
-                  borderTop: "1px solid #e5e7eb",
+                  borderTop: "1px solid #E8E4DF",
                   textAlign: "center",
                 }}
               >
@@ -742,7 +743,7 @@ function ProfileContent() {
                     display: "inline-flex",
                     alignItems: "center",
                     gap: "0.5rem",
-                    color: "#3b82f6",
+                    color: planTheme.text,
                     fontWeight: "600",
                     textDecoration: "none",
                     fontSize: "0.875rem",

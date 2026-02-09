@@ -264,13 +264,13 @@ const GoalDetailsPage = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
-        return "#10B981";
+        return "#3D7A4A";
       case "completed":
-        return "#6366F1";
+        return "#9C4B20";
       case "paused":
-        return "#F59E0B";
+        return "#C68B2C";
       default:
-        return "#6B7280";
+        return "#6B6560";
     }
   };
 
@@ -433,13 +433,13 @@ const GoalDetailsPage = () => {
             display: "inline-flex",
             alignItems: "center",
             gap: "0.5rem",
-            color: "#6b7280",
+            color: "#6B6560",
             textDecoration: "none",
             fontSize: "0.875rem",
             transition: "color 0.2s ease",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#3b82f6")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "#9C4B20")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#6B6560")}
         >
           <ArrowLeftIcon size={16} />
           Back to Dashboard
@@ -461,7 +461,7 @@ const GoalDetailsPage = () => {
             <div
               style={{
                 fontSize: "0.875rem",
-                color: "#6b7280",
+                color: "#6B6560",
                 marginBottom: "0.5rem",
               }}
             >
@@ -475,7 +475,7 @@ const GoalDetailsPage = () => {
               style={{
                 fontSize: "1.25rem",
                 fontWeight: 600,
-                color: "#111827",
+                color: "#1A1714",
                 lineHeight: 1.5,
                 margin: 0,
               }}
@@ -512,14 +512,14 @@ const GoalDetailsPage = () => {
         >
           <div
             style={{
-              background: "#f9fafb",
+              background: "#FAF9F7",
               padding: "1.5rem",
               borderRadius: "0.75rem",
-              border: "1px solid #e5e7eb",
+              border: "1px solid #E8E4DF",
             }}
           >
             <div
-              style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}
+              style={{ fontSize: "0.875rem", color: "#6B6560", marginBottom: "0.5rem" }}
             >
               Progress
             </div>
@@ -530,14 +530,14 @@ const GoalDetailsPage = () => {
 
           <div
             style={{
-              background: "#f9fafb",
+              background: "#FAF9F7",
               padding: "1.5rem",
               borderRadius: "0.75rem",
-              border: "1px solid #e5e7eb",
+              border: "1px solid #E8E4DF",
             }}
           >
             <div
-              style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}
+              style={{ fontSize: "0.875rem", color: "#6B6560", marginBottom: "0.5rem" }}
             >
               Target Date
             </div>
@@ -548,21 +548,21 @@ const GoalDetailsPage = () => {
                 year: "numeric",
               })}
             </div>
-            <div style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "0.25rem" }}>
+            <div style={{ fontSize: "0.75rem", color: "#9C9690", marginTop: "0.25rem" }}>
               {getDaysUntilTarget(plan.targetDate)} remaining
             </div>
           </div>
 
           <div
             style={{
-              background: "#f9fafb",
+              background: "#FAF9F7",
               padding: "1.5rem",
               borderRadius: "0.75rem",
-              border: "1px solid #e5e7eb",
+              border: "1px solid #E8E4DF",
             }}
           >
             <div
-              style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}
+              style={{ fontSize: "0.875rem", color: "#6B6560", marginBottom: "0.5rem" }}
             >
               Milestones
             </div>
@@ -576,14 +576,14 @@ const GoalDetailsPage = () => {
         {plan.hasTimePressure && (
           <div
             style={{
-              background: "#fef3c7",
-              border: "1px solid #f59e0b",
+              background: "#FDF6E7",
+              border: "1px solid #C68B2C",
               padding: "1rem",
               borderRadius: "0.5rem",
               marginBottom: "2rem",
               textAlign: "center",
               fontWeight: "600",
-              color: "#92400e",
+              color: "#7A561B",
             }}
           >
             ⚡ Accelerated Timeline
@@ -596,7 +596,7 @@ const GoalDetailsPage = () => {
             style={{
               fontSize: "0.875rem",
               fontWeight: "600",
-              color: "#374151",
+              color: "#44403C",
               marginBottom: "0.5rem",
             }}
           >
@@ -606,7 +606,7 @@ const GoalDetailsPage = () => {
             style={{
               width: "100%",
               height: "0.75rem",
-              background: "#e5e7eb",
+              background: "#E8E4DF",
               borderRadius: "9999px",
               overflow: "hidden",
             }}
@@ -614,7 +614,7 @@ const GoalDetailsPage = () => {
             <div
               style={{
                 height: "100%",
-                background: "linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%)",
+                background: "#9C4B20",
                 width: `${getProgressPercentage(plan.milestones)}%`,
                 transition: "width 0.3s ease",
               }}
@@ -628,7 +628,7 @@ const GoalDetailsPage = () => {
             style={{
               fontSize: "1.5rem",
               fontWeight: "700",
-              color: "#111827",
+              color: "#1A1714",
               marginBottom: "1.5rem",
             }}
           >
@@ -661,7 +661,7 @@ const GoalDetailsPage = () => {
           style={{
             marginTop: "3rem",
             paddingTop: "2rem",
-            borderTop: "2px solid #e5e7eb",
+            borderTop: "2px solid #E8E4DF",
             display: "flex",
             gap: "1rem",
             justifyContent: "center",

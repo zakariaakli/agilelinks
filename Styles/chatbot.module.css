@@ -107,17 +107,17 @@
   padding: 1rem 1.25rem;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #9C4B20;
   border: none;
   border-radius: var(--border-radius-xl);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  box-shadow: 0 4px 12px rgba(156, 75, 32, 0.25);
   transition: var(--transition-all);
 }
 
 .chatbotEntry--inline:hover {
-  background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+  background: #7D3C19;
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+  box-shadow: 0 6px 16px rgba(156, 75, 32, 0.35);
 }
 
 .chatbotEntry--inline .chatbotEntryIcon {

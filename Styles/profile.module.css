@@ -16,13 +16,8 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--color-primary-500) 0%,
-    var(--color-secondary-500) 50%,
-    var(--color-accent-500) 100%
-  );
+  height: 3px;
+  background: var(--color-primary-500);
 }
 
 .profileHeader {
@@ -32,17 +27,9 @@
 .profileTitle {
   font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: var(--color-neutral-900);
   text-align: center;
   margin-bottom: var(--space-2);
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-600),
-    var(--color-secondary-600)
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
   animation: fadeInUp 0.6s ease-out;
 }
 
@@ -79,13 +66,9 @@
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 60px;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    var(--color-primary-500),
-    var(--color-secondary-500)
-  );
+  width: 40px;
+  height: 2px;
+  background: var(--color-primary-500);
   border-radius: var(--border-radius-full);
 }
 
@@ -185,24 +168,7 @@
 }
 
 .plansSection::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(99, 102, 241, 0.05) 50%,
-    transparent 100%
-  );
-  transition: var(--transition-all);
-}
-
-.plansSection:hover::before {
-  left: 100%;
-  transition-duration: 0.8s;
+  display: none;
 }
 
 .plansSectionHeader {
@@ -213,11 +179,7 @@
 }
 
 .createPlanLink {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-500) 0%,
-    var(--color-primary-700) 100%
-  );
+  background: var(--color-primary-500);
   color: white;
   padding: 12px 20px;
   border-radius: 8px;
@@ -225,12 +187,11 @@
   font-weight: 600;
   font-size: 0.9rem;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .createPlanLink:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  background: var(--color-primary-600);
+  transform: translateY(-1px);
 }
 
 .plansGrid {
@@ -257,14 +218,8 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--color-primary-500) 0%,
-    var(--color-secondary-500) 100%
-  );
-  transform: scaleX(1);
-  transform-origin: left;
+  height: 3px;
+  background: var(--color-primary-500);
 }
 
 .planCard:hover {
@@ -569,11 +524,7 @@
 
 .progressBarFill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--color-secondary-500) 0%,
-    var(--color-secondary-400) 100%
-  );
+  background: var(--color-secondary-500);
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -639,11 +590,7 @@
 }
 
 .createFirstPlanButton {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary-500) 0%,
-    var(--color-primary-700) 100%
-  );
+  background: var(--color-primary-500);
   color: white;
   padding: 15px 30px;
   border-radius: 8px;
@@ -652,12 +599,11 @@
   font-size: 1rem;
   display: inline-block;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .createFirstPlanButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  background: var(--color-primary-600);
+  transform: translateY(-1px);
 }
 
 /* ==========================================
@@ -742,29 +688,6 @@
 
 .createPlanLink {
   transition: var(--transition-all);
-  position: relative;
-  overflow: hidden;
-}
-
-.createPlanLink::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    transparent 100%
-  );
-  transition: var(--transition-all);
-}
-
-.createPlanLink:hover::before {
-  left: 100%;
-  transition-duration: 0.6s;
 }
 
 .enneagramItem {
@@ -774,28 +697,12 @@
 }
 
 .enneagramItem::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.1) 0%,
-    rgba(16, 185, 129, 0.1) 100%
-  );
-  opacity: 0;
-  transition: var(--transition-opacity);
-}
-
-.enneagramItem:hover::before {
-  opacity: 1;
+  display: none;
 }
 
 .enneagramItem:hover {
-  transform: translateY(-6px) scale(1.05);
-  box-shadow: var(--shadow-xl);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 /* Responsive Design */
@@ -869,7 +776,6 @@
 .planActionButtonPrimary:hover:not(:disabled) {
   background-color: var(--color-info-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .planActionButtonWarning {
@@ -880,7 +786,6 @@
 .planActionButtonWarning:hover:not(:disabled) {
   background-color: var(--color-warning-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .planActionButtonDanger {
@@ -891,7 +796,6 @@
 .planActionButtonDanger:hover:not(:disabled) {
   background-color: var(--color-error-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
 @media (max-width: 768px) {
@@ -906,7 +810,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #3b82f6;
+  color: var(--color-primary-500);
   font-weight: 600;
   text-decoration: none;
   font-size: 0.875rem;
@@ -918,23 +822,22 @@
 }
 
 .viewDetailsLink:hover {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
-  transform: translateY(-1px);
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-200);
 }
 
 /* Highlight animation for newly created plans */
 @keyframes highlight {
   0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    box-shadow: 0 0 0 0 rgba(61, 122, 74, 0.5);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 0 20px rgba(16, 185, 129, 0);
-    transform: scale(1.02);
+    box-shadow: 0 0 0 15px rgba(61, 122, 74, 0);
+    transform: scale(1.01);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    box-shadow: 0 0 0 0 rgba(61, 122, 74, 0);
     transform: scale(1);
   }
 }
@@ -970,10 +873,10 @@
 
 .onboardingHeader {
   padding: 2rem 2rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-neutral-200);
   text-align: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--color-neutral-800);
+  color: var(--color-neutral-50);
   border-radius: 16px 16px 0 0;
 }
 
@@ -981,7 +884,6 @@
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 0.75rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .onboardingSubtitle {

@@ -59,7 +59,7 @@
 
 .filmTimelineProgress {
   height: 100%;
-  background: linear-gradient(90deg, #8b5cf6, #ec4899, #22d3ee);
+  background: #9C4B20;
   border-radius: 2px;
 }
 
@@ -105,7 +105,7 @@
 .sceneOpening {
   background: radial-gradient(
     circle at center,
-    rgba(139, 92, 246, 0.15) 0%,
+    rgba(156, 75, 32, 0.15) 0%,
     rgba(0, 0, 0, 1) 70%
   );
 }
@@ -127,17 +127,11 @@
 }
 
 .gradientText {
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #C27A3E;
 }
 
 .gradientTextAlt {
-  background: linear-gradient(135deg, #ec4899, #22d3ee);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #C68B2C;
 }
 
 .openingContent {
@@ -258,8 +252,8 @@
 }
 
 .scrollArrow:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.8);
+  background: rgba(156, 75, 32, 0.3);
+  border-color: rgba(156, 75, 32, 0.8);
   transform: translateY(-50%) scale(1.1);
 }
 
@@ -322,7 +316,7 @@
 }
 
 .scrollDotActive {
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  background: #9C4B20;
   width: 32px;
   border-radius: 6px;
 }
@@ -411,10 +405,7 @@
 }
 
 .statMassiveHighlight .statNumber {
-  background: linear-gradient(135deg, #fff, #22d3ee);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #6BA375;
 }
 
 /* CTA Section */
@@ -451,7 +442,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  background: #9C4B20;
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -461,13 +452,13 @@
 }
 
 .ctaCard:hover {
-  border-color: rgba(139, 92, 246, 0.8);
-  box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+  border-color: rgba(156, 75, 32, 0.8);
+  box-shadow: 0 20px 60px rgba(156, 75, 32, 0.3);
   transform: scale(1.05) translateY(-5px);
 }
 
 .ctaCardPrimary {
-  border-color: rgba(139, 92, 246, 0.3);
+  border-color: rgba(156, 75, 32, 0.3);
 }
 
 .ctaLabel {
@@ -487,7 +478,7 @@
 
 .ctaArrow {
   font-size: 32px;
-  color: rgba(139, 92, 246, 0.8);
+  color: rgba(156, 75, 32, 0.8);
   z-index: 1;
 }
 

@@ -12,25 +12,25 @@
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: #111827;
+  color: #1A1714;
 }
 
 .type {
   font-style: italic;
-  color: #4b5563;
+  color: #6B6560;
   margin-bottom: 1rem;
 }
 
 .prompt {
   font-size: 1.125rem;
-  color: #374151;
+  color: #44403C;
   margin-bottom: 2rem;
 }
 
 .feedbackTitle {
   font-weight: 600;
   font-size: 1rem;
-  color: #374151;
+  color: #44403C;
   margin-bottom: 1rem;
 }
 
@@ -49,7 +49,7 @@
 }
 
 .btn1 {
-  background-color: #34d399;
+  background-color: #3D7A4A;
   color: white;
   padding: 0.5rem 1.25rem;
   border: none;
@@ -58,7 +58,7 @@
 }
 
 .btn2 {
-  background-color: #fbbf24;
+  background-color: #C68B2C;
   color: white;
   padding: 0.5rem 1.25rem;
   border: none;
@@ -67,7 +67,7 @@
 }
 
 .btn3 {
-  background-color: #f87171;
+  background-color: #B84A42;
   color: white;
   padding: 0.5rem 1.25rem;
   border: none;
@@ -78,14 +78,14 @@
 .textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid #D5CFC8;
   border-radius: 0.5rem;
   font-size: 1rem;
   resize: vertical;
 }
 
 .btnSubmit {
-  background-color: #6366f1;
+  background-color: #9C4B20;
   color: white;
   padding: 0.75rem 1.5rem;
   font-weight: bold;
@@ -98,35 +98,35 @@
   text-align: center;
   padding: 2rem 1rem;
   border-radius: 1rem;
-  background-color: #ecfdf5;
-  border: 1px solid #10b981;
-  color: #065f46;
+  background-color: #EEF5EF;
+  border: 1px solid #3D7A4A;
+  color: #274F30;
   margin-top: 1.5rem;
 }
 
 /* Milestone-specific styles */
 .goalContext {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: #6B6560;
   margin: 0.75rem 0;
   text-align: center;
 }
 
 .goalLabel {
   font-weight: 600;
-  color: #4b5563;
+  color: #44403C;
 }
 
 .milestoneTitle {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #6366f1;
+  color: #9C4B20;
   margin-bottom: 0.5rem;
 }
 
 .dueDate {
   font-size: 0.95rem;
-  color: #6b7280;
+  color: #6B6560;
   margin-bottom: 1.5rem;
   font-style: italic;
 }
@@ -136,8 +136,8 @@
 }
 
 .blindSpotAlert {
-  background-color: #fef3c7;
-  border-left: 4px solid #f59e0b;
+  background-color: #FDF6E7;
+  border-left: 4px solid #C68B2C;
   padding: 1rem;
   margin: 1.5rem 0;
   border-radius: 0.5rem;
@@ -149,7 +149,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
-  color: #92400e;
+  color: #7A561B;
   font-weight: 600;
 }
 
@@ -158,14 +158,14 @@
 }
 
 .alertText {
-  color: #78350f;
+  color: #543C13;
   margin: 0;
   line-height: 1.5;
 }
 
 .strengthHook {
-  background-color: #d1fae5;
-  border-left: 4px solid #10b981;
+  background-color: #EEF5EF;
+  border-left: 4px solid #3D7A4A;
   padding: 1rem;
   margin: 1.5rem 0;
   border-radius: 0.5rem;
@@ -177,7 +177,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.5rem;
-  color: #047857;
+  color: #274F30;
   font-weight: 600;
 }
 
@@ -186,21 +186,21 @@
 }
 
 .hookText {
-  color: #065f46;
+  color: #1D3A24;
   margin: 0;
   line-height: 1.5;
 }
 
 .notFound {
   text-align: center;
-  color: #6b7280;
+  color: #6B6560;
   font-size: 1.1rem;
   padding: 2rem;
 }
 
 .backLink {
   display: inline-block;
-  color: #6366f1;
+  color: #9C4B20;
   text-decoration: none;
   margin-top: 1rem;
   font-weight: 500;
@@ -217,13 +217,13 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding: 0.75rem 1rem;
-  background: #f8fafc;
+  background: #FAF9F7;
   border-radius: 0.5rem;
   font-size: 0.875rem;
 }
 
 .timeAgo {
-  color: #6b7280;
+  color: #6B6560;
 }
 
 .priority {
@@ -234,23 +234,23 @@
 }
 
 .priority-high {
-  background: #fecaca;
-  color: #991b1b;
+  background: #FDF0EE;
+  color: #7F312B;
 }
 
 .priority-medium {
-  background: #fed7aa;
-  color: #9a3412;
+  background: #FDF0E7;
+  color: #7D3C19;
 }
 
 .priority-low {
-  background: #dcfce7;
-  color: #166534;
+  background: #EEF5EF;
+  color: #274F30;
 }
 
 .expired {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: #F5F3F0;
+  color: #6B6560;
   padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
   font-size: 0.75rem;
@@ -268,7 +268,7 @@
   text-align: center;
   margin-bottom: 2rem;
   padding: 2rem;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: #302C28;
   border-radius: 1rem;
   color: white;
 }
@@ -289,22 +289,22 @@
   background: #ffffff;
   border-radius: 1rem;
   padding: 2rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 16px rgba(26, 23, 20, 0.05);
   margin: 2rem 0;
 }
 
 .milestonePromptSection {
   margin: 2rem 0;
   padding: 1.5rem;
-  background: #f8fafc;
+  background: #FAF9F7;
   border-radius: 0.75rem;
-  border-left: 4px solid #6366f1;
+  border-left: 4px solid #9C4B20;
 }
 
 .milestonePrompt {
   font-size: 1.125rem;
   line-height: 1.7;
-  color: #374151;
+  color: #44403C;
   margin: 0;
 }
 
@@ -313,8 +313,8 @@
 }
 
 .goalContext {
-  background: #f0f9ff;
-  border: 1px solid #0ea5e9;
+  background: #EEF2F7;
+  border: 1px solid #4A7194;
   border-radius: 0.75rem;
   padding: 1.5rem;
   margin: 2rem 0;
@@ -325,7 +325,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-bottom: 1rem;
-  color: #0369a1;
+  color: #2F4A65;
   font-weight: 600;
 }
 
@@ -334,13 +334,13 @@
 }
 
 .goalContextText {
-  color: #0c4a6e;
+  color: #2F4A65;
   line-height: 1.6;
   margin: 0;
 }
 
 .progressIndicator {
-  background: #f8fafc;
+  background: #FAF9F7;
   border-radius: 0.75rem;
   padding: 1.5rem;
   margin: 2rem 0;
@@ -350,7 +350,7 @@
 .progressTitle {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #111827;
+  color: #1A1714;
   margin-bottom: 1rem;
 }
 
@@ -374,29 +374,29 @@
 }
 
 .progressStepActive {
-  background: #6366f1;
+  background: #9C4B20;
   color: white;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 0 4px rgba(156, 75, 32, 0.2);
 }
 
 .progressStepCompleted {
-  background: #10b981;
+  background: #3D7A4A;
   color: white;
 }
 
 .progressStepPending {
-  background: #e5e7eb;
-  color: #6b7280;
+  background: #E8E4DF;
+  color: #6B6560;
 }
 
 .progressConnector {
   height: 2px;
   width: 3rem;
-  background: #e5e7eb;
+  background: #E8E4DF;
 }
 
 .progressConnectorActive {
-  background: #10b981;
+  background: #3D7A4A;
 }
 
 .enneagramType {
@@ -405,7 +405,7 @@
 }
 
 .typeLabel {
-  color: #6b7280;
+  color: #6B6560;
   font-size: 0.875rem;
   font-weight: 500;
   margin-right: 0.5rem;
@@ -414,26 +414,26 @@
 .debugInfo {
   margin-top: 2rem;
   padding: 1rem;
-  background: #f3f4f6;
+  background: #F5F3F0;
   border-radius: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #6B6560;
 }
 
 .debugInfo h4 {
   margin: 0 0 0.5rem 0;
-  color: #374151;
+  color: #44403C;
 }
 
 /* Reflection Summary Styles */
 .reflectionSummary {
   margin-top: 1.5rem;
   padding: 1rem;
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-  border: 1.5px solid #c7d2fe;
+  background: #FDF0E7;
+  border: 1.5px solid #F0C4A0;
   border-radius: 1rem;
   text-align: left;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 2px 8px rgba(156, 75, 32, 0.1);
 }
 
 .summaryHeader {
@@ -446,7 +446,7 @@
   gap: 0.5rem;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #4338ca;
+  color: #9C4B20;
   margin: 0;
 }
 
@@ -457,29 +457,29 @@
 .feedbackChoice {
   font-size: 1rem;
   line-height: 1.6;
-  color: #374151;
+  color: #44403C;
   margin: 0;
   padding: 0.75rem 1rem;
   background: rgba(255, 255, 255, 0.5);
   border-radius: 0.5rem;
-  border: 1px solid #c7d2fe;
+  border: 1px solid #F0C4A0;
 }
 
 .feedbackChoice strong {
-  color: #4338ca;
+  color: #9C4B20;
   font-weight: 600;
 }
 
 .summaryDivider {
   height: 1px;
-  background: linear-gradient(to right, transparent, #c7d2fe, transparent);
+  background: linear-gradient(to right, transparent, #F0C4A0, transparent);
   margin: 0.875rem 0;
 }
 
 .summaryText {
   font-size: 1rem;
   line-height: 1.7;
-  color: #374151;
+  color: #44403C;
   margin: 0;
 }
 
@@ -488,7 +488,7 @@
   gap: 1.5rem;
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #c7d2fe;
+  border-top: 1px solid #F0C4A0;
 }
 
 .metaItem {
@@ -496,7 +496,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: #6B6560;
   font-weight: 500;
 }
 
