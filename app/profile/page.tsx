@@ -356,8 +356,22 @@ function ProfileContent() {
 
   const getProgressPercentage = (milestones: Milestone[]) => {
     if (!milestones || milestones.length === 0) return 0;
-    const completed = milestones.filter((m) => m.completed).length;
-    return Math.round((completed / milestones.length) * 100);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let totalProgress = 0;
+    for (const m of milestones) {
+      if (m.completed) {
+        totalProgress += 1;
+      } else if (new Date(m.dueDate) < today) {
+        totalProgress += 1;
+      } else if ((m as any).steps?.length > 0) {
+        const steps = (m as any).steps;
+        const done = steps.filter((s: any) => s.completed).length;
+        totalProgress += done / steps.length;
+      }
+    }
+    return Math.round((totalProgress / milestones.length) * 100);
   };
 
   // Helper to get primary enneagram type from result
@@ -627,11 +641,14 @@ function ProfileContent() {
                   <div className={styles.metricSimple}>
                     <span className={styles.metricLabel}>Milestones:</span>
                     <span className={styles.metricValue}>
-                      {Math.min(
-                        (plan.milestones?.filter((m) => m.completed).length ||
-                          0) + 1,
-                        plan.milestones?.length || 0
-                      )}
+                      {(() => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const done = (plan.milestones || []).filter(
+                          (m) => m.completed || new Date(m.dueDate) < today
+                        ).length;
+                        return Math.min(done + 1, plan.milestones?.length || 0);
+                      })()}
                       /{plan.milestones?.length || 0}
                     </span>
                   </div>

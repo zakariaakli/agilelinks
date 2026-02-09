@@ -20,6 +20,7 @@ import {
   InfoIcon,
   ArrowRightIcon,
   SparklesIcon,
+  ClipboardListIcon,
 } from "./Icons";
 import NotificationBell from "./NotificationBell";
 
@@ -40,6 +41,8 @@ interface PlanForSwitcher {
   milestones: Array<{
     id: string;
     completed: boolean;
+    dueDate?: string;
+    steps?: Array<{ completed: boolean }>;
   }>;
 }
 
@@ -84,6 +87,8 @@ const Header = () => {
           milestones: (data.milestones || []).map((m: any) => ({
             id: m.id,
             completed: m.completed || false,
+            dueDate: m.dueDate || undefined,
+            steps: (m.steps || []).map((s: any) => ({ completed: s.completed || false })),
           })),
         };
       });
@@ -196,9 +201,6 @@ const Header = () => {
         <nav className={styles.nav}>
           <ul className={styles.navList}>
             <li>
-              <Link href="/articles">Articles</Link>
-            </li>
-            <li>
               <Link href="/about">About</Link>
             </li>
             {user && (
@@ -208,6 +210,9 @@ const Header = () => {
                 </li>
                 <li>
                   <Link href="/profile">Dashboard</Link>
+                </li>
+                <li>
+                  <Link href="/profile/commitments">Commitments</Link>
                 </li>
               </>
             )}
@@ -304,6 +309,12 @@ const Header = () => {
                     className={styles.dropdownItem}
                   >
                     <UserIcon size={16} /> Personality
+                  </Link>
+                  <Link
+                    href="/profile/commitments"
+                    className={styles.dropdownItem}
+                  >
+                    <ClipboardListIcon size={16} /> Commitments
                   </Link>
                   <Link
                     href="/profile/companion"

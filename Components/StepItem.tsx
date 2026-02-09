@@ -12,6 +12,7 @@ interface StepItemProps {
   onUpdate: (stepId: string, completed: boolean) => void;
   onDelete: (stepId: string) => void;
   isUpdating?: boolean;
+  milestoneLabel?: string;
 }
 
 const StepItem: React.FC<StepItemProps> = ({
@@ -21,6 +22,7 @@ const StepItem: React.FC<StepItemProps> = ({
   onUpdate,
   onDelete,
   isUpdating = false,
+  milestoneLabel,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -70,6 +72,9 @@ const StepItem: React.FC<StepItemProps> = ({
       {/* Content */}
       <div className={styles.stepContent}>
         <p className={styles.stepTitle}>{step.title}</p>
+        {milestoneLabel && (
+          <p className={styles.stepContext}>{milestoneLabel}</p>
+        )}
         <div className={styles.stepMeta}>
           {step.source === 'ai' && (
             <span className={`${styles.stepSource} ${styles.stepSourceAi}`}>

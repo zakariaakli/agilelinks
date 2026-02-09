@@ -13,6 +13,16 @@ import { ArrowLeftIcon } from "../../../../Components/Icons";
 import Link from "next/link";
 import styles from "../../../../Styles/profile.module.css";
 
+interface MilestoneStep {
+  id: string;
+  title: string;
+  completed: boolean;
+  createdAt: any;
+  source: 'user' | 'ai';
+  completedAt?: any;
+  nudgeId?: string | null;
+}
+
 interface Milestone {
   id: string;
   title: string;
@@ -22,6 +32,7 @@ interface Milestone {
   completed: boolean;
   blindSpotTip?: string;
   strengthHook?: string;
+  steps?: MilestoneStep[];
 }
 
 interface PlanData {
@@ -265,8 +276,29 @@ const GoalDetailsPage = () => {
 
   const getProgressPercentage = (milestones: Milestone[]) => {
     if (!milestones || milestones.length === 0) return 0;
-    const completed = milestones.filter((m) => m.completed).length;
-    return Math.round((completed / milestones.length) * 100);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let totalProgress = 0;
+    for (const m of milestones) {
+      if (m.completed) {
+        totalProgress += 1;
+      } else if (new Date(m.dueDate) < today) {
+        totalProgress += 1;
+      } else if (m.steps && m.steps.length > 0) {
+        const done = m.steps.filter((s) => s.completed).length;
+        totalProgress += done / m.steps.length;
+      }
+    }
+    return Math.round((totalProgress / milestones.length) * 100);
+  };
+
+  const getCompletedMilestoneCount = (milestones: Milestone[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return milestones.filter(
+      (m) => m.completed || new Date(m.dueDate) < today
+    ).length;
   };
 
   const getDaysUntilTarget = (targetDate: string) => {
@@ -439,7 +471,17 @@ const GoalDetailsPage = () => {
                   " Goal"
                 : "Personal Goal"}
             </div>
-            <h1 className={styles.profileTitle}>{plan.goal}</h1>
+            <h1
+              style={{
+                fontSize: "1.25rem",
+                fontWeight: 600,
+                color: "#111827",
+                lineHeight: 1.5,
+                margin: 0,
+              }}
+            >
+              {plan.goal}
+            </h1>
           </div>
           <div
             style={{
@@ -525,7 +567,7 @@ const GoalDetailsPage = () => {
               Milestones
             </div>
             <div style={{ fontSize: "1.875rem", fontWeight: "700", color: "#111827" }}>
-              {plan.milestones?.filter((m) => m.completed).length || 0}/
+              {getCompletedMilestoneCount(plan.milestones || [])}/
               {plan.milestones?.length || 0}
             </div>
           </div>

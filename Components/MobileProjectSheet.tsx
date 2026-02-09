@@ -14,6 +14,8 @@ interface Plan {
   milestones: Array<{
     id: string;
     completed: boolean;
+    dueDate?: string;
+    steps?: Array<{ completed: boolean }>;
   }>;
 }
 
@@ -38,8 +40,21 @@ const getPlanColor = (index: number) => PLAN_COLORS[index % PLAN_COLORS.length];
 
 const getProgressPercentage = (milestones: Plan['milestones']) => {
   if (!milestones || milestones.length === 0) return 0;
-  const completed = milestones.filter((m) => m.completed).length;
-  return Math.round((completed / milestones.length) * 100);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let totalProgress = 0;
+  for (const m of milestones) {
+    if (m.completed) {
+      totalProgress += 1;
+    } else if (m.dueDate && new Date(m.dueDate) < today) {
+      totalProgress += 1;
+    } else if (m.steps && m.steps.length > 0) {
+      const completedSteps = m.steps.filter((s) => s.completed).length;
+      totalProgress += completedSteps / m.steps.length;
+    }
+  }
+  return Math.round((totalProgress / milestones.length) * 100);
 };
 
 const MobileProjectSheet: React.FC<MobileProjectSheetProps> = ({

@@ -67,7 +67,7 @@
 .navList {
   list-style-type: none;
   display: flex;
-  gap: var(--space-8);
+  gap: var(--space-4);
   margin: 0;
   padding: 0;
   align-items: center;
@@ -527,7 +527,7 @@
   }
 
   .navList {
-    gap: var(--space-6);
+    gap: var(--space-3);
   }
 
   .navList li a {
