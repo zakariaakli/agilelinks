@@ -32,4 +32,5 @@ export interface Notification {
   milestoneId?: string;
   userId: string;
   read?: boolean;
+  suggestedStep?: string | null; // AI-proposed step from nudge
 }

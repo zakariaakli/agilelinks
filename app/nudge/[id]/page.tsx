@@ -6,7 +6,9 @@ import Script from "next/script";
 import styles from "../../../Styles/nudge.module.css";
 import FeedbackForm from "../../../Components/FeedbackForm";
 import NudgeFormatter from "../../../Components/NudgeFormatter";
+import NudgeContentWithSteps from "../../../Components/NudgeContentWithSteps";
 import { EnhancedNotification } from "../../../lib/notificationTracking";
+import { Step } from "../../../Models/Step";
 
 interface NotificationData {
   id: string;
@@ -40,6 +42,9 @@ interface NotificationData {
     };
   };
 
+  // AI-suggested step from nudge
+  suggestedStep?: string | null;
+
   // Enhanced tracking fields
   emailStatus?: {
     sent: boolean;
@@ -65,6 +70,7 @@ interface PlanData {
     completed: boolean;
     startDate: string;
     dueDate: string;
+    steps?: Step[];
   }>;
 }
 
@@ -116,6 +122,11 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
           messageCount: (data as any).feedbackDetails.messageCount || undefined,
           contextUsed: (data as any).feedbackDetails.contextUsed || undefined,
         },
+      }),
+
+      // AI-suggested step (if exists)
+      ...((data as any).suggestedStep && {
+        suggestedStep: String((data as any).suggestedStep),
       }),
 
       // Enhanced tracking fields (if they exist)
@@ -376,10 +387,6 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
               {nudge.milestoneTitle || "Untitled Milestone"}
             </h2>
 
-            <div className={styles.promptSection}>
-              <NudgeFormatter text={nudge.prompt} />
-            </div>
-
             {/* Personality-based insights */}
             <div className={styles.personalityInsights}>
               {nudge.blindSpotTip && (
@@ -402,6 +409,27 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
                 </div>
               )}
             </div>
+
+            {/* Nudge Content with Steps - Action items are clickable to add as commitments */}
+            {nudge.planId && nudge.milestoneId ? (
+              <div className={styles.promptSection}>
+                <NudgeContentWithSteps
+                  prompt={nudge.prompt}
+                  planId={nudge.planId}
+                  milestoneId={nudge.milestoneId}
+                  nudgeId={id}
+                  suggestedStep={nudge.suggestedStep}
+                  initialSteps={
+                    planData?.milestones?.find((m) => m.id === nudge.milestoneId)
+                      ?.steps || []
+                  }
+                />
+              </div>
+            ) : (
+              <div className={styles.promptSection}>
+                <NudgeFormatter text={nudge.prompt} />
+              </div>
+            )}
           </>
         ) : (
           <>

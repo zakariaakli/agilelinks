@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import GameNudgeSlider from './GameNudgeSlider';
-import { CheckCircleIcon, ClockIcon, CalendarIcon, AlertTriangleIcon, ZapIcon } from './Icons';
+import StepsList from './StepsList';
+import { CalendarIcon, AlertTriangleIcon, ZapIcon } from './Icons';
+import { Step } from '../Models/Step';
 
 interface Milestone {
   id: string;
@@ -11,6 +13,7 @@ interface Milestone {
   completed: boolean;
   blindSpotTip?: string;
   strengthHook?: string;
+  steps?: Step[];
 }
 
 interface Notification {
@@ -36,6 +39,8 @@ interface MilestoneCardProps {
   showOnlyLatestNotification?: boolean;
   hideFeedbackStatus?: boolean;
   hideTimeline?: boolean;
+  hideNudges?: boolean;
+  planId?: string;
 }
 
 const MilestoneCard: React.FC<MilestoneCardProps> = ({
@@ -47,10 +52,15 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
   enneagramData,
   showOnlyLatestNotification = false,
   hideFeedbackStatus = false,
-  hideTimeline = false
+  hideTimeline = false,
+  hideNudges = false,
+  planId
 }) => {
   const [isMobile, setIsMobile] = React.useState(false);
   const [isExpanded, setIsExpanded] = React.useState(false);
+
+  // Shared steps state - managed here so both StepsList and GameNudgeSlider can sync
+  const [steps, setSteps] = useState<Step[]>(milestone.steps || []);
 
   // Check if mobile on mount
   React.useEffect(() => {
@@ -61,14 +71,16 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  const getStatusIcon = () => {
-    switch (status) {
-      case 'completed': return <CheckCircleIcon size={16} />;
-      case 'current': return <ClockIcon size={16} />;
-      case 'future': return <CalendarIcon size={16} />;
-      default: return <CalendarIcon size={16} />;
-    }
-  };
+
+  // Callback when steps change from StepsList
+  const handleStepsChange = useCallback((newSteps: Step[]) => {
+    setSteps(newSteps);
+  }, []);
+
+  // Callback when a step is added from the nudge action items
+  const handleStepAddedFromNudge = useCallback((newStep: { id: string; title: string }) => {
+    setSteps(prev => [...prev, newStep as Step]);
+  }, []);
 
   const getStatusColor = () => {
     switch (status) {
@@ -78,8 +90,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         titleColor: '#15803d'
       };
       case 'current': return {
-        background: 'transparent',
-        border: 'none',
+        background: '#eef2ff',
+        border: '2px solid #818cf8',
         titleColor: '#1d4ed8'
       };
       case 'future': return {
@@ -92,15 +104,6 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         border: '1px solid #e2e8f0',
         titleColor: '#374151'
       };
-    }
-  };
-
-  const getStatusLabel = () => {
-    switch (status) {
-      case 'completed': return 'Completed';
-      case 'current': return 'In Progress';
-      case 'future': return 'Upcoming';
-      default: return 'Pending';
     }
   };
 
@@ -123,18 +126,32 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
       style={{
         background: statusStyles.background,
         border: statusStyles.border,
-        borderRadius: '0',
+        borderRadius: status === 'current' ? '0.75rem' : '0',
         padding: isMobile ? '1rem' : '1.25rem',
-        marginBottom: '0',
+        marginBottom: status === 'current' ? '0.5rem' : '0',
         position: 'relative',
         transition: 'all 0.2s ease',
-        boxShadow: 'none',
-        borderTop: status === 'current' ? '4px solid' : statusStyles.border,
-        borderImage: status === 'current' ? 'linear-gradient(90deg, #667eea 0%, #764ba2 100%) 1' : 'none'
+        boxShadow: status === 'current' ? '0 2px 12px rgba(99, 102, 241, 0.15)' : 'none',
       }}
     >
       {/* Milestone Header */}
       <div>
+        {status === 'current' && (
+          <span style={{
+            display: 'inline-block',
+            fontSize: '0.6875rem',
+            fontWeight: 700,
+            color: '#4f46e5',
+            background: '#c7d2fe',
+            padding: '0.125rem 0.5rem',
+            borderRadius: '1rem',
+            marginBottom: '0.375rem',
+            letterSpacing: '0.02em',
+            textTransform: 'uppercase',
+          }}>
+            In Progress
+          </span>
+        )}
         <h4 style={{
           color: statusStyles.titleColor,
           fontSize: isMobile ? '1rem' : '1.125rem',
@@ -298,8 +315,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         </div>
       )}
 
-      {/* Show Gamified Nudge Slider if there are any notifications (past or present) */}
-      {(notifications.length > 0 || isLoadingNotification) && (
+      {/* Show Gamified Nudge Slider (above steps) - hidden on goal detail page */}
+      {!hideNudges && (notifications.length > 0 || isLoadingNotification) && (
         <div>
           <div style={{
             borderTop: showOnlyLatestNotification ? 'none' : '1px solid rgba(59, 130, 246, 0.2)',
@@ -318,9 +335,23 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
               hideFeedbackStatus={hideFeedbackStatus}
               compactView={showOnlyLatestNotification}
               flatLayout={showOnlyLatestNotification}
+              planId={planId}
+              milestoneId={milestone.id}
+              onStepAdded={handleStepAddedFromNudge}
+              existingStepTitles={steps.map(s => s.title)}
             />
           </div>
         </div>
+      )}
+
+      {/* Steps Section - Show for current milestones (below nudge) */}
+      {status === 'current' && planId && (
+        <StepsList
+          planId={planId}
+          milestoneId={milestone.id}
+          initialSteps={steps}
+          onStepsChange={handleStepsChange}
+        />
       )}
     </div>
   );

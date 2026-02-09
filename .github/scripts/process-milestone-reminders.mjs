@@ -55,6 +55,58 @@ if (process.env.VAPID_PRIVATE_KEY && process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
 }
 
 /**
+ * Build steps context from milestone steps array
+ */
+function buildStepsContext(steps = []) {
+  const now = new Date();
+
+  const activeSteps = steps
+    .filter(s => !s.completed)
+    .map(s => {
+      const createdAt = s.createdAt?.toDate?.() || new Date(s.createdAt) || new Date();
+      const daysOld = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        title: s.title,
+        daysOld: Math.max(0, daysOld)
+      };
+    });
+
+  const recentlyCompleted = steps
+    .filter(s => s.completed && s.completedAt)
+    .map(s => {
+      const completedAt = s.completedAt?.toDate?.() || new Date(s.completedAt) || new Date();
+      const completedDaysAgo = Math.floor((now.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        title: s.title,
+        completedDaysAgo: Math.max(0, completedDaysAgo)
+      };
+    })
+    .filter(s => s.completedDaysAgo <= 7); // Last 7 days only
+
+  return {
+    active: activeSteps,
+    recentlyCompleted,
+    totalCompleted: steps.filter(s => s.completed).length
+  };
+}
+
+/**
+ * Parse the AI response to extract suggested step if present
+ */
+function parseNudgeResponse(response) {
+  const stepMatch = response.match(/\[SUGGESTED_STEP:\s*(.+?)\]/);
+
+  if (stepMatch) {
+    return {
+      nudgeText: response.replace(/\[SUGGESTED_STEP:\s*.+?\]/, '').trim(),
+      suggestedStep: stepMatch[1].trim()
+    };
+  }
+
+  return { nudgeText: response, suggestedStep: null };
+}
+
+/**
  * Generate AI nudge message for a milestone using OpenAI Assistants API
  * with personalization based on user's Enneagram type and feedback history
  */
@@ -176,6 +228,10 @@ async function generateMilestoneNudge(
       // Continue with empty array
     }
 
+    // Build steps context from milestone steps
+    const stepsContext = buildStepsContext(milestone.steps || []);
+    console.log(`   📋 Steps context: ${stepsContext.active.length} active, ${stepsContext.totalCompleted} completed`);
+
     // Prepare assistant input in the exact format expected
     const assistantInput = {
       goalContext: goalContext,
@@ -191,6 +247,7 @@ async function generateMilestoneNudge(
       personalityContext,
       growthAdvice,
       feedbackHistory,
+      steps: stepsContext,
     };
 
     console.log(`   🧠 Sending to OpenAI Assistant with personalization data`);
@@ -492,6 +549,22 @@ async function processPendingNotifications() {
           ? userDoc.data().email || "unknown@system.com"
           : "unknown@system.com";
 
+        // Fetch plan to get milestone steps
+        let milestoneSteps = [];
+        try {
+          const planDoc = await db.collection("plans").doc(notifData.planId).get();
+          if (planDoc.exists) {
+            const planData = planDoc.data();
+            const milestoneData = planData.milestones?.find(m => m.id === notifData.milestoneId);
+            if (milestoneData && milestoneData.steps) {
+              milestoneSteps = milestoneData.steps;
+              console.log(`   📋 Found ${milestoneSteps.length} steps for milestone`);
+            }
+          }
+        } catch (err) {
+          console.log(`   ⚠️ Could not fetch milestone steps: ${err.message}`);
+        }
+
         // Generate AI nudge
         const milestone = {
           id: notifData.milestoneId,
@@ -502,6 +575,7 @@ async function processPendingNotifications() {
           dueDate: notifData.dueDate,
           blindSpotTip: notifData.blindSpotTip,
           strengthHook: notifData.strengthHook,
+          steps: milestoneSteps,
         };
 
         let aiNudge = await generateMilestoneNudge(
@@ -517,9 +591,17 @@ async function processPendingNotifications() {
           aiNudge = generateFallbackNudge(milestone);
         }
 
-        // Update notification with AI-generated prompt
+        // Parse response to extract suggested step
+        const { nudgeText, suggestedStep } = parseNudgeResponse(aiNudge);
+
+        if (suggestedStep) {
+          console.log(`   💡 Suggested step extracted: "${suggestedStep}"`);
+        }
+
+        // Update notification with AI-generated prompt and suggested step
         await notifDoc.ref.update({
-          prompt: aiNudge,
+          prompt: nudgeText,
+          suggestedStep: suggestedStep || null,
           "emailStatus.deliveryStatus": "pending",
         });
 
@@ -528,7 +610,7 @@ async function processPendingNotifications() {
         // Send email
         const emailSent = await sendMilestoneEmail(notifData.userId, {
           ...notifData,
-          prompt: aiNudge,
+          prompt: nudgeText,
         });
 
         // Update email status
@@ -550,7 +632,7 @@ async function processPendingNotifications() {
         console.log("   📱 Attempting to send push notification...");
         await sendPushNotification(notifData.userId, {
           ...notifData,
-          prompt: aiNudge,
+          prompt: nudgeText,
         }, notifDoc.id);
 
         processed++;

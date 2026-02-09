@@ -2,6 +2,7 @@ import { OpenAI } from 'openai';
 import { db } from '../firebase';
 import { doc, getDoc, collection, query, where, limit, getDocs, orderBy } from 'firebase/firestore';
 import { trackTokenUsage } from './tokenTracker';
+import { Step, StepsContext } from '../Models/Step';
 
 interface Milestone {
   id: string;
@@ -13,6 +14,7 @@ interface Milestone {
   completed: boolean;
   blindSpotTip?: string;
   strengthHook?: string;
+  steps?: Step[];
 }
 
 interface GenerateMilestoneNudgeInput {
@@ -39,6 +41,66 @@ interface AssistantInput {
     feedback: string;
     daysAgo: number;
   }>;
+  steps: StepsContext;
+}
+
+/**
+ * Parse the AI response to extract suggested step if present
+ */
+export function parseNudgeResponse(response: string): {
+  nudgeText: string;
+  suggestedStep: string | null;
+} {
+  const stepMatch = response.match(/\[SUGGESTED_STEP:\s*(.+?)\]/);
+
+  if (stepMatch) {
+    return {
+      nudgeText: response.replace(/\[SUGGESTED_STEP:\s*.+?\]/, '').trim(),
+      suggestedStep: stepMatch[1].trim()
+    };
+  }
+
+  return { nudgeText: response, suggestedStep: null };
+}
+
+/**
+ * Build steps context from milestone steps array
+ */
+function buildStepsContext(steps: Step[] = []): StepsContext {
+  const now = new Date();
+
+  const activeSteps = steps
+    .filter(s => !s.completed)
+    .map(s => {
+      const createdAt = s.createdAt instanceof Date
+        ? s.createdAt
+        : (s.createdAt as any)?.toDate?.() || new Date();
+      const daysOld = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        title: s.title,
+        daysOld: Math.max(0, daysOld)
+      };
+    });
+
+  const recentlyCompleted = steps
+    .filter(s => s.completed && s.completedAt)
+    .map(s => {
+      const completedAt = s.completedAt instanceof Date
+        ? s.completedAt
+        : (s.completedAt as any)?.toDate?.() || new Date();
+      const completedDaysAgo = Math.floor((now.getTime() - completedAt.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        title: s.title,
+        completedDaysAgo: Math.max(0, completedDaysAgo)
+      };
+    })
+    .filter(s => s.completedDaysAgo <= 7); // Last 7 days only
+
+  return {
+    active: activeSteps,
+    recentlyCompleted,
+    totalCompleted: steps.filter(s => s.completed).length
+  };
 }
 
 export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudgeInput, userEmail?: string) {
@@ -178,6 +240,10 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
     const daysInProgress = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const daysRemaining = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
+    // Build steps context from milestone steps
+    const stepsContext = buildStepsContext(input.milestone.steps || []);
+    console.log('Steps context:', JSON.stringify(stepsContext, null, 2));
+
     // Prepare assistant input in the exact format requested
     const assistantInput: AssistantInput = {
       goalContext: input.goalContext,
@@ -192,7 +258,8 @@ export async function generateMilestoneNudgeFromAI(input: GenerateMilestoneNudge
       },
       personalityContext,
       growthAdvice,
-      feedbackHistory  // Already formatted with AI summaries
+      feedbackHistory,  // Already formatted with AI summaries
+      steps: stepsContext
     };
 
     console.log('Sending to assistant:', JSON.stringify(assistantInput, null, 2));

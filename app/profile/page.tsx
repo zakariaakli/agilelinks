@@ -678,6 +678,7 @@ function ProfileContent() {
                             showOnlyLatestNotification={true}
                             hideFeedbackStatus={true}
                             hideTimeline={true}
+                            planId={plan.id}
                           />
                         );
                       } else {

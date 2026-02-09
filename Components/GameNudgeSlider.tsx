@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { ArrowRightIcon } from "./Icons";
 import NudgeFormatter from "./NudgeFormatter";
@@ -31,6 +31,11 @@ interface GameNudgeSliderProps {
   hideFeedbackStatus?: boolean;
   compactView?: boolean;
   flatLayout?: boolean;
+  // Step-adding context
+  planId?: string;
+  milestoneId?: string;
+  onStepAdded?: (step: { id: string; title: string }) => void;
+  existingStepTitles?: string[];
 }
 
 const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
@@ -46,6 +51,10 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   hideFeedbackStatus = false,
   compactView = false,
   flatLayout = false,
+  planId,
+  milestoneId,
+  onStepAdded,
+  existingStepTitles = [],
 }) => {
   // Filter to only show the latest notification if showOnlyLatest is true
   // Since notifications are ordered by createdAt desc, the first item is the most recent
@@ -61,11 +70,34 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   const [shakeAnimation, setShakeAnimation] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [addedSteps, setAddedSteps] = useState<Set<string>>(new Set());
   const sliderRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number>(0);
   const touchEndX = useRef<number>(0);
   const heartCounter = useRef(0);
+
+  // Handler for adding a step from nudge action items
+  const handleAddStep = useCallback(async (stepText: string) => {
+    if (!planId || !milestoneId) return;
+
+    const response = await fetch('/api/steps', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        planId,
+        milestoneId,
+        title: stepText,
+        source: 'ai',
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setAddedSteps(prev => new Set([...prev, stepText]));
+      onStepAdded?.(data.step);
+    }
+  }, [planId, milestoneId, onStepAdded]);
 
   // Check if mobile on mount
   useEffect(() => {
@@ -280,6 +312,9 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
   const currentNotification = displayNotifications[currentIndex];
   const hasReacted = currentNotification?.feedback;
 
+  // Build set of all existing step titles to prevent duplicate adds
+  const allAddedSteps = new Set([...addedSteps, ...existingStepTitles]);
+
   const handleCollapse = () => {
     setIsExpanded(false);
     // Scroll back to the weekly check-ins section
@@ -312,7 +347,11 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
           color: '#2d3748',
           marginBottom: '1rem'
         }}>
-          <NudgeFormatter text={currentNotification.prompt} />
+          <NudgeFormatter
+            text={currentNotification.prompt}
+            onAddStep={planId && milestoneId ? handleAddStep : undefined}
+            addedSteps={allAddedSteps}
+          />
         </div>
 
         {/* Show feedback form directly if not reacted */}
@@ -518,7 +557,11 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
                 overflow: compactView ? "visible" : undefined,
               }}
             >
-              <NudgeFormatter text={currentNotification.prompt} />
+              <NudgeFormatter
+                text={currentNotification.prompt}
+                onAddStep={planId && milestoneId ? handleAddStep : undefined}
+                addedSteps={allAddedSteps}
+              />
             </div>
             {!hasReacted && (
               <button

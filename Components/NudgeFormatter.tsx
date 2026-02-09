@@ -1,9 +1,12 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import styles from '../Styles/nudgeFormatter.module.css';
+import { PlusIcon, CheckCircleIcon, LoaderIcon } from './Icons';
 
 interface Props {
   text: string;
+  onAddStep?: (stepText: string) => Promise<void>;
+  addedSteps?: Set<string>;
 }
 
 /**
@@ -14,15 +17,16 @@ interface Props {
  * Handles:
  * - **Bold text** → styled emphasis
  * - Line breaks → proper spacing
- * - Numbered lists → visual formatting
+ * - Numbered lists → visual formatting with optional "Add" buttons
+ * - Bullet lists → visual formatting with optional "Add" buttons
  * - Copy-paste templates → highlighted boxes
  */
-export default function NudgeFormatter({ text }: Props) {
-  // Split by double OR single line breaks to create paragraphs
-  const paragraphs = text.split(/\n\n|\n/).filter(p => p.trim());
+export default function NudgeFormatter({ text, onAddStep, addedSteps = new Set() }: Props) {
+  // Strip [SUGGESTED_STEP: ...] tag if present (fallback for older notifications)
+  const cleanedText = text.replace(/\[SUGGESTED_STEP:\s*.+?\]/g, '').trim();
 
-  console.log('NudgeFormatter received:', text);
-  console.log('Paragraphs:', paragraphs);
+  // Split by double OR single line breaks to create paragraphs
+  const paragraphs = cleanedText.split(/\n\n|\n/).filter(p => p.trim());
 
   return (
     <div className={styles.nudgeContent}>
@@ -31,11 +35,17 @@ export default function NudgeFormatter({ text }: Props) {
         if (/^[-•]/.test(paragraph.trim())) {
           const match = paragraph.match(/^[-•]\s*(.+)/);
           if (match) {
+            const actionText = match[1].replace(/\*\*/g, '').trim();
             return (
-              <div className={styles.bulletItem} key={index}>
-                <span className={styles.bulletIcon}>→</span>
-                <span>{formatInlineText(match[1])}</span>
-              </div>
+              <ActionItemWithAdd
+                key={index}
+                actionText={actionText}
+                displayContent={formatInlineText(match[1])}
+                icon="→"
+                isBullet={true}
+                onAddStep={onAddStep}
+                isAdded={addedSteps.has(actionText)}
+              />
             );
           }
         }
@@ -44,11 +54,17 @@ export default function NudgeFormatter({ text }: Props) {
         if (/^\d+\./.test(paragraph.trim())) {
           const match = paragraph.match(/^(\d+)\.\s*(.+)/);
           if (match) {
+            const actionText = match[2].replace(/\*\*/g, '').trim();
             return (
-              <div className={styles.actionItem} key={index}>
-                <span className={styles.actionNumber}>{match[1]}</span>
-                <span>{formatInlineText(match[2])}</span>
-              </div>
+              <ActionItemWithAdd
+                key={index}
+                actionText={actionText}
+                displayContent={formatInlineText(match[2])}
+                icon={match[1]}
+                isBullet={false}
+                onAddStep={onAddStep}
+                isAdded={addedSteps.has(actionText)}
+              />
             );
           }
         }
@@ -81,6 +97,126 @@ export default function NudgeFormatter({ text }: Props) {
           </p>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * ActionItemWithAdd - Renders an action item with an optional "Add as commitment" button
+ */
+interface ActionItemWithAddProps {
+  actionText: string;
+  displayContent: React.ReactNode;
+  icon: string;
+  isBullet: boolean;
+  onAddStep?: (stepText: string) => Promise<void>;
+  isAdded: boolean;
+}
+
+function ActionItemWithAdd({
+  actionText,
+  displayContent,
+  icon,
+  isBullet,
+  onAddStep,
+  isAdded
+}: ActionItemWithAddProps) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile on mount
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleAdd = async () => {
+    if (!onAddStep || isAdding || isAdded || justAdded) return;
+    setIsAdding(true);
+    try {
+      await onAddStep(actionText);
+      setJustAdded(true);
+    } catch (error) {
+      console.error('Error adding step:', error);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const showAdded = isAdded || justAdded;
+
+  // Mobile: icon-only small button | Desktop: icon + text
+  const buttonContent = isAdding ? (
+    <span style={{ animation: 'spin 1s linear infinite', display: 'inline-flex' }}>
+      <LoaderIcon size={isMobile ? 14 : 14} />
+    </span>
+  ) : showAdded ? (
+    <>
+      <CheckCircleIcon size={isMobile ? 14 : 14} />
+      {!isMobile && <span>Added</span>}
+    </>
+  ) : (
+    <>
+      <PlusIcon size={isMobile ? 14 : 14} />
+      {!isMobile && <span>Add</span>}
+    </>
+  );
+
+  const buttonStyle: React.CSSProperties = {
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: isMobile ? 0 : '0.25rem',
+    padding: isMobile ? '0.375rem' : '0.375rem 0.75rem',
+    background: showAdded ? '#dcfce7' : '#eef2ff',
+    border: showAdded ? '1px solid #86efac' : '1px solid #c7d2fe',
+    borderRadius: isMobile ? '0.375rem' : '0.5rem',
+    color: showAdded ? '#15803d' : '#4f46e5',
+    fontSize: '0.8125rem',
+    fontWeight: 500,
+    cursor: showAdded ? 'default' : 'pointer',
+    transition: 'all 0.15s ease',
+    minWidth: isMobile ? '32px' : 'auto',
+    minHeight: isMobile ? '32px' : 'auto',
+  };
+
+  if (isBullet) {
+    return (
+      <div className={styles.bulletItem}>
+        <span className={styles.bulletIcon}>{icon}</span>
+        <span style={{ flex: 1 }}>{displayContent}</span>
+        {onAddStep && (
+          <button
+            onClick={handleAdd}
+            disabled={isAdding || showAdded}
+            title={showAdded ? "Added to your commitments" : "Add as commitment"}
+            style={{ ...buttonStyle, marginLeft: '0.5rem' }}
+          >
+            {buttonContent}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.actionItem}>
+      <span className={styles.actionNumber}>{icon}</span>
+      <span style={{ flex: 1 }}>{displayContent}</span>
+      {onAddStep && (
+        <button
+          onClick={handleAdd}
+          disabled={isAdding || showAdded}
+          title={showAdded ? "Added to your commitments" : "Add as commitment"}
+          style={buttonStyle}
+        >
+          {buttonContent}
+        </button>
+      )}
     </div>
   );
 }

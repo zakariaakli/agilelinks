@@ -606,6 +606,8 @@ const GoalDetailsPage = () => {
                   status={status}
                   notifications={notifications}
                   isLoadingNotification={isLoadingNotification}
+                  planId={plan.id}
+                  hideNudges
                 />
               );
             })}

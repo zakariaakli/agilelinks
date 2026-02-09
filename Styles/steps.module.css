@@ -1,0 +1,509 @@
+/* Steps Component Styles */
+
+/* Steps Container */
+.stepsContainer {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+}
+
+.stepsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.stepsTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.stepsTitleIcon {
+  color: #6366f1;
+}
+
+.stepsCount {
+  font-size: 0.75rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+/* Steps List */
+.stepsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Individual Step Item */
+.stepItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: #fafafa;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.15s ease;
+}
+
+.stepItem:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.stepItemCompleted {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.stepItemCompleted:hover {
+  background: #dcfce7;
+}
+
+/* Checkbox */
+.stepCheckbox {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+}
+
+.stepCheckboxInput {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.stepCheckboxCustom {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #d1d5db;
+  border-radius: 0.25rem;
+  background: white;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepCheckboxInput:hover + .stepCheckboxCustom {
+  border-color: #6366f1;
+}
+
+.stepCheckboxInput:checked + .stepCheckboxCustom {
+  background: #22c55e;
+  border-color: #22c55e;
+}
+
+.stepCheckboxCustom svg {
+  color: white;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.15s ease;
+}
+
+.stepCheckboxInput:checked + .stepCheckboxCustom svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Step Content */
+.stepContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.stepTitle {
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.4;
+  margin: 0;
+  word-break: break-word;
+}
+
+.stepItemCompleted .stepTitle {
+  color: #6b7280;
+  text-decoration: line-through;
+}
+
+.stepMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.stepSource {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
+.stepSourceAi {
+  background: #eef2ff;
+  color: #6366f1;
+}
+
+.stepSourceUser {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.stepAge {
+  color: #9ca3af;
+}
+
+/* Step Actions */
+.stepActions {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.stepItem:hover .stepActions {
+  opacity: 1;
+}
+
+.stepActionBtn {
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: all 0.15s ease;
+}
+
+.stepActionBtn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.stepActionBtnDelete:hover {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+/* Add Step Form */
+.addStepForm {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.addStepInput {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white;
+  transition: border-color 0.15s ease;
+}
+
+.addStepInput:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.addStepInput::placeholder {
+  color: #9ca3af;
+}
+
+.addStepBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.addStepBtn:hover {
+  background: #4f46e5;
+}
+
+.addStepBtn:disabled {
+  background: #e5e7eb;
+  cursor: not-allowed;
+}
+
+/* Toggle Add Step */
+.toggleAddStepBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: transparent;
+  border: 1px dashed #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 0.5rem;
+}
+
+.toggleAddStepBtn:hover {
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #eef2ff;
+}
+
+/* Suggested Step Card */
+.suggestedStepCard {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border: 1px solid #c7d2fe;
+  border-radius: 0.5rem;
+}
+
+.suggestedStepHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.suggestedStepIcon {
+  color: #6366f1;
+}
+
+.suggestedStepLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4338ca;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.suggestedStepText {
+  font-size: 0.875rem;
+  color: #374151;
+  line-height: 1.5;
+  margin: 0 0 0.75rem 0;
+}
+
+.suggestedStepActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.suggestedStepAccept {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.suggestedStepAccept:hover {
+  background: #4f46e5;
+}
+
+.suggestedStepAccept:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.suggestedStepDismiss {
+  padding: 0.5rem 0.75rem;
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.suggestedStepDismiss:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+/* Achievement Trail */
+.achievementTrail {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 0.5rem;
+}
+
+.achievementTrailHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.achievementTrailIcon {
+  color: #22c55e;
+}
+
+.achievementTrailTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #166534;
+  margin: 0;
+}
+
+.achievementTrailCount {
+  font-size: 0.75rem;
+  color: #22c55e;
+  background: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid #86efac;
+}
+
+.achievementTrailList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.achievementTrailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #166534;
+}
+
+.achievementTrailItem svg {
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
+.achievementTrailItemText {
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+
+.achievementTrailItemDate {
+  font-size: 0.75rem;
+  color: #86efac;
+  margin-left: auto;
+}
+
+/* Empty State */
+.stepsEmpty {
+  text-align: center;
+  padding: 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.stepsEmptyIcon {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+/* Loading State */
+.stepsLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  gap: 0.5rem;
+}
+
+.stepsLoadingSpinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .stepsContainer {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .stepItem {
+    padding: 0.5rem 0.625rem;
+  }
+
+  .stepTitle {
+    font-size: 0.8125rem;
+  }
+
+  .stepActions {
+    opacity: 1;
+  }
+
+  .addStepForm {
+    flex-direction: column;
+  }
+
+  .addStepBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .suggestedStepActions {
+    flex-direction: column;
+  }
+
+  .suggestedStepAccept {
+    order: 1;
+  }
+
+  .suggestedStepDismiss {
+    order: 2;
+  }
+}
