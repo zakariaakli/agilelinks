@@ -19,6 +19,7 @@
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.4",
     "css-loader": "^7.1.2",
+    "dotenv": "^17.2.4",
     "emailjs-com": "^3.2.0",
     "firebase": "^11.6.0",
     "firebase-admin": "^13.4.0",

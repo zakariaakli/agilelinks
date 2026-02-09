@@ -5,10 +5,12 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { auth, googleProvider, db } from "../firebase";
 import { onAuthStateChanged, signOut, signInWithPopup } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 import styles from "../Styles/header.module.css";
 import { useRouter } from "next/navigation";
 import LevelIndicator from "./LevelIndicator";
+import ProjectSwitcher from "./ProjectSwitcher";
+import MobileProjectSheet from "./MobileProjectSheet";
 import {
   UserIcon,
   TargetIcon,
@@ -30,10 +32,23 @@ interface UserStats {
   daysActive: number;
 }
 
+interface PlanForSwitcher {
+  id: string;
+  goalName?: string;
+  goalType: string;
+  status: 'active' | 'paused' | 'completed';
+  milestones: Array<{
+    id: string;
+    completed: boolean;
+  }>;
+}
+
 const Header = () => {
   const [user, setUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [userPlans, setUserPlans] = useState<PlanForSwitcher[]>([]);
+  const [mobileProjectSheetOpen, setMobileProjectSheetOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -41,12 +56,42 @@ const Header = () => {
       setUser(user);
       if (user) {
         fetchUserStats(user.uid);
+        fetchUserPlans(user.uid);
       } else {
         setUserStats(null);
+        setUserPlans([]);
       }
     });
     return () => unsubscribe();
   }, []);
+
+  const fetchUserPlans = async (userId: string) => {
+    try {
+      const plansQuery = query(
+        collection(db, "plans"),
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc"),
+        limit(10)
+      );
+      const plansSnapshot = await getDocs(plansQuery);
+      const plans: PlanForSwitcher[] = plansSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          goalName: data.goalName,
+          goalType: data.goalType || '',
+          status: data.status || 'active',
+          milestones: (data.milestones || []).map((m: any) => ({
+            id: m.id,
+            completed: m.completed || false,
+          })),
+        };
+      });
+      setUserPlans(plans);
+    } catch (error) {
+      console.error("Error fetching user plans:", error);
+    }
+  };
 
   const fetchUserStats = async (userId: string) => {
     try {
@@ -239,6 +284,9 @@ const Header = () => {
         <div className={styles.cta}>
           {user ? (
             <div className={styles.userInfo}>
+              {userPlans.length > 0 && (
+                <ProjectSwitcher plans={userPlans} />
+              )}
               {userStats && <LevelIndicator userStats={userStats} />}
               <NotificationBell />
               <div className={styles.userDropdown}>
@@ -303,6 +351,15 @@ const Header = () => {
           )}
         </div>
       </div>
+
+      {/* Mobile Project Sheet */}
+      {user && (
+        <MobileProjectSheet
+          isOpen={mobileProjectSheetOpen}
+          onClose={() => setMobileProjectSheetOpen(false)}
+          plans={userPlans}
+        />
+      )}
     </header>
   );
 };

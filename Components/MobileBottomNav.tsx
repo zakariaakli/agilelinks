@@ -4,11 +4,12 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import styles from "../Styles/mobileBottomNav.module.css";
-import { LogOutIcon, PlusIcon, UserIcon } from "./Icons";
+import { LogOutIcon, PlusIcon, UserIcon, TargetIcon } from "./Icons";
 import NotificationBell from "./NotificationBell";
+import MobileProjectSheet from "./MobileProjectSheet";
 import { signOut } from "firebase/auth";
 
 interface UserStats {
@@ -20,9 +21,22 @@ interface UserStats {
   daysActive: number;
 }
 
+interface PlanForSwitcher {
+  id: string;
+  goalName?: string;
+  goalType: string;
+  status: 'active' | 'paused' | 'completed';
+  milestones: Array<{
+    id: string;
+    completed: boolean;
+  }>;
+}
+
 const MobileBottomNav = () => {
   const [user, setUser] = useState<any>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
+  const [userPlans, setUserPlans] = useState<PlanForSwitcher[]>([]);
+  const [projectSheetOpen, setProjectSheetOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -30,12 +44,42 @@ const MobileBottomNav = () => {
       setUser(user);
       if (user) {
         fetchUserStats(user.uid);
+        fetchUserPlans(user.uid);
       } else {
         setUserStats(null);
+        setUserPlans([]);
       }
     });
     return () => unsubscribe();
   }, []);
+
+  const fetchUserPlans = async (userId: string) => {
+    try {
+      const plansQuery = query(
+        collection(db, "plans"),
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc"),
+        limit(10)
+      );
+      const plansSnapshot = await getDocs(plansQuery);
+      const plans: PlanForSwitcher[] = plansSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          goalName: data.goalName,
+          goalType: data.goalType || '',
+          status: data.status || 'active',
+          milestones: (data.milestones || []).map((m: any) => ({
+            id: m.id,
+            completed: m.completed || false,
+          })),
+        };
+      });
+      setUserPlans(plans);
+    } catch (error) {
+      console.error("Error fetching user plans:", error);
+    }
+  };
 
   const fetchUserStats = async (userId: string) => {
     try {
@@ -122,36 +166,48 @@ const MobileBottomNav = () => {
   }
 
   return (
-    <nav className={styles.bottomNav}>
-      <div className={styles.navItem}>
-        <NotificationBell />
-      </div>
-      <Link href="/profile/companion" className={`${styles.navItem} ${styles.createPlanButton}`}>
-        <div className={styles.createPlanIcon}>
-          <PlusIcon size={16} strokeWidth={2.5} />
+    <>
+      <nav className={styles.bottomNav}>
+        <div className={styles.navItem}>
+          <NotificationBell />
         </div>
-      </Link>
-      <Link href="/personality" className={styles.navItem}>
-        <UserIcon size={20} strokeWidth={2} />
-      </Link>
-      {userStats && (
-        <Link href="/profile/levels" className={styles.navItem}>
-          <div className={styles.levelIconWrapper}>
-            <span className={styles.levelNumber}>{currentLevel}</span>
+        {userPlans.length > 0 && (
+          <button
+            onClick={() => setProjectSheetOpen(true)}
+            className={styles.navItem}
+            aria-label="Switch project"
+          >
+            <TargetIcon size={20} strokeWidth={2} />
+          </button>
+        )}
+        <Link href="/profile/companion" className={`${styles.navItem} ${styles.createPlanButton}`}>
+          <div className={styles.createPlanIcon}>
+            <PlusIcon size={16} strokeWidth={2.5} />
           </div>
         </Link>
-      )}
-      <Link href="/profile" className={styles.navItem}>
-        <img
-          src={user.photoURL}
-          alt="Profile"
-          className={styles.profileIconPic}
-        />
-      </Link>
-      <button onClick={handleSignOut} className={styles.navItem}>
-        <LogOutIcon size={20} />
-      </button>
-    </nav>
+        {userStats && (
+          <Link href="/profile/levels" className={styles.navItem}>
+            <div className={styles.levelIconWrapper}>
+              <span className={styles.levelNumber}>{currentLevel}</span>
+            </div>
+          </Link>
+        )}
+        <Link href="/profile" className={styles.navItem}>
+          <img
+            src={user.photoURL}
+            alt="Profile"
+            className={styles.profileIconPic}
+          />
+        </Link>
+      </nav>
+
+      {/* Mobile Project Sheet */}
+      <MobileProjectSheet
+        isOpen={projectSheetOpen}
+        onClose={() => setProjectSheetOpen(false)}
+        plans={userPlans}
+      />
+    </>
   );
 };
 

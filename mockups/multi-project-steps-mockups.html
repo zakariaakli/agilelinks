@@ -1,0 +1,2454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stepiva UI Mockups - Multi-Project & Steps</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================
+       DESIGN TOKENS (from your design-tokens.css)
+       ============================================ */
+    :root {
+      /* Colors */
+      --color-primary-50: #eef2ff;
+      --color-primary-100: #e0e7ff;
+      --color-primary-500: #6366f1;
+      --color-primary-600: #4f46e5;
+      --color-primary-700: #4338ca;
+
+      --color-secondary-50: #ecfdf5;
+      --color-secondary-500: #10b981;
+      --color-secondary-600: #059669;
+
+      --color-accent-50: #fffbeb;
+      --color-accent-500: #f59e0b;
+      --color-accent-600: #d97706;
+
+      --color-neutral-0: #ffffff;
+      --color-neutral-50: #f9fafb;
+      --color-neutral-100: #f3f4f6;
+      --color-neutral-200: #e5e7eb;
+      --color-neutral-300: #d1d5db;
+      --color-neutral-400: #9ca3af;
+      --color-neutral-500: #6b7280;
+      --color-neutral-600: #4b5563;
+      --color-neutral-700: #374151;
+      --color-neutral-800: #1f2937;
+      --color-neutral-900: #111827;
+
+      --color-error-500: #ef4444;
+
+      /* Typography */
+      --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-size-xs: 0.75rem;
+      --font-size-sm: 0.875rem;
+      --font-size-base: 1rem;
+      --font-size-lg: 1.125rem;
+      --font-size-xl: 1.25rem;
+      --font-size-2xl: 1.5rem;
+      --font-size-3xl: 1.875rem;
+
+      /* Spacing */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+
+      /* Border Radius */
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-xl: 16px;
+      --radius-2xl: 24px;
+      --radius-full: 9999px;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+
+      /* Transitions */
+      --transition-fast: 150ms ease;
+      --transition-base: 200ms ease;
+    }
+
+    /* ============================================
+       BASE STYLES
+       ============================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-family);
+      font-size: var(--font-size-base);
+      color: var(--color-neutral-900);
+      background: var(--color-neutral-100);
+      line-height: 1.5;
+    }
+
+    /* ============================================
+       MOCKUP NAVIGATION
+       ============================================ */
+    .mockup-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--color-neutral-900);
+      color: var(--color-neutral-0);
+      padding: var(--space-4) var(--space-6);
+      z-index: 1000;
+      display: flex;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .mockup-nav h1 {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      margin-right: var(--space-6);
+    }
+
+    .mockup-nav button {
+      background: var(--color-neutral-700);
+      border: none;
+      color: var(--color-neutral-0);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .mockup-nav button:hover {
+      background: var(--color-neutral-600);
+    }
+
+    .mockup-nav button.active {
+      background: var(--color-primary-500);
+    }
+
+    .device-toggle {
+      margin-left: auto;
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    /* ============================================
+       MOCKUP SECTIONS
+       ============================================ */
+    .mockup-section {
+      display: none;
+      padding-top: 80px;
+      min-height: 100vh;
+    }
+
+    .mockup-section.active {
+      display: block;
+    }
+
+    .section-header {
+      background: var(--color-neutral-0);
+      padding: var(--space-6);
+      border-bottom: 1px solid var(--color-neutral-200);
+    }
+
+    .section-header h2 {
+      font-size: var(--font-size-2xl);
+      font-weight: 700;
+      color: var(--color-neutral-900);
+      margin-bottom: var(--space-2);
+    }
+
+    .section-header p {
+      color: var(--color-neutral-600);
+      max-width: 700px;
+    }
+
+    .mockup-container {
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+    .option-card {
+      background: var(--color-neutral-0);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .option-header {
+      padding: var(--space-5) var(--space-6);
+      background: var(--color-neutral-50);
+      border-bottom: 1px solid var(--color-neutral-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .option-header h3 {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+    }
+
+    .option-badge {
+      background: var(--color-primary-100);
+      color: var(--color-primary-700);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+
+    .option-badge.recommended {
+      background: var(--color-secondary-50);
+      color: var(--color-secondary-600);
+    }
+
+    .option-content {
+      padding: var(--space-6);
+    }
+
+    .option-description {
+      margin-bottom: var(--space-6);
+      padding: var(--space-4);
+      background: var(--color-neutral-50);
+      border-radius: var(--radius-md);
+      border-left: 3px solid var(--color-primary-500);
+    }
+
+    .option-description h4 {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-neutral-700);
+      margin-bottom: var(--space-2);
+    }
+
+    .option-description ul {
+      list-style: none;
+      font-size: var(--font-size-sm);
+      color: var(--color-neutral-600);
+    }
+
+    .option-description li {
+      margin-bottom: var(--space-1);
+    }
+
+    .option-description li::before {
+      content: "✓ ";
+      color: var(--color-secondary-500);
+    }
+
+    .tradeoffs {
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--color-neutral-200);
+    }
+
+    .tradeoffs h4 {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-neutral-700);
+      margin-bottom: var(--space-2);
+    }
+
+    .tradeoff-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      font-size: var(--font-size-sm);
+    }
+
+    .tradeoff-pros, .tradeoff-cons {
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+    }
+
+    .tradeoff-pros {
+      background: var(--color-secondary-50);
+    }
+
+    .tradeoff-cons {
+      background: var(--color-accent-50);
+    }
+
+    .tradeoff-pros h5, .tradeoff-cons h5 {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+    }
+
+    .tradeoff-pros h5 {
+      color: var(--color-secondary-600);
+    }
+
+    .tradeoff-cons h5 {
+      color: var(--color-accent-600);
+    }
+
+    /* ============================================
+       DEVICE FRAMES
+       ============================================ */
+    .device-frame {
+      background: var(--color-neutral-200);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+    .device-frame.desktop {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .device-frame.mobile {
+      max-width: 375px;
+      width: 100%;
+    }
+
+    .device-screen {
+      background: var(--color-neutral-50);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      min-height: 500px;
+    }
+
+    .device-frame.mobile .device-screen {
+      min-height: 700px;
+    }
+
+    /* ============================================
+       APP HEADER (in mockup)
+       ============================================ */
+    .app-header {
+      background: var(--color-neutral-0);
+      padding: var(--space-4) var(--space-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-neutral-200);
+    }
+
+    .app-logo {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--color-primary-600), var(--color-secondary-500));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .app-nav {
+      display: flex;
+      gap: var(--space-6);
+    }
+
+    .app-nav a {
+      color: var(--color-neutral-600);
+      text-decoration: none;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      transition: color var(--transition-fast);
+    }
+
+    .app-nav a:hover, .app-nav a.active {
+      color: var(--color-primary-600);
+    }
+
+    .app-header-right {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .notification-bell {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-full);
+      background: var(--color-neutral-100);
+      cursor: pointer;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 18px;
+      height: 18px;
+      background: var(--color-error-500);
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .level-badge {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--color-primary-700);
+      font-size: var(--font-size-sm);
+    }
+
+    /* ============================================
+       MULTI-PROJECT SWITCHER STYLES
+       ============================================ */
+
+    /* Option A: Dropdown Switcher */
+    .project-switcher-dropdown {
+      position: relative;
+    }
+
+    .switcher-trigger {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-neutral-0);
+      border: 1px solid var(--color-neutral-200);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .switcher-trigger:hover {
+      border-color: var(--color-primary-500);
+      box-shadow: 0 0 0 3px var(--color-primary-50);
+    }
+
+    .switcher-project-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+    }
+
+    .switcher-project-info {
+      text-align: left;
+    }
+
+    .switcher-project-name {
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      color: var(--color-neutral-900);
+    }
+
+    .switcher-project-milestone {
+      font-size: var(--font-size-xs);
+      color: var(--color-neutral-500);
+    }
+
+    .switcher-arrow {
+      color: var(--color-neutral-400);
+      margin-left: var(--space-2);
+    }
+
+    .switcher-dropdown-menu {
+      position: absolute;
+      top: calc(100% + var(--space-2));
+      left: 0;
+      min-width: 320px;
+      background: var(--color-neutral-0);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--color-neutral-200);
+      z-index: 100;
+      overflow: hidden;
+    }
+
+    .switcher-dropdown-header {
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-neutral-50);
+      border-bottom: 1px solid var(--color-neutral-200);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--color-neutral-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .switcher-project-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .switcher-project-item:hover {
+      background: var(--color-neutral-50);
+    }
+
+    .switcher-project-item.active {
+      background: var(--color-primary-50);
+    }
+
+    .project-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      background: var(--color-secondary-500);
+    }
+
+    .project-status-dot.inactive {
+      background: var(--color-neutral-300);
+    }
+
+    .project-item-details {
+      flex: 1;
+    }
+
+    .project-item-name {
+      font-weight: 500;
+      font-size: var(--font-size-sm);
+    }
+
+    .project-item-milestone {
+      font-size: var(--font-size-xs);
+      color: var(--color-neutral-500);
+    }
+
+    .project-item-progress {
+      width: 40px;
+      height: 4px;
+      background: var(--color-neutral-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .project-item-progress-bar {
+      height: 100%;
+      background: var(--color-primary-500);
+      border-radius: var(--radius-full);
+    }
+
+    /* Option B: Sidebar Mini */
+    .sidebar-mini {
+      width: 72px;
+      background: var(--color-neutral-0);
+      border-right: 1px solid var(--color-neutral-200);
+      padding: var(--space-4) var(--space-2);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .sidebar-project-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: var(--font-size-lg);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .sidebar-project-icon.active {
+      box-shadow: 0 0 0 2px var(--color-primary-500);
+    }
+
+    .sidebar-project-icon:hover {
+      transform: scale(1.05);
+    }
+
+    .sidebar-project-icon .active-indicator {
+      position: absolute;
+      right: -4px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 4px;
+      height: 24px;
+      background: var(--color-primary-500);
+      border-radius: var(--radius-full);
+    }
+
+    .sidebar-add-project {
+      width: 48px;
+      height: 48px;
+      border: 2px dashed var(--color-neutral-300);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-neutral-400);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .sidebar-add-project:hover {
+      border-color: var(--color-primary-500);
+      color: var(--color-primary-500);
+    }
+
+    /* Option C: Top Tabs */
+    .project-tabs {
+      display: flex;
+      gap: var(--space-1);
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-neutral-0);
+      border-bottom: 1px solid var(--color-neutral-200);
+      overflow-x: auto;
+    }
+
+    .project-tab {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--color-neutral-600);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .project-tab:hover {
+      background: var(--color-neutral-100);
+    }
+
+    .project-tab.active {
+      background: var(--color-primary-50);
+      color: var(--color-primary-700);
+    }
+
+    .project-tab-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: white;
+    }
+
+    /* ============================================
+       MAIN CONTENT AREA
+       ============================================ */
+    .main-content {
+      padding: var(--space-6);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .main-content.with-sidebar {
+      margin-left: 72px;
+      max-width: none;
+    }
+
+    /* ============================================
+       CURRENT MILESTONE CARD
+       ============================================ */
+    .current-milestone-card {
+      background: var(--color-neutral-0);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      margin-bottom: var(--space-6);
+    }
+
+    .milestone-header {
+      padding: var(--space-5) var(--space-6);
+      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+      color: white;
+    }
+
+    .milestone-label {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.8;
+      margin-bottom: var(--space-1);
+    }
+
+    .milestone-title {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      margin-bottom: var(--space-2);
+    }
+
+    .milestone-dates {
+      font-size: var(--font-size-sm);
+      opacity: 0.9;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .milestone-progress-bar {
+      margin-top: var(--space-4);
+      height: 6px;
+      background: rgba(255,255,255,0.3);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .milestone-progress-fill {
+      height: 100%;
+      background: white;
+      border-radius: var(--radius-full);
+      transition: width 0.5s ease;
+    }
+
+    .milestone-body {
+      padding: var(--space-6);
+    }
+
+    .milestone-description {
+      color: var(--color-neutral-600);
+      margin-bottom: var(--space-6);
+      line-height: 1.6;
+    }
+
+    /* Personality Hooks */
+    .personality-hooks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-6);
+    }
+
+    .personality-hook {
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      display: flex;
+      gap: var(--space-3);
+    }
+
+    .personality-hook.blind-spot {
+      background: var(--color-accent-50);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .personality-hook.strength {
+      background: var(--color-secondary-50);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .hook-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .blind-spot .hook-icon {
+      background: var(--color-accent-500);
+      color: white;
+    }
+
+    .strength .hook-icon {
+      background: var(--color-secondary-500);
+      color: white;
+    }
+
+    .hook-content h4 {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+
+    .blind-spot .hook-content h4 {
+      color: var(--color-accent-600);
+    }
+
+    .strength .hook-content h4 {
+      color: var(--color-secondary-600);
+    }
+
+    .hook-content p {
+      font-size: var(--font-size-sm);
+      color: var(--color-neutral-600);
+      line-height: 1.5;
+    }
+
+    /* ============================================
+       STEPS SECTION
+       ============================================ */
+    .steps-section {
+      margin-top: var(--space-6);
+    }
+
+    .steps-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+
+    .steps-title {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .steps-count {
+      font-size: var(--font-size-sm);
+      color: var(--color-neutral-500);
+      font-weight: 400;
+    }
+
+    .steps-add-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: var(--color-neutral-0);
+      border: 1px solid var(--color-neutral-200);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--color-neutral-600);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .steps-add-btn:hover {
+      border-color: var(--color-primary-500);
+      color: var(--color-primary-600);
+    }
+
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    /* Step Item */
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--color-neutral-0);
+      border: 1px solid var(--color-neutral-200);
+      border-radius: var(--radius-lg);
+      transition: all var(--transition-fast);
+    }
+
+    .step-item:hover {
+      border-color: var(--color-neutral-300);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .step-item.completed {
+      background: var(--color-neutral-50);
+      border-color: var(--color-neutral-200);
+    }
+
+    .step-checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--color-neutral-300);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-checkbox:hover {
+      border-color: var(--color-primary-500);
+    }
+
+    .step-item.completed .step-checkbox {
+      background: var(--color-secondary-500);
+      border-color: var(--color-secondary-500);
+      color: white;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-text {
+      font-size: var(--font-size-base);
+      color: var(--color-neutral-800);
+      line-height: 1.5;
+    }
+
+    .step-item.completed .step-text {
+      color: var(--color-neutral-500);
+      text-decoration: line-through;
+    }
+
+    .step-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-top: var(--space-2);
+      font-size: var(--font-size-xs);
+      color: var(--color-neutral-400);
+    }
+
+    .step-date {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    /* Suggested Steps */
+    .suggested-steps {
+      margin-top: var(--space-6);
+      padding: var(--space-5);
+      background: var(--color-primary-50);
+      border-radius: var(--radius-lg);
+      border: 1px dashed var(--color-primary-200);
+    }
+
+    .suggested-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+
+    .suggested-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--color-primary-500);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .suggested-title {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-primary-700);
+    }
+
+    .suggested-subtitle {
+      font-size: var(--font-size-xs);
+      color: var(--color-primary-600);
+    }
+
+    .suggested-step {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-neutral-0);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-2);
+    }
+
+    .suggested-step-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-neutral-700);
+    }
+
+    .suggested-step-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .suggested-btn {
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-md);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .suggested-btn.add {
+      background: var(--color-primary-500);
+      color: white;
+      border: none;
+    }
+
+    .suggested-btn.add:hover {
+      background: var(--color-primary-600);
+    }
+
+    .suggested-btn.skip {
+      background: transparent;
+      color: var(--color-neutral-500);
+      border: 1px solid var(--color-neutral-300);
+    }
+
+    .suggested-btn.skip:hover {
+      background: var(--color-neutral-100);
+    }
+
+    /* Achievement Trail */
+    .achievement-trail {
+      margin-top: var(--space-8);
+      padding-top: var(--space-6);
+      border-top: 1px solid var(--color-neutral-200);
+    }
+
+    .trail-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
+    }
+
+    .trail-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--color-secondary-100);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-secondary-600);
+    }
+
+    .trail-title {
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--color-neutral-700);
+    }
+
+    .trail-count {
+      font-size: var(--font-size-sm);
+      color: var(--color-neutral-500);
+      font-weight: 400;
+    }
+
+    .trail-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .trail-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: var(--color-secondary-50);
+      border-radius: var(--radius-md);
+    }
+
+    .trail-check {
+      width: 20px;
+      height: 20px;
+      background: var(--color-secondary-500);
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .trail-content {
+      flex: 1;
+    }
+
+    .trail-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-neutral-700);
+      line-height: 1.4;
+    }
+
+    .trail-date {
+      font-size: var(--font-size-xs);
+      color: var(--color-neutral-500);
+      margin-top: var(--space-1);
+    }
+
+    /* ============================================
+       NUDGE CARD
+       ============================================ */
+    .nudge-section {
+      margin-top: var(--space-6);
+    }
+
+    .nudge-card {
+      background: var(--color-neutral-0);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .nudge-header {
+      padding: var(--space-4) var(--space-6);
+      background: var(--color-neutral-50);
+      border-bottom: 1px solid var(--color-neutral-200);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .nudge-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--color-accent-500), var(--color-primary-500));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .nudge-meta {
+      flex: 1;
+    }
+
+    .nudge-label {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-neutral-900);
+    }
+
+    .nudge-date {
+      font-size: var(--font-size-xs);
+      color: var(--color-neutral-500);
+    }
+
+    .nudge-body {
+      padding: var(--space-6);
+    }
+
+    .nudge-message {
+      font-size: var(--font-size-base);
+      line-height: 1.7;
+      color: var(--color-neutral-700);
+      margin-bottom: var(--space-6);
+    }
+
+    .nudge-question {
+      font-style: italic;
+      color: var(--color-primary-600);
+      font-weight: 500;
+    }
+
+    /* ============================================
+       MOBILE BOTTOM NAV (in mockup)
+       ============================================ */
+    .mobile-bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--color-neutral-200);
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-1);
+      color: var(--color-neutral-500);
+      font-size: 10px;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      color: var(--color-primary-600);
+    }
+
+    .nav-item-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-item-create {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-top: -16px;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ============================================
+       MOBILE PROJECT SHEET
+       ============================================ */
+    .mobile-project-sheet {
+      position: absolute;
+      bottom: 72px;
+      left: var(--space-4);
+      right: var(--space-4);
+      background: var(--color-neutral-0);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-lg);
+      padding: var(--space-4);
+      z-index: 50;
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--color-neutral-300);
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--space-4);
+    }
+
+    .sheet-title {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--color-neutral-500);
+      margin-bottom: var(--space-3);
+    }
+
+    /* ============================================
+       LAYOUT HELPERS
+       ============================================ */
+    .flex-row {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .flex-1 {
+      flex: 1;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .mobile-only {
+      display: none;
+    }
+
+    .desktop-only {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .mobile-only {
+        display: block;
+      }
+      .desktop-only {
+        display: none;
+      }
+      .personality-hooks {
+        grid-template-columns: 1fr;
+      }
+      .tradeoff-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Mockup Navigation -->
+  <nav class="mockup-nav">
+    <h1>Stepiva Mockups</h1>
+    <button class="active" onclick="showSection('switcher')">Project Switcher</button>
+    <button onclick="showSection('steps')">Steps on Milestone</button>
+    <button onclick="showSection('integration')">Full Integration</button>
+    <div class="device-toggle">
+      <button onclick="setDevice('desktop')" class="active" id="btn-desktop">Desktop</button>
+      <button onclick="setDevice('mobile')" id="btn-mobile">Mobile</button>
+    </div>
+  </nav>
+
+  <!-- ============================================
+       SECTION 1: MULTI-PROJECT SWITCHER
+       ============================================ -->
+  <section id="section-switcher" class="mockup-section active">
+    <div class="section-header">
+      <h2>A. Multi-Project Switcher</h2>
+      <p>Three layout options for switching between active plans. All options show the most recently interacted plan by default, with quick access to other active plans.</p>
+    </div>
+
+    <div class="mockup-container">
+      <!-- Option A: Dropdown Switcher -->
+      <div class="option-card">
+        <div class="option-header">
+          <h3>Option A: Header Dropdown</h3>
+          <span class="option-badge recommended">Recommended</span>
+        </div>
+        <div class="option-content">
+          <div class="option-description">
+            <h4>How it works</h4>
+            <ul>
+              <li>Compact switcher in the header, next to logo</li>
+              <li>Shows current plan name + milestone at a glance</li>
+              <li>Click to reveal dropdown with all active plans</li>
+              <li>Progress indicator on each plan</li>
+            </ul>
+            <div class="tradeoffs">
+              <h4>Trade-offs</h4>
+              <div class="tradeoff-grid">
+                <div class="tradeoff-pros">
+                  <h5>Pros</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>+ Minimal UI footprint</li>
+                    <li>+ Always accessible</li>
+                    <li>+ Works on mobile</li>
+                    <li>+ Familiar pattern (Linear, Slack)</li>
+                  </ul>
+                </div>
+                <div class="tradeoff-cons">
+                  <h5>Cons</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>- Extra click to see all plans</li>
+                    <li>- Less visual at a glance</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Mockup -->
+          <div class="device-frame desktop" id="switcher-a-desktop">
+            <div class="device-screen">
+              <div class="app-header">
+                <div style="display: flex; align-items: center; gap: var(--space-6);">
+                  <div class="app-logo">Stepiva</div>
+
+                  <!-- Project Switcher -->
+                  <div class="project-switcher-dropdown">
+                    <div class="switcher-trigger">
+                      <div class="switcher-project-icon">GP</div>
+                      <div class="switcher-project-info">
+                        <div class="switcher-project-name">Get Promoted to PM</div>
+                        <div class="switcher-project-milestone">Week 3 of 6 · Stakeholder interviews</div>
+                      </div>
+                      <span class="switcher-arrow">▼</span>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div class="switcher-dropdown-menu">
+                      <div class="switcher-dropdown-header">Active Plans</div>
+                      <div class="switcher-project-item active">
+                        <div class="project-status-dot"></div>
+                        <div class="switcher-project-icon" style="width: 28px; height: 28px; font-size: 11px;">GP</div>
+                        <div class="project-item-details">
+                          <div class="project-item-name">Get Promoted to PM</div>
+                          <div class="project-item-milestone">Stakeholder interviews</div>
+                        </div>
+                        <div class="project-item-progress">
+                          <div class="project-item-progress-bar" style="width: 50%;"></div>
+                        </div>
+                      </div>
+                      <div class="switcher-project-item">
+                        <div class="project-status-dot"></div>
+                        <div class="switcher-project-icon" style="width: 28px; height: 28px; font-size: 11px; background: linear-gradient(135deg, #10b981, #059669);">LS</div>
+                        <div class="project-item-details">
+                          <div class="project-item-name">Launch Side Business</div>
+                          <div class="project-item-milestone">Build landing page</div>
+                        </div>
+                        <div class="project-item-progress">
+                          <div class="project-item-progress-bar" style="width: 30%; background: var(--color-secondary-500);"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="app-header-right">
+                  <div class="notification-bell">
+                    <span>🔔</span>
+                    <span class="notification-badge">2</span>
+                  </div>
+                  <div class="level-badge">4</div>
+                  <div class="user-avatar">SA</div>
+                </div>
+              </div>
+
+              <div class="main-content" style="padding-top: var(--space-6);">
+                <div style="color: var(--color-neutral-500); text-align: center; padding: var(--space-12);">
+                  [Main content area with current milestone]
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Mockup -->
+          <div class="device-frame mobile hidden" id="switcher-a-mobile">
+            <div class="device-screen" style="position: relative;">
+              <div class="app-header" style="padding: var(--space-3) var(--space-4);">
+                <div class="app-logo" style="font-size: var(--font-size-lg);">Stepiva</div>
+                <div class="switcher-trigger" style="padding: var(--space-2); gap: var(--space-2);">
+                  <div class="switcher-project-icon" style="width: 28px; height: 28px; font-size: 11px;">GP</div>
+                  <span class="switcher-arrow">▼</span>
+                </div>
+              </div>
+
+              <div style="padding: var(--space-4); color: var(--color-neutral-500); text-align: center;">
+                [Tap header to switch plans]
+              </div>
+
+              <!-- Mobile Project Sheet -->
+              <div class="mobile-project-sheet">
+                <div class="sheet-handle"></div>
+                <div class="sheet-title">Switch Plan</div>
+                <div class="switcher-project-item active" style="border-radius: var(--radius-lg); margin-bottom: var(--space-2);">
+                  <div class="project-status-dot"></div>
+                  <div class="switcher-project-icon" style="width: 32px; height: 32px; font-size: 12px;">GP</div>
+                  <div class="project-item-details">
+                    <div class="project-item-name">Get Promoted to PM</div>
+                    <div class="project-item-milestone">Stakeholder interviews</div>
+                  </div>
+                </div>
+                <div class="switcher-project-item" style="border-radius: var(--radius-lg);">
+                  <div class="project-status-dot"></div>
+                  <div class="switcher-project-icon" style="width: 32px; height: 32px; font-size: 12px; background: linear-gradient(135deg, #10b981, #059669);">LS</div>
+                  <div class="project-item-details">
+                    <div class="project-item-name">Launch Side Business</div>
+                    <div class="project-item-milestone">Build landing page</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mobile-bottom-nav">
+                <div class="nav-item">
+                  <div class="nav-item-icon">🔔</div>
+                  <span>Nudges</span>
+                </div>
+                <div class="nav-item-create">+</div>
+                <div class="nav-item active">
+                  <div class="nav-item-icon">👤</div>
+                  <span>Profile</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option B: Sidebar Mini -->
+      <div class="option-card">
+        <div class="option-header">
+          <h3>Option B: Icon Sidebar</h3>
+          <span class="option-badge">Alternative</span>
+        </div>
+        <div class="option-content">
+          <div class="option-description">
+            <h4>How it works</h4>
+            <ul>
+              <li>Thin sidebar with project icons (initials)</li>
+              <li>Active project highlighted with accent</li>
+              <li>Hover to see project name tooltip</li>
+              <li>Always visible, 1-click switching</li>
+            </ul>
+            <div class="tradeoffs">
+              <h4>Trade-offs</h4>
+              <div class="tradeoff-grid">
+                <div class="tradeoff-pros">
+                  <h5>Pros</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>+ All plans visible at once</li>
+                    <li>+ One-click switching</li>
+                    <li>+ Visual differentiation</li>
+                  </ul>
+                </div>
+                <div class="tradeoff-cons">
+                  <h5>Cons</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>- Takes horizontal space</li>
+                    <li>- Doesn't work well on mobile</li>
+                    <li>- Adds visual complexity</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Mockup -->
+          <div class="device-frame desktop" id="switcher-b-desktop">
+            <div class="device-screen">
+              <div class="app-header">
+                <div class="app-logo">Stepiva</div>
+                <div class="app-header-right">
+                  <div class="notification-bell">
+                    <span>🔔</span>
+                    <span class="notification-badge">2</span>
+                  </div>
+                  <div class="level-badge">4</div>
+                  <div class="user-avatar">SA</div>
+                </div>
+              </div>
+
+              <div class="flex-row">
+                <!-- Sidebar -->
+                <div class="sidebar-mini">
+                  <div class="sidebar-project-icon active" style="background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700)); color: white;">
+                    GP
+                    <div class="active-indicator"></div>
+                  </div>
+                  <div class="sidebar-project-icon" style="background: linear-gradient(135deg, #10b981, #059669); color: white;">
+                    LS
+                  </div>
+                  <div class="sidebar-project-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                    FT
+                  </div>
+                  <div class="sidebar-add-project">+</div>
+                </div>
+
+                <div class="main-content with-sidebar flex-1" style="margin-left: 0;">
+                  <div style="color: var(--color-neutral-500); text-align: center; padding: var(--space-12);">
+                    [Main content area with current milestone]
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option C: Top Tabs -->
+      <div class="option-card">
+        <div class="option-header">
+          <h3>Option C: Horizontal Tabs</h3>
+          <span class="option-badge">Alternative</span>
+        </div>
+        <div class="option-content">
+          <div class="option-description">
+            <h4>How it works</h4>
+            <ul>
+              <li>Horizontal tab bar below header</li>
+              <li>Each plan is a tab with icon + name</li>
+              <li>Scrollable on mobile if many plans</li>
+              <li>Active tab visually highlighted</li>
+            </ul>
+            <div class="tradeoffs">
+              <h4>Trade-offs</h4>
+              <div class="tradeoff-grid">
+                <div class="tradeoff-pros">
+                  <h5>Pros</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>+ Very clear active state</li>
+                    <li>+ Browser-like familiarity</li>
+                    <li>+ Works on mobile (scroll)</li>
+                  </ul>
+                </div>
+                <div class="tradeoff-cons">
+                  <h5>Cons</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>- Takes vertical space</li>
+                    <li>- Can feel cluttered with many plans</li>
+                    <li>- Less elegant</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Mockup -->
+          <div class="device-frame desktop" id="switcher-c-desktop">
+            <div class="device-screen">
+              <div class="app-header">
+                <div class="app-logo">Stepiva</div>
+                <div class="app-header-right">
+                  <div class="notification-bell">
+                    <span>🔔</span>
+                    <span class="notification-badge">2</span>
+                  </div>
+                  <div class="level-badge">4</div>
+                  <div class="user-avatar">SA</div>
+                </div>
+              </div>
+
+              <!-- Tabs -->
+              <div class="project-tabs">
+                <div class="project-tab active">
+                  <div class="project-tab-icon" style="background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));">GP</div>
+                  <span>Get Promoted to PM</span>
+                </div>
+                <div class="project-tab">
+                  <div class="project-tab-icon" style="background: linear-gradient(135deg, #10b981, #059669);">LS</div>
+                  <span>Launch Side Business</span>
+                </div>
+                <div class="project-tab">
+                  <div class="project-tab-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">FT</div>
+                  <span>Fitness Transformation</span>
+                </div>
+              </div>
+
+              <div class="main-content" style="padding-top: var(--space-6);">
+                <div style="color: var(--color-neutral-500); text-align: center; padding: var(--space-12);">
+                  [Main content area with current milestone]
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 2: STEPS ON MILESTONE
+       ============================================ -->
+  <section id="section-steps" class="mockup-section">
+    <div class="section-header">
+      <h2>B. Steps Within Milestone</h2>
+      <p>Two interaction patterns for managing steps. Steps are micro-commitments that live on the milestone level, with a maximum of 3 active at a time.</p>
+    </div>
+
+    <div class="mockup-container">
+      <!-- Option A: Inline Steps -->
+      <div class="option-card">
+        <div class="option-header">
+          <h3>Option A: Inline Checklist</h3>
+          <span class="option-badge recommended">Recommended</span>
+        </div>
+        <div class="option-content">
+          <div class="option-description">
+            <h4>How it works</h4>
+            <ul>
+              <li>Steps appear directly below milestone info</li>
+              <li>Simple checkbox interaction (click to complete)</li>
+              <li>Completed steps move to "Achievement Trail" below</li>
+              <li>AI suggestions appear in highlighted section</li>
+              <li>Max 3 active steps enforced visually</li>
+            </ul>
+            <div class="tradeoffs">
+              <h4>Trade-offs</h4>
+              <div class="tradeoff-grid">
+                <div class="tradeoff-pros">
+                  <h5>Pros</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>+ Everything visible at once</li>
+                    <li>+ Minimal clicks</li>
+                    <li>+ Clear progress feeling</li>
+                    <li>+ Mobile friendly</li>
+                  </ul>
+                </div>
+                <div class="tradeoff-cons">
+                  <h5>Cons</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>- Page can get long</li>
+                    <li>- Achievement trail may be overlooked</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Mockup -->
+          <div class="device-frame desktop" id="steps-a-desktop">
+            <div class="device-screen">
+              <div class="app-header">
+                <div style="display: flex; align-items: center; gap: var(--space-6);">
+                  <div class="app-logo">Stepiva</div>
+                  <div class="project-switcher-dropdown">
+                    <div class="switcher-trigger">
+                      <div class="switcher-project-icon">GP</div>
+                      <div class="switcher-project-info">
+                        <div class="switcher-project-name">Get Promoted to PM</div>
+                        <div class="switcher-project-milestone">Week 3 · Stakeholder interviews</div>
+                      </div>
+                      <span class="switcher-arrow">▼</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="app-header-right">
+                  <div class="notification-bell">
+                    <span>🔔</span>
+                  </div>
+                  <div class="level-badge">4</div>
+                  <div class="user-avatar">SA</div>
+                </div>
+              </div>
+
+              <div class="main-content">
+                <!-- Current Milestone Card -->
+                <div class="current-milestone-card">
+                  <div class="milestone-header">
+                    <div class="milestone-label">Current Milestone</div>
+                    <div class="milestone-title">Complete stakeholder interviews</div>
+                    <div class="milestone-dates">
+                      <span>📅</span>
+                      <span>Jan 3 → Jan 17</span>
+                      <span style="margin-left: var(--space-4);">Day 8 of 14</span>
+                    </div>
+                    <div class="milestone-progress-bar">
+                      <div class="milestone-progress-fill" style="width: 57%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="milestone-body">
+                    <p class="milestone-description">
+                      Interview at least 5 key stakeholders to understand their pain points and expectations for the new product direction.
+                    </p>
+
+                    <!-- Personality Hooks -->
+                    <div class="personality-hooks">
+                      <div class="personality-hook blind-spot">
+                        <div class="hook-icon">⚠️</div>
+                        <div class="hook-content">
+                          <h4>Blind Spot Alert</h4>
+                          <p>You may rush through conversations to check them off. Slow down and listen.</p>
+                        </div>
+                      </div>
+                      <div class="personality-hook strength">
+                        <div class="hook-icon">💪</div>
+                        <div class="hook-content">
+                          <h4>Leverage Your Strength</h4>
+                          <p>Your natural charisma helps people open up quickly. Use it!</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Steps Section -->
+                    <div class="steps-section">
+                      <div class="steps-header">
+                        <div class="steps-title">
+                          My Commitments
+                          <span class="steps-count">2 of 3 active</span>
+                        </div>
+                        <button class="steps-add-btn">
+                          <span>+</span>
+                          Add step
+                        </button>
+                      </div>
+
+                      <div class="steps-list">
+                        <div class="step-item">
+                          <div class="step-checkbox"></div>
+                          <div class="step-content">
+                            <div class="step-text">Schedule meeting with Sarah from Marketing</div>
+                            <div class="step-meta">
+                              <span class="step-date">📅 Added Jan 8</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="step-item">
+                          <div class="step-checkbox"></div>
+                          <div class="step-content">
+                            <div class="step-text">Prepare interview questions based on PM course template</div>
+                            <div class="step-meta">
+                              <span class="step-date">📅 Added Jan 6</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Suggested Steps from Nudge -->
+                      <div class="suggested-steps">
+                        <div class="suggested-header">
+                          <div class="suggested-icon">✨</div>
+                          <div>
+                            <div class="suggested-title">Suggested from your last nudge</div>
+                            <div class="suggested-subtitle">You can add up to 1 more step</div>
+                          </div>
+                        </div>
+
+                        <div class="suggested-step">
+                          <span class="suggested-step-text">Review interview notes before Friday's meeting</span>
+                          <div class="suggested-step-actions">
+                            <button class="suggested-btn add">+ Add</button>
+                            <button class="suggested-btn skip">Skip</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Achievement Trail -->
+                      <div class="achievement-trail">
+                        <div class="trail-header">
+                          <div class="trail-icon">🏆</div>
+                          <div class="trail-title">Achievement Trail</div>
+                          <span class="trail-count">· 3 completed</span>
+                        </div>
+
+                        <div class="trail-list">
+                          <div class="trail-item">
+                            <div class="trail-check">✓</div>
+                            <div class="trail-content">
+                              <div class="trail-text">Identified 5 key stakeholders to interview</div>
+                              <div class="trail-date">Completed Jan 5</div>
+                            </div>
+                          </div>
+                          <div class="trail-item">
+                            <div class="trail-check">✓</div>
+                            <div class="trail-content">
+                              <div class="trail-text">Drafted initial outreach emails</div>
+                              <div class="trail-date">Completed Jan 4</div>
+                            </div>
+                          </div>
+                          <div class="trail-item">
+                            <div class="trail-check">✓</div>
+                            <div class="trail-content">
+                              <div class="trail-text">Reviewed stakeholder org chart</div>
+                              <div class="trail-date">Completed Jan 3</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Mockup -->
+          <div class="device-frame mobile hidden" id="steps-a-mobile">
+            <div class="device-screen" style="position: relative; overflow-y: auto; padding-bottom: 80px;">
+              <div class="app-header" style="padding: var(--space-3) var(--space-4);">
+                <div class="app-logo" style="font-size: var(--font-size-lg);">Stepiva</div>
+                <div class="switcher-trigger" style="padding: var(--space-2); gap: var(--space-2);">
+                  <div class="switcher-project-icon" style="width: 28px; height: 28px; font-size: 11px;">GP</div>
+                  <span class="switcher-arrow">▼</span>
+                </div>
+              </div>
+
+              <div style="padding: var(--space-4);">
+                <!-- Compact Milestone Header -->
+                <div style="background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700)); border-radius: var(--radius-lg); padding: var(--space-4); color: white; margin-bottom: var(--space-4);">
+                  <div style="font-size: var(--font-size-xs); opacity: 0.8; margin-bottom: var(--space-1);">CURRENT MILESTONE</div>
+                  <div style="font-size: var(--font-size-lg); font-weight: 600; margin-bottom: var(--space-2);">Stakeholder interviews</div>
+                  <div style="font-size: var(--font-size-xs);">Day 8 of 14 · Jan 3 → Jan 17</div>
+                  <div style="height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin-top: var(--space-3);">
+                    <div style="height: 100%; width: 57%; background: white; border-radius: 2px;"></div>
+                  </div>
+                </div>
+
+                <!-- Steps -->
+                <div style="margin-bottom: var(--space-4);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3);">
+                    <div style="font-weight: 600;">My Commitments <span style="color: var(--color-neutral-500); font-weight: 400;">(2/3)</span></div>
+                    <button class="steps-add-btn" style="padding: var(--space-1) var(--space-2); font-size: var(--font-size-xs);">+ Add</button>
+                  </div>
+
+                  <div class="step-item" style="margin-bottom: var(--space-2);">
+                    <div class="step-checkbox"></div>
+                    <div class="step-content">
+                      <div class="step-text" style="font-size: var(--font-size-sm);">Schedule meeting with Sarah</div>
+                    </div>
+                  </div>
+
+                  <div class="step-item">
+                    <div class="step-checkbox"></div>
+                    <div class="step-content">
+                      <div class="step-text" style="font-size: var(--font-size-sm);">Prepare interview questions</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Suggested -->
+                <div class="suggested-steps" style="padding: var(--space-4);">
+                  <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3);">
+                    <span>✨</span>
+                    <span style="font-size: var(--font-size-sm); font-weight: 600; color: var(--color-primary-700);">Suggested step</span>
+                  </div>
+                  <div class="suggested-step" style="flex-direction: column; align-items: flex-start; gap: var(--space-2);">
+                    <span class="suggested-step-text" style="font-size: var(--font-size-sm);">Review notes before Friday</span>
+                    <div class="suggested-step-actions">
+                      <button class="suggested-btn add">+ Add</button>
+                      <button class="suggested-btn skip">Skip</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Compact Trail -->
+                <div style="margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--color-neutral-200);">
+                  <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3);">
+                    <span>🏆</span>
+                    <span style="font-size: var(--font-size-sm); font-weight: 600;">3 completed</span>
+                  </div>
+                  <div class="trail-item" style="padding: var(--space-2); font-size: var(--font-size-sm);">
+                    <div class="trail-check" style="width: 16px; height: 16px; font-size: 10px;">✓</div>
+                    <div class="trail-content">
+                      <div class="trail-text">Identified 5 stakeholders</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mobile-bottom-nav">
+                <div class="nav-item">
+                  <div class="nav-item-icon">🔔</div>
+                </div>
+                <div class="nav-item-create">+</div>
+                <div class="nav-item active">
+                  <div class="nav-item-icon">👤</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Option B: Collapsible Sections -->
+      <div class="option-card">
+        <div class="option-header">
+          <h3>Option B: Collapsible Sections</h3>
+          <span class="option-badge">Alternative</span>
+        </div>
+        <div class="option-content">
+          <div class="option-description">
+            <h4>How it works</h4>
+            <ul>
+              <li>Steps and Achievement Trail in collapsible accordions</li>
+              <li>Cleaner initial view, less scrolling</li>
+              <li>User expands what they need</li>
+              <li>Badge shows counts when collapsed</li>
+            </ul>
+            <div class="tradeoffs">
+              <h4>Trade-offs</h4>
+              <div class="tradeoff-grid">
+                <div class="tradeoff-pros">
+                  <h5>Pros</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>+ Cleaner initial view</li>
+                    <li>+ User controls detail level</li>
+                    <li>+ Better for many completed steps</li>
+                  </ul>
+                </div>
+                <div class="tradeoff-cons">
+                  <h5>Cons</h5>
+                  <ul style="list-style: none; font-size: 12px;">
+                    <li>- Extra clicks to see content</li>
+                    <li>- Steps less prominent</li>
+                    <li>- May reduce engagement</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desktop Mockup -->
+          <div class="device-frame desktop" id="steps-b-desktop">
+            <div class="device-screen">
+              <div class="app-header">
+                <div class="app-logo">Stepiva</div>
+                <div class="app-header-right">
+                  <div class="user-avatar">SA</div>
+                </div>
+              </div>
+
+              <div class="main-content">
+                <div class="current-milestone-card">
+                  <div class="milestone-header" style="padding: var(--space-4) var(--space-6);">
+                    <div class="milestone-title" style="font-size: var(--font-size-lg);">Stakeholder interviews</div>
+                    <div class="milestone-dates" style="font-size: var(--font-size-xs);">
+                      Day 8 of 14
+                    </div>
+                  </div>
+
+                  <div class="milestone-body">
+                    <!-- Collapsible: Active Steps -->
+                    <div style="border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg); margin-bottom: var(--space-3);">
+                      <div style="padding: var(--space-4); display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: var(--color-neutral-50); border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+                        <div style="display: flex; align-items: center; gap: var(--space-2);">
+                          <span>📋</span>
+                          <span style="font-weight: 600;">My Commitments</span>
+                          <span style="background: var(--color-primary-100); color: var(--color-primary-700); padding: 2px 8px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600;">2 active</span>
+                        </div>
+                        <span style="color: var(--color-neutral-400);">▼</span>
+                      </div>
+                      <div style="padding: var(--space-4); border-top: 1px solid var(--color-neutral-200);">
+                        <div class="step-item" style="margin-bottom: var(--space-2);">
+                          <div class="step-checkbox"></div>
+                          <div class="step-text">Schedule meeting with Sarah</div>
+                        </div>
+                        <div class="step-item">
+                          <div class="step-checkbox"></div>
+                          <div class="step-text">Prepare interview questions</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Collapsible: Achievement Trail (collapsed) -->
+                    <div style="border: 1px solid var(--color-neutral-200); border-radius: var(--radius-lg);">
+                      <div style="padding: var(--space-4); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: var(--space-2);">
+                          <span>🏆</span>
+                          <span style="font-weight: 600;">Achievement Trail</span>
+                          <span style="background: var(--color-secondary-100); color: var(--color-secondary-700); padding: 2px 8px; border-radius: var(--radius-full); font-size: var(--font-size-xs); font-weight: 600;">3 completed</span>
+                        </div>
+                        <span style="color: var(--color-neutral-400);">▶</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================
+       SECTION 3: FULL INTEGRATION
+       ============================================ -->
+  <section id="section-integration" class="mockup-section">
+    <div class="section-header">
+      <h2>C. Full Integration Flow</h2>
+      <p>How all pieces work together: Project switcher + Milestone + Steps + Nudge + Achievement Trail</p>
+    </div>
+
+    <div class="mockup-container">
+      <div class="option-card">
+        <div class="option-header">
+          <h3>Complete User Flow</h3>
+          <span class="option-badge recommended">Recommended Combination</span>
+        </div>
+        <div class="option-content">
+          <div class="option-description">
+            <h4>Integration Summary</h4>
+            <ul>
+              <li><strong>Switcher:</strong> Header dropdown (Option A)</li>
+              <li><strong>Steps:</strong> Inline checklist (Option A)</li>
+              <li><strong>Nudge:</strong> Appears below steps, references existing commitments</li>
+              <li><strong>Trail:</strong> At bottom, showing progress evidence</li>
+            </ul>
+          </div>
+
+          <!-- Full Desktop Mockup -->
+          <div class="device-frame desktop" id="integration-desktop">
+            <div class="device-screen" style="min-height: 800px;">
+              <div class="app-header">
+                <div style="display: flex; align-items: center; gap: var(--space-6);">
+                  <div class="app-logo">Stepiva</div>
+                  <div class="project-switcher-dropdown">
+                    <div class="switcher-trigger">
+                      <div class="switcher-project-icon">GP</div>
+                      <div class="switcher-project-info">
+                        <div class="switcher-project-name">Get Promoted to PM</div>
+                        <div class="switcher-project-milestone">Week 3 · Stakeholder interviews</div>
+                      </div>
+                      <span class="switcher-arrow">▼</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="app-header-right">
+                  <div class="notification-bell">
+                    <span>🔔</span>
+                    <span class="notification-badge">1</span>
+                  </div>
+                  <div class="level-badge">4</div>
+                  <div class="user-avatar">SA</div>
+                </div>
+              </div>
+
+              <div class="main-content">
+                <!-- Current Milestone -->
+                <div class="current-milestone-card">
+                  <div class="milestone-header">
+                    <div class="milestone-label">Current Milestone</div>
+                    <div class="milestone-title">Complete stakeholder interviews</div>
+                    <div class="milestone-dates">
+                      <span>📅</span>
+                      <span>Jan 3 → Jan 17</span>
+                      <span style="margin-left: var(--space-4);">Day 8 of 14</span>
+                    </div>
+                    <div class="milestone-progress-bar">
+                      <div class="milestone-progress-fill" style="width: 57%;"></div>
+                    </div>
+                  </div>
+
+                  <div class="milestone-body">
+                    <!-- Personality Hooks -->
+                    <div class="personality-hooks">
+                      <div class="personality-hook blind-spot">
+                        <div class="hook-icon">⚠️</div>
+                        <div class="hook-content">
+                          <h4>Blind Spot Alert</h4>
+                          <p>You may rush through conversations. Slow down and listen.</p>
+                        </div>
+                      </div>
+                      <div class="personality-hook strength">
+                        <div class="hook-icon">💪</div>
+                        <div class="hook-content">
+                          <h4>Leverage Your Strength</h4>
+                          <p>Your charisma helps people open up. Use it!</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Steps Section -->
+                    <div class="steps-section">
+                      <div class="steps-header">
+                        <div class="steps-title">
+                          My Commitments
+                          <span class="steps-count">2 of 3 active</span>
+                        </div>
+                        <button class="steps-add-btn">
+                          <span>+</span>
+                          Add step
+                        </button>
+                      </div>
+
+                      <div class="steps-list">
+                        <div class="step-item">
+                          <div class="step-checkbox"></div>
+                          <div class="step-content">
+                            <div class="step-text">Schedule meeting with Sarah from Marketing</div>
+                          </div>
+                        </div>
+                        <div class="step-item">
+                          <div class="step-checkbox"></div>
+                          <div class="step-content">
+                            <div class="step-text">Prepare interview questions</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Latest Nudge -->
+                <div class="nudge-section">
+                  <div class="nudge-card">
+                    <div class="nudge-header">
+                      <div class="nudge-icon">💬</div>
+                      <div class="nudge-meta">
+                        <div class="nudge-label">Latest Nudge</div>
+                        <div class="nudge-date">Today at 7:00 AM</div>
+                      </div>
+                    </div>
+                    <div class="nudge-body">
+                      <p class="nudge-message">
+                        Week 2 of your stakeholder interviews! You committed to <strong>scheduling a meeting with Sarah</strong> — how's that going? Remember, genuine connection matters more than efficient completion.
+                        <br><br>
+                        <span class="nudge-question">Which conversation this week could reveal the most valuable insights?</span>
+                      </p>
+
+                      <!-- Suggested Step from this Nudge -->
+                      <div class="suggested-steps" style="margin-top: var(--space-4);">
+                        <div class="suggested-header">
+                          <div class="suggested-icon">✨</div>
+                          <div>
+                            <div class="suggested-title">Suggested commitment</div>
+                            <div class="suggested-subtitle">Based on this nudge</div>
+                          </div>
+                        </div>
+                        <div class="suggested-step">
+                          <span class="suggested-step-text">Block 30 minutes to reflect on interview insights</span>
+                          <div class="suggested-step-actions">
+                            <button class="suggested-btn add">+ Add</button>
+                            <button class="suggested-btn skip">Skip</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Achievement Trail -->
+                <div class="achievement-trail" style="background: var(--color-neutral-0); padding: var(--space-6); border-radius: var(--radius-xl); margin-top: var(--space-6); box-shadow: var(--shadow-sm);">
+                  <div class="trail-header">
+                    <div class="trail-icon">🏆</div>
+                    <div class="trail-title">Achievement Trail</div>
+                    <span class="trail-count">· 3 completed this milestone</span>
+                  </div>
+
+                  <div class="trail-list">
+                    <div class="trail-item">
+                      <div class="trail-check">✓</div>
+                      <div class="trail-content">
+                        <div class="trail-text">Identified 5 key stakeholders to interview</div>
+                        <div class="trail-date">Completed Jan 5</div>
+                      </div>
+                    </div>
+                    <div class="trail-item">
+                      <div class="trail-check">✓</div>
+                      <div class="trail-content">
+                        <div class="trail-text">Drafted initial outreach emails</div>
+                        <div class="trail-date">Completed Jan 4</div>
+                      </div>
+                    </div>
+                    <div class="trail-item">
+                      <div class="trail-check">✓</div>
+                      <div class="trail-content">
+                        <div class="trail-text">Reviewed stakeholder org chart</div>
+                        <div class="trail-date">Completed Jan 3</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile Mockup -->
+          <div class="device-frame mobile hidden" id="integration-mobile">
+            <div class="device-screen" style="position: relative; overflow-y: auto; padding-bottom: 80px; min-height: 700px;">
+              <div class="app-header" style="padding: var(--space-3) var(--space-4); position: sticky; top: 0; background: white; z-index: 10;">
+                <div class="app-logo" style="font-size: var(--font-size-lg);">Stepiva</div>
+                <div style="display: flex; align-items: center; gap: var(--space-3);">
+                  <div class="notification-bell" style="width: 32px; height: 32px;">
+                    <span style="font-size: 14px;">🔔</span>
+                    <span class="notification-badge" style="width: 14px; height: 14px; font-size: 8px;">1</span>
+                  </div>
+                  <div class="switcher-trigger" style="padding: var(--space-2); gap: var(--space-2);">
+                    <div class="switcher-project-icon" style="width: 28px; height: 28px; font-size: 11px;">GP</div>
+                    <span class="switcher-arrow">▼</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="padding: var(--space-4);">
+                <!-- Compact Milestone -->
+                <div style="background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700)); border-radius: var(--radius-lg); padding: var(--space-4); color: white; margin-bottom: var(--space-4);">
+                  <div style="font-size: 10px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em;">Current Milestone</div>
+                  <div style="font-size: var(--font-size-base); font-weight: 600; margin: var(--space-1) 0;">Stakeholder interviews</div>
+                  <div style="font-size: 11px; opacity: 0.9;">Day 8 of 14</div>
+                  <div style="height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; margin-top: var(--space-2);">
+                    <div style="height: 100%; width: 57%; background: white; border-radius: 2px;"></div>
+                  </div>
+                </div>
+
+                <!-- Steps -->
+                <div style="background: white; border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4); box-shadow: var(--shadow-sm);">
+                  <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-3);">
+                    <span style="font-weight: 600; font-size: var(--font-size-sm);">My Commitments (2/3)</span>
+                    <button style="background: none; border: 1px solid var(--color-neutral-200); border-radius: var(--radius-md); padding: 4px 8px; font-size: 11px;">+ Add</button>
+                  </div>
+
+                  <div class="step-item" style="padding: var(--space-3); margin-bottom: var(--space-2);">
+                    <div class="step-checkbox" style="width: 20px; height: 20px;"></div>
+                    <div class="step-text" style="font-size: var(--font-size-sm);">Schedule meeting with Sarah</div>
+                  </div>
+                  <div class="step-item" style="padding: var(--space-3);">
+                    <div class="step-checkbox" style="width: 20px; height: 20px;"></div>
+                    <div class="step-text" style="font-size: var(--font-size-sm);">Prepare interview questions</div>
+                  </div>
+                </div>
+
+                <!-- Nudge -->
+                <div style="background: white; border-radius: var(--radius-lg); padding: var(--space-4); margin-bottom: var(--space-4); box-shadow: var(--shadow-sm);">
+                  <div style="display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3);">
+                    <div style="width: 28px; height: 28px; background: linear-gradient(135deg, var(--color-accent-500), var(--color-primary-500)); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;">💬</div>
+                    <div>
+                      <div style="font-size: var(--font-size-sm); font-weight: 600;">Latest Nudge</div>
+                      <div style="font-size: 10px; color: var(--color-neutral-500);">Today</div>
+                    </div>
+                  </div>
+                  <p style="font-size: var(--font-size-sm); color: var(--color-neutral-700); line-height: 1.6;">
+                    You committed to <strong>scheduling a meeting with Sarah</strong> — how's that going?
+                  </p>
+                </div>
+
+                <!-- Trail (collapsed) -->
+                <div style="background: var(--color-secondary-50); border-radius: var(--radius-lg); padding: var(--space-3);">
+                  <div style="display: flex; align-items: center; gap: var(--space-2);">
+                    <span>🏆</span>
+                    <span style="font-size: var(--font-size-sm); font-weight: 600; color: var(--color-secondary-700);">3 completed</span>
+                    <span style="margin-left: auto; color: var(--color-neutral-400);">▶</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mobile-bottom-nav">
+                <div class="nav-item">
+                  <div class="nav-item-icon">🔔</div>
+                </div>
+                <div class="nav-item-create">+</div>
+                <div class="nav-item active">
+                  <div class="nav-item-icon">👤</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flow Diagram -->
+      <div class="option-card">
+        <div class="option-header">
+          <h3>Navigation Flow</h3>
+        </div>
+        <div class="option-content">
+          <div style="font-family: monospace; background: var(--color-neutral-900); color: var(--color-neutral-100); padding: var(--space-6); border-radius: var(--radius-lg); font-size: var(--font-size-sm); line-height: 1.8; overflow-x: auto;">
+<pre style="margin: 0;">
+USER LANDS ON DASHBOARD
+        │
+        ▼
+┌─────────────────────────────────┐
+│  Header: Project Switcher       │ ◄── Shows most recent plan
+│  [GP ▼] Get Promoted to PM      │     Click to switch plans
+└─────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────┐
+│  CURRENT MILESTONE              │
+│  "Stakeholder interviews"       │ ◄── Only ONE milestone shown
+│  Day 8 of 14                    │     (the current one)
+│                                 │
+│  ⚠️ Blind Spot  |  💪 Strength  │ ◄── Personality hooks
+└─────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────┐
+│  MY COMMITMENTS (2/3)           │
+│  ☐ Schedule meeting with Sarah  │ ◄── Max 3 active steps
+│  ☐ Prepare interview questions  │
+│                                 │
+│  ✨ Suggested: "Block 30 min    │ ◄── AI proposes IF < 3 active
+│     for reflection" [+Add]      │
+└─────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────┐
+│  LATEST NUDGE                   │
+│  "You committed to scheduling   │ ◄── References existing steps
+│   with Sarah - how's it going?" │     (doesn't add new ones)
+└─────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────┐
+│  🏆 ACHIEVEMENT TRAIL           │
+│  ✓ Identified stakeholders      │ ◄── Evidence of progress
+│  ✓ Drafted outreach emails      │
+│  ✓ Reviewed org chart           │
+└─────────────────────────────────┘
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendation Summary -->
+      <div class="option-card">
+        <div class="option-header">
+          <h3>Final Recommendation</h3>
+        </div>
+        <div class="option-content">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-4);">
+            <div style="background: var(--color-primary-50); padding: var(--space-5); border-radius: var(--radius-lg); border-left: 4px solid var(--color-primary-500);">
+              <h4 style="font-size: var(--font-size-base); margin-bottom: var(--space-2);">Project Switcher</h4>
+              <p style="font-size: var(--font-size-sm); color: var(--color-neutral-600); margin-bottom: var(--space-2);">
+                <strong>Header Dropdown</strong> (Option A)
+              </p>
+              <p style="font-size: var(--font-size-xs); color: var(--color-neutral-500);">
+                Minimal footprint, works on mobile, familiar pattern from Linear/Slack.
+              </p>
+            </div>
+
+            <div style="background: var(--color-secondary-50); padding: var(--space-5); border-radius: var(--radius-lg); border-left: 4px solid var(--color-secondary-500);">
+              <h4 style="font-size: var(--font-size-base); margin-bottom: var(--space-2);">Steps Display</h4>
+              <p style="font-size: var(--font-size-sm); color: var(--color-neutral-600); margin-bottom: var(--space-2);">
+                <strong>Inline Checklist</strong> (Option A)
+              </p>
+              <p style="font-size: var(--font-size-xs); color: var(--color-neutral-500);">
+                Everything visible, minimal clicks, clear progress feeling.
+              </p>
+            </div>
+
+            <div style="background: var(--color-accent-50); padding: var(--space-5); border-radius: var(--radius-lg); border-left: 4px solid var(--color-accent-500);">
+              <h4 style="font-size: var(--font-size-base); margin-bottom: var(--space-2);">Step Limits</h4>
+              <p style="font-size: var(--font-size-sm); color: var(--color-neutral-600); margin-bottom: var(--space-2);">
+                <strong>Max 3 active</strong> per milestone
+              </p>
+              <p style="font-size: var(--font-size-xs); color: var(--color-neutral-500);">
+                Forces focus, prevents overwhelm, AI respects this limit.
+              </p>
+            </div>
+
+            <div style="background: var(--color-neutral-100); padding: var(--space-5); border-radius: var(--radius-lg); border-left: 4px solid var(--color-neutral-500);">
+              <h4 style="font-size: var(--font-size-base); margin-bottom: var(--space-2);">Achievement Trail</h4>
+              <p style="font-size: var(--font-size-sm); color: var(--color-neutral-600); margin-bottom: var(--space-2);">
+                <strong>Always visible</strong> below steps
+              </p>
+              <p style="font-size: var(--font-size-xs); color: var(--color-neutral-500);">
+                Evidence of progress, motivation when feeling stuck.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    function showSection(sectionId) {
+      // Hide all sections
+      document.querySelectorAll('.mockup-section').forEach(s => s.classList.remove('active'));
+      // Show target section
+      document.getElementById('section-' + sectionId).classList.add('active');
+      // Update nav buttons
+      document.querySelectorAll('.mockup-nav button:not(.device-toggle button)').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    function setDevice(device) {
+      const isDesktop = device === 'desktop';
+
+      // Toggle visibility of device frames
+      document.querySelectorAll('.device-frame.desktop').forEach(el => {
+        el.classList.toggle('hidden', !isDesktop);
+      });
+      document.querySelectorAll('.device-frame.mobile').forEach(el => {
+        el.classList.toggle('hidden', isDesktop);
+      });
+
+      // Update toggle buttons
+      document.getElementById('btn-desktop').classList.toggle('active', isDesktop);
+      document.getElementById('btn-mobile').classList.toggle('active', !isDesktop);
+    }
+  </script>
+</body>
+</html>
