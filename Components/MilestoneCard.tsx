@@ -263,71 +263,105 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
 
       {/* Personality Tips - Only show for current milestones */}
       {status === 'current' && (milestone.blindSpotTip || milestone.strengthHook) && (
-        <div style={{ marginBottom: isMobile ? '0.75rem' : '1rem' }}>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.625rem',
+          marginBottom: 0,
+        }}>
           {milestone.blindSpotTip && (
             <div style={{
-              background: '#FDF6E7',
-              border: '1px solid #C68B2C',
-              padding: isMobile ? '0.5rem' : '0.75rem',
-              borderRadius: '0.5rem',
-              marginBottom: '0.5rem'
+              display: 'flex',
+              gap: isMobile ? '0.625rem' : '0.75rem',
+              alignItems: 'flex-start',
+              background: '#FFFFFF',
+              border: '1px solid #E8D5D3',
+              borderRadius: '0.75rem',
+              padding: isMobile ? '0.75rem' : '1rem',
+              boxShadow: '0 2px 8px rgba(184, 74, 66, 0.08)',
             }}>
               <div style={{
+                width: isMobile ? '36px' : '40px',
+                height: isMobile ? '36px' : '40px',
+                minWidth: isMobile ? '36px' : '40px',
+                borderRadius: '10px',
+                background: '#B84A42',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                marginBottom: '0.25rem'
+                justifyContent: 'center',
+                marginTop: '2px',
               }}>
-                <AlertTriangleIcon size={16} color="#7A561B" />
+                <AlertTriangleIcon size={isMobile ? 16 : 18} color="#FFFFFF" />
+              </div>
+              <div>
                 <span style={{
-                  fontSize: isMobile ? '0.65rem' : '0.75rem',
-                  fontWeight: '600',
-                  color: '#7A561B'
+                  display: 'block',
+                  fontSize: isMobile ? '0.6875rem' : '0.75rem',
+                  fontWeight: '700',
+                  color: '#B84A42',
+                  letterSpacing: '0.03em',
+                  textTransform: 'uppercase',
+                  marginBottom: '0.25rem',
                 }}>
                   Blind Spot Alert
                 </span>
+                <p style={{
+                  fontSize: isMobile ? '0.8125rem' : '0.875rem',
+                  color: '#44403C',
+                  margin: 0,
+                  lineHeight: '1.5',
+                }}>
+                  {milestone.blindSpotTip}
+                </p>
               </div>
-              <p style={{
-                fontSize: isMobile ? '0.75rem' : '0.875rem',
-                color: '#543C13',
-                margin: 0,
-                lineHeight: '1.4'
-              }}>
-                {milestone.blindSpotTip}
-              </p>
             </div>
           )}
 
           {milestone.strengthHook && (
             <div style={{
-              background: '#EEF5EF',
-              border: '1px solid #3D7A4A',
-              padding: isMobile ? '0.5rem' : '0.75rem',
-              borderRadius: '0.5rem'
+              display: 'flex',
+              gap: isMobile ? '0.625rem' : '0.75rem',
+              alignItems: 'flex-start',
+              background: '#FFFFFF',
+              border: '1px solid #C8DEC9',
+              borderRadius: '0.75rem',
+              padding: isMobile ? '0.75rem' : '1rem',
+              boxShadow: '0 2px 8px rgba(61, 122, 74, 0.08)',
             }}>
               <div style={{
+                width: isMobile ? '36px' : '40px',
+                height: isMobile ? '36px' : '40px',
+                minWidth: isMobile ? '36px' : '40px',
+                borderRadius: '10px',
+                background: '#3D7A4A',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                marginBottom: '0.25rem'
+                justifyContent: 'center',
+                marginTop: '2px',
               }}>
-                <ZapIcon size={16} color="#274F30" />
+                <ZapIcon size={isMobile ? 16 : 18} color="#FFFFFF" />
+              </div>
+              <div>
                 <span style={{
-                  fontSize: isMobile ? '0.65rem' : '0.75rem',
-                  fontWeight: '600',
-                  color: '#274F30'
+                  display: 'block',
+                  fontSize: isMobile ? '0.6875rem' : '0.75rem',
+                  fontWeight: '700',
+                  color: '#3D7A4A',
+                  letterSpacing: '0.03em',
+                  textTransform: 'uppercase',
+                  marginBottom: '0.25rem',
                 }}>
                   Leverage Your Strength
                 </span>
+                <p style={{
+                  fontSize: isMobile ? '0.8125rem' : '0.875rem',
+                  color: '#44403C',
+                  margin: 0,
+                  lineHeight: '1.5',
+                }}>
+                  {milestone.strengthHook}
+                </p>
               </div>
-              <p style={{
-                fontSize: isMobile ? '0.75rem' : '0.875rem',
-                color: '#1D3A24',
-                margin: 0,
-                lineHeight: '1.4'
-              }}>
-                {milestone.strengthHook}
-              </p>
             </div>
           )}
         </div>

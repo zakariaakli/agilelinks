@@ -11,7 +11,7 @@
 }
 
 .notificationBell:hover {
-  background-color: rgba(124, 58, 237, 0.1);
+  background-color: rgba(156, 75, 32, 0.1);
   transform: translateY(-1px);
 }
 
@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary, #1f2937);
+  color: #9C4B20;
 }
 
 .bellContainer svg {
@@ -28,7 +28,7 @@
 }
 
 .notificationBell:hover .bellContainer svg {
-  color: var(--primary-color, #7c3aed);
+  color: #9C4B20;
   animation: bellRing 0.5s ease;
 }
 

@@ -24,7 +24,7 @@
   cursor: pointer;
   transition: var(--transition-transform);
   text-decoration: none;
-  color: var(--text-primary);
+  color: #9C4B20;
   padding: 0;
 }
 
@@ -32,29 +32,37 @@
   transform: scale(1.1);
 }
 
-.levelIconWrapper {
+.goalsIconWrapper {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: var(--border-radius-full);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.levelNumber {
-  font-size: 0.875rem;
-  font-weight: 700;
+.levelBadge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #9C4B20;
   color: #ffffff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  border-radius: var(--border-radius-full);
+  border: 2px solid #ffffff;
+  padding: 0 3px;
 }
 
 .profileIconPic {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--border-radius-full);
   object-fit: cover;
-  border: var(--border-width-2) solid var(--color-primary-200);
+  border: 2px solid #9C4B20;
 }
 
 .authButton {
@@ -79,32 +87,6 @@
   box-shadow: var(--shadow-md);
 }
 
-/* Create Plan Button */
-.createPlanButton {
-  position: relative;
-}
-
-.createPlanIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: var(--border-radius-full);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-  transition: var(--transition-all);
-  color: white;
-}
-
-.createPlanButton:hover .createPlanIcon {
-  transform: scale(1.1) rotate(90deg);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
-}
-
-.createPlanButton:active .createPlanIcon {
-  transform: scale(0.95) rotate(90deg);
-}
 
 /* Show only on mobile */
 @media (max-width: 768px) {

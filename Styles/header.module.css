@@ -86,8 +86,8 @@
 
 .navList li a:hover,
 .navList li a.active {
-  color: var(--color-primary-600);
-  background-color: var(--color-primary-50);
+  color: #9C4B20;
+  background-color: #FDF0E7;
 }
 
 .navList li a::after {
@@ -98,7 +98,7 @@
   transform: translateX(-50%);
   width: 0;
   height: 2px;
-  background-color: var(--color-primary-500);
+  background-color: #9C4B20;
   transition: var(--transition-all);
 }
 
@@ -262,8 +262,8 @@
 }
 
 .dropdownItem:hover {
-  background-color: var(--color-primary-50);
-  color: var(--color-primary-700);
+  background-color: #FDF0E7;
+  color: #7D3C19;
 }
 
 .dropdownDivider {
@@ -453,15 +453,15 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: transparent;
+  border: 2px solid #9C4B20;
   border-radius: var(--border-radius-full);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .levelNumber {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #9C4B20;
 }
 
 .profileIconPic {
@@ -469,7 +469,7 @@
   height: 28px;
   border-radius: var(--border-radius-full);
   object-fit: cover;
-  border: var(--border-width-2) solid var(--color-primary-200);
+  border: 2px solid #9C4B20;
 }
 
 .signOutIconButton {

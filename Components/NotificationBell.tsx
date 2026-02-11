@@ -69,7 +69,7 @@ const NotificationBell: React.FC = () => {
   return (
     <Link href="/notifications" className={styles.notificationBell}>
       <div className={styles.bellContainer}>
-        <BellIcon size={20} strokeWidth={2} />
+        <BellIcon size={22} strokeWidth={2} />
         {unreadCount > 0 && (
           <span className={styles.badge}>
             {unreadCount > 99 ? '99+' : unreadCount}

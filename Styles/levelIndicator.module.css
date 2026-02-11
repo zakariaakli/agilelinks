@@ -3,20 +3,20 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #9C4B20;
   border-radius: 1rem;
   text-decoration: none;
   transition: all 0.2s ease;
   cursor: pointer;
   border: none;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 8px rgba(156, 75, 32, 0.3);
   margin-right: 0.75rem;
 }
 
 .levelIndicator:hover {
-  background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+  background: #7D3C19;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 12px rgba(156, 75, 32, 0.4);
 }
 
 .levelContent {

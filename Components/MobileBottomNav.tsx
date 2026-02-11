@@ -175,30 +175,24 @@ const MobileBottomNav = () => {
         <div className={styles.navItem}>
           <NotificationBell />
         </div>
-        {userPlans.length > 0 && (
-          <button
-            onClick={() => setProjectSheetOpen(true)}
-            className={styles.navItem}
-            aria-label="Switch project"
-          >
-            <TargetIcon size={20} strokeWidth={2} />
-          </button>
-        )}
-        <Link href="/profile/commitments" className={styles.navItem} aria-label="Commitments">
-          <ClipboardListIcon size={20} strokeWidth={2} />
-        </Link>
-        <Link href="/profile/companion" className={`${styles.navItem} ${styles.createPlanButton}`}>
-          <div className={styles.createPlanIcon}>
-            <PlusIcon size={16} strokeWidth={2.5} />
+        <button
+          onClick={() => userPlans.length > 0 ? setProjectSheetOpen(true) : router.push('/profile')}
+          className={styles.navItem}
+          aria-label="Goals"
+        >
+          <div className={styles.goalsIconWrapper}>
+            <TargetIcon size={22} strokeWidth={2} />
+            {userStats && (
+              <span className={styles.levelBadge}>{currentLevel}</span>
+            )}
           </div>
+        </button>
+        <Link href="/profile/commitments" className={styles.navItem} aria-label="Commitments">
+          <ClipboardListIcon size={22} strokeWidth={2} />
         </Link>
-        {userStats && (
-          <Link href="/profile/levels" className={styles.navItem}>
-            <div className={styles.levelIconWrapper}>
-              <span className={styles.levelNumber}>{currentLevel}</span>
-            </div>
-          </Link>
-        )}
+        <Link href="/profile/companion" className={styles.navItem} aria-label="Create plan">
+          <PlusIcon size={22} strokeWidth={2} />
+        </Link>
         <Link href="/profile" className={styles.navItem}>
           <img
             src={user.photoURL}
