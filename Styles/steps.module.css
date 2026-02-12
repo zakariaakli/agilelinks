@@ -20,7 +20,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #44403C;
   margin: 0;
@@ -31,7 +31,7 @@
 }
 
 .stepsCount {
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: #6B6560;
   background: #F5F3F0;
   padding: 0.125rem 0.5rem;
@@ -134,7 +134,8 @@
 
 .stepTitle {
   font-size: 0.875rem;
-  color: #44403C;
+  font-weight: 500;
+  color: #2D2926;
   line-height: 1.4;
   margin: 0;
   word-break: break-word;
@@ -157,7 +158,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.25rem;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   color: #9C9690;
 }
 
@@ -275,7 +276,8 @@
   background: transparent;
   border: 1px dashed #D5CFC8;
   border-radius: 0.375rem;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: #6B6560;
   cursor: pointer;
   transition: all 0.15s ease;

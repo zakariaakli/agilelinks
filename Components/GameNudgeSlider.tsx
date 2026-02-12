@@ -331,8 +331,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
       <div style={{ marginTop: isMobile ? '0.75rem' : '1rem' }}>
         {/* Simple date header */}
         <div style={{
-          fontSize: isMobile ? '0.75rem' : '0.8125rem',
-          fontWeight: '600',
+          fontSize: isMobile ? '0.6875rem' : '0.75rem',
+          fontWeight: '500',
           color: '#9C4B20',
           marginBottom: '0.5rem'
         }}>
@@ -341,7 +341,7 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
 
         {/* Nudge content - no box wrapper */}
         <div style={{
-          fontSize: isMobile ? '0.875rem' : '1rem',
+          fontSize: isMobile ? '0.8125rem' : '0.875rem',
           lineHeight: '1.6',
           color: '#302C28',
           marginBottom: '1rem'
@@ -514,8 +514,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
         >
           <div
             style={{
-              fontSize: "clamp(0.75rem, 2vw, 0.875rem)",
-              fontWeight: "bold",
+              fontSize: "clamp(0.6875rem, 2vw, 0.75rem)",
+              fontWeight: "500",
               color: "#9C4B20",
             }}
           >
@@ -548,7 +548,7 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
             {/* Show formatted preview */}
             <div
               style={{
-                fontSize: "clamp(0.875rem, 2.5vw, 1rem)",
+                fontSize: "clamp(0.8125rem, 2.5vw, 0.875rem)",
                 lineHeight: "1.5",
                 color: "#302C28",
                 wordBreak: "break-word",
@@ -573,8 +573,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
                   border: "none",
                   padding: "0.5rem 1rem",
                   borderRadius: "0.5rem",
-                  fontSize: "0.875rem",
-                  fontWeight: "bold",
+                  fontSize: "0.8125rem",
+                  fontWeight: "600",
                   cursor: "pointer",
                   width: "100%",
                 }}
@@ -617,8 +617,8 @@ const GameNudgeSlider: React.FC<GameNudgeSliderProps> = ({
                 border: "2px solid #9C4B20",
                 padding: "0.5rem 1rem",
                 borderRadius: "0.5rem",
-                fontSize: "0.875rem",
-                fontWeight: "bold",
+                fontSize: "0.8125rem",
+                fontWeight: "600",
                 cursor: "pointer",
                 width: "100%",
               }}

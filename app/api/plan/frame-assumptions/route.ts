@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
     await createPlanDocument(planId, input);
     console.log('✅ Plan document created');
 
-    // PASS 1: Generate goal frame + goal name (Chat Completion - gpt-4o-mini)
-    console.log('📋 PASS 1: Generating goal frame and name...');
-    const { goalFrame, goalName } = await generateGoalFrame(goalDescription, targetDate, personalitySummary);
-    console.log('✅ Goal frame and name generated');
+    // PASS 1: Generate goal frame + goal name + date realism (Chat Completion - gpt-4o-mini)
+    console.log('📋 PASS 1: Generating goal frame, name, and date realism...');
+    const { goalFrame, goalName, dateRealism } = await generateGoalFrame(goalDescription, targetDate, personalitySummary);
+    console.log('✅ Goal frame and name generated. Date realism:', dateRealism.verdict);
 
     // PASS 2: Generate assumptions (Chat Completion - gpt-4o-mini)
     console.log('🧠 PASS 2: Generating assumptions...');
@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
       goalFrame,
       assumptions,
       goalName,
+      dateRealism,
       status: 'framed',
     });
 
@@ -73,19 +74,22 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PASS 1: Context Lock - Frame the goal with specificity + generate concise name (Chat Completion)
+// PASS 1: Context Lock - Frame the goal with specificity + generate concise name + date realism (Chat Completion)
 async function generateGoalFrame(
   goalDescription: string,
   targetDate: string,
   personalitySummary: string
-): Promise<{ goalFrame: GoalFrame; goalName: string }> {
+): Promise<{ goalFrame: GoalFrame; goalName: string; dateRealism: { verdict: string; warningMessage: string } }> {
   try {
+    const today = new Date().toISOString().split('T')[0];
+    const daysUntilTarget = Math.ceil((new Date(targetDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: 'You are a goal clarity expert. Your job is to force specificity and eliminate ambiguity.'
+          content: 'You are a goal clarity expert. Your job is to force specificity, eliminate ambiguity, and assess timeline realism.'
         },
         {
           role: 'user',
@@ -93,6 +97,8 @@ async function generateGoalFrame(
 
 Goal: ${goalDescription}
 Target Date: ${targetDate}
+Today: ${today}
+Days available: ${daysUntilTarget}
 ${personalitySummary ? `Personality: ${personalitySummary}` : ''}
 
 Generate:
@@ -108,12 +114,22 @@ Generate:
 
 4. **Must Avoid**: Anti-patterns, traps (3 items)
 
+5. **Date Realism**: Assess whether ${daysUntilTarget} days is realistic for this specific goal.
+   - "too_short": The timeline is unrealistically tight for this type of goal (e.g. becoming a consultant in 2 weeks)
+   - "reasonable": The timeline is achievable with focused effort
+   - "generous": The timeline has plenty of buffer
+   If "too_short", provide a brief, friendly warning message explaining why and suggesting a more realistic timeframe.
+
 Return ONLY valid JSON:
 {
   "goalName": "...",
   "successCriteria": "...",
   "failureCriteria": "...",
-  "mustAvoid": ["...", "...", "..."]
+  "mustAvoid": ["...", "...", "..."],
+  "dateRealism": {
+    "verdict": "too_short" | "reasonable" | "generous",
+    "warningMessage": "..."
+  }
 }`
         }
       ],
@@ -130,7 +146,8 @@ Return ONLY valid JSON:
         failureCriteria: parsed.failureCriteria,
         mustAvoid: parsed.mustAvoid
       },
-      goalName: parsed.goalName || "Personal Goal"
+      goalName: parsed.goalName || "Personal Goal",
+      dateRealism: parsed.dateRealism || { verdict: 'reasonable', warningMessage: '' }
     };
   } catch (error) {
     console.error('Error in generateGoalFrame:', error);
@@ -140,7 +157,8 @@ Return ONLY valid JSON:
         failureCriteria: 'Miss the deadline or abandon the goal',
         mustAvoid: ['Procrastination', 'Lack of accountability', 'Unclear metrics']
       },
-      goalName: "Personal Goal"
+      goalName: "Personal Goal",
+      dateRealism: { verdict: 'reasonable', warningMessage: '' }
     };
   }
 }

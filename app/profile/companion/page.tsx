@@ -243,6 +243,57 @@ const suggestedGoals: Suggestion[] = [
   { name: "Develop assertiveness" },
 ];
 
+// Deterministic date sanitization: sort milestones and fix overlaps
+function sanitizeMilestoneDates(
+  milestones: Milestone[],
+  todayStr: string,
+  targetDateStr: string
+): Milestone[] {
+  if (milestones.length === 0) return milestones;
+
+  // Sort by startDate
+  const sorted = [...milestones].sort(
+    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+  );
+
+  // Calculate even time distribution as fallback
+  const totalDays = Math.max(
+    1,
+    Math.ceil((new Date(targetDateStr).getTime() - new Date(todayStr).getTime()) / (1000 * 60 * 60 * 24))
+  );
+  const daysPerMilestone = Math.max(1, Math.floor(totalDays / sorted.length));
+
+  // Fix overlaps: ensure each milestone starts after the previous one ends
+  for (let i = 0; i < sorted.length; i++) {
+    const prevEnd = i === 0 ? todayStr : sorted[i - 1].dueDate;
+    const currentStart = new Date(sorted[i].startDate);
+    const prevEndDate = new Date(prevEnd);
+
+    // If this milestone starts before the previous one ends, fix it
+    if (currentStart < prevEndDate) {
+      sorted[i] = { ...sorted[i], startDate: prevEnd };
+    }
+
+    // Ensure dueDate is after startDate
+    const start = new Date(sorted[i].startDate);
+    const due = new Date(sorted[i].dueDate);
+    if (due <= start) {
+      // Set dueDate to startDate + daysPerMilestone (capped at targetDate)
+      const newDue = new Date(start.getTime() + daysPerMilestone * 24 * 60 * 60 * 1000);
+      const cap = new Date(targetDateStr);
+      const finalDue = newDue > cap ? cap : newDue;
+      sorted[i] = { ...sorted[i], dueDate: finalDue.toISOString().split("T")[0] };
+    }
+
+    // Cap dueDate at targetDate
+    if (new Date(sorted[i].dueDate) > new Date(targetDateStr)) {
+      sorted[i] = { ...sorted[i], dueDate: targetDateStr };
+    }
+  }
+
+  return sorted;
+}
+
 const GoalWizard: React.FC = () => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<number>(0);
@@ -291,6 +342,12 @@ const GoalWizard: React.FC = () => {
     message: string;
     type: ToastType;
   } | null>(null);
+  const [dateWarning, setDateWarning] = useState<{
+    show: boolean;
+    message: string;
+    onConfirm: (() => void) | null;
+    onCancel: (() => void) | null;
+  }>({ show: false, message: "", onConfirm: null, onCancel: null });
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -459,8 +516,43 @@ const GoalWizard: React.FC = () => {
       const frameData = await frameResponse.json();
       console.log("✅ ROUTE 1 completed:", frameData);
 
-      const { planId, goalFrame, assumptions, goalName } = frameData;
+      const { planId, goalFrame, assumptions, goalName, dateRealism } = frameData;
       setGoalName(goalName || ""); // Store AI-generated goal name
+
+      // Check date realism - pause and warn user if timeline is too short
+      if (dateRealism && dateRealism.verdict === "too_short") {
+        setLoadingStep("");
+        setIsLoading(false);
+
+        const userConfirmed = await new Promise<boolean>((resolve) => {
+          setDateWarning({
+            show: true,
+            message: dateRealism.warningMessage || "Your target date seems very tight for this type of goal.",
+            onConfirm: () => {
+              setDateWarning({ show: false, message: "", onConfirm: null, onCancel: null });
+              resolve(true);
+            },
+            onCancel: () => {
+              setDateWarning({ show: false, message: "", onConfirm: null, onCancel: null });
+              resolve(false);
+            },
+          });
+        });
+
+        if (!userConfirmed) {
+          // User chose to go back and adjust the date
+          setCurrentStep(0);
+          return {
+            milestones: [],
+            goalFrame: goalFrame,
+            assumptions: assumptions,
+          };
+        }
+
+        // User confirmed - resume generation
+        setIsLoading(true);
+        setLoadingStep("🧠 Inferring constraints and generating personalized milestones...");
+      }
 
       // ROUTE 2: Generate draft milestones (Pass 3)
       setLoadingStep(
@@ -526,7 +618,8 @@ const GoalWizard: React.FC = () => {
 
       // Convert to our Milestone format and ensure dates are valid
       // Generate unique IDs for milestones to avoid collisions across different plans
-      const validatedMilestones = finalData.finalMilestones.map((m: any, index: number) => {
+      // Map and validate individual milestones
+      const mappedMilestones = finalData.finalMilestones.map((m: any, index: number) => {
         const startDate = new Date(m.startDate);
         const dueDate = new Date(m.dueDate);
 
@@ -536,8 +629,7 @@ const GoalWizard: React.FC = () => {
         // If due date is in the past, set it to today
         const validDueDate = dueDate < today ? todayStr : m.dueDate;
 
-        // Create globally unique milestone ID by combining timestamp, random string, and index
-        // This prevents milestone ID collisions across different plans
+        // Create globally unique milestone ID
         const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${index}`;
 
         return {
@@ -552,6 +644,9 @@ const GoalWizard: React.FC = () => {
           measurableOutcome: m.measurableOutcome,
         };
       });
+
+      // Sanitize dates: sort by startDate and fix any overlaps
+      const validatedMilestones = sanitizeMilestoneDates(mappedMilestones, todayStr, targetDate);
 
       console.log("🎉 All 3 routes completed successfully!");
       setLoadingStep("");
@@ -740,6 +835,14 @@ const GoalWizard: React.FC = () => {
     setIsLoading(true);
     try {
       const result = await callEnhancedPlanGenerator();
+      // If user cancelled due to date warning, milestones will be empty
+      if (result.milestones.length === 0 && !result.goalFrame) {
+        return;
+      }
+      if (result.milestones.length === 0) {
+        // User went back to adjust date - don't set milestones
+        return;
+      }
       setMilestones(result.milestones);
       setGoalFrame(result.goalFrame);
       setAssumptions(result.assumptions);
@@ -881,15 +984,18 @@ const GoalWizard: React.FC = () => {
     );
   };
 
-  const nextStep = (): void => {
+  const nextStep = async (): Promise<void> => {
     // Scroll to top of page when moving to next step
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     // New simplified flow: Step 0 (goal entry) → generate milestones → Step 1 (review milestones)
     if (currentStep === 0) {
-      generateMilestones();
+      setCurrentStep(1); // Move to step 1 (shows loading state)
+      await generateMilestones();
+      // If generateMilestones returned early (user cancelled date warning), currentStep is already reset to 0
+      return;
     }
-    setCurrentStep((prev) => Math.min(prev + 1, 2)); // Only 2 steps now (0 and 1)
+    setCurrentStep((prev) => Math.min(prev + 1, 2));
   };
 
   const prevStep = (): void => {
@@ -1358,6 +1464,99 @@ const GoalWizard: React.FC = () => {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+
+      {/* Date Realism Warning Modal */}
+      {dateWarning.show && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '1rem',
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '1rem',
+            padding: '1.5rem',
+            maxWidth: '420px',
+            width: '100%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginBottom: '1rem',
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '10px',
+                background: '#C68B2C',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.25rem',
+              }}>
+                ⏳
+              </div>
+              <h3 style={{
+                margin: 0,
+                fontSize: '1.0625rem',
+                fontWeight: 700,
+                color: '#2D2926',
+              }}>
+                Tight Timeline
+              </h3>
+            </div>
+            <p style={{
+              fontSize: '0.9375rem',
+              color: '#44403C',
+              lineHeight: 1.6,
+              margin: '0 0 1.25rem 0',
+            }}>
+              {dateWarning.message}
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={dateWarning.onCancel || undefined}
+                style={{
+                  flex: 1,
+                  padding: '0.625rem 1rem',
+                  background: 'white',
+                  color: '#44403C',
+                  border: '1px solid #D5CFC8',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Adjust Date
+              </button>
+              <button
+                onClick={dateWarning.onConfirm || undefined}
+                style={{
+                  flex: 1,
+                  padding: '0.625rem 1rem',
+                  background: '#9C4B20',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Continue Anyway
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

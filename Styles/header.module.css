@@ -86,25 +86,25 @@
 
 .navList li a:hover,
 .navList li a.active {
-  color: #9C4B20;
-  background-color: #FDF0E7;
+  color: #9c4b20;
+  background-color: #fdf0e7;
 }
 
 .navList li a::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -4px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 2px;
-  background-color: #9C4B20;
+  background-color: #9c4b20;
   transition: var(--transition-all);
 }
 
 .navList li a:hover::after,
 .navList li a.active::after {
-  width: 80%;
+  width: 50%;
 }
 
 /* CTA Buttons */
@@ -206,7 +206,7 @@
 
 /* Create an invisible bridge to prevent dropdown from disappearing */
 .userDropdown::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 100%;
   right: 0;
@@ -231,7 +231,9 @@
   margin-top: var(--space-1);
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
   pointer-events: none;
 }
 
@@ -262,8 +264,8 @@
 }
 
 .dropdownItem:hover {
-  background-color: #FDF0E7;
-  color: #7D3C19;
+  background-color: #fdf0e7;
+  color: #7d3c19;
 }
 
 .dropdownDivider {
@@ -454,14 +456,14 @@
   width: 28px;
   height: 28px;
   background: transparent;
-  border: 2px solid #9C4B20;
+  border: 2px solid #9c4b20;
   border-radius: var(--border-radius-full);
 }
 
 .levelNumber {
   font-size: 0.875rem;
   font-weight: 700;
-  color: #9C4B20;
+  color: #9c4b20;
 }
 
 .profileIconPic {
@@ -469,7 +471,7 @@
   height: 28px;
   border-radius: var(--border-radius-full);
   object-fit: cover;
-  border: 2px solid #9C4B20;
+  border: 2px solid #9c4b20;
 }
 
 .signOutIconButton {

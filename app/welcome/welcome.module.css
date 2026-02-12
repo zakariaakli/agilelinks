@@ -181,7 +181,7 @@
   background: #f7fafc;
   padding: 2px 8px;
   border-radius: 4px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 14px;
   color: #667eea;
 }
@@ -502,6 +502,43 @@
   text-decoration: underline;
 }
 
+/* Tab Menu */
+.tabMenu {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.tabButton {
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.activeTabButton {
+  background: white;
+  color: #667eea;
+  border-color: white;
+}
+
+.activeTabButton:hover {
+  background: white;
+  border-color: white;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.3);
+}
+
 /* Navigation */
 .navigation {
   display: flex;
@@ -591,6 +628,15 @@
   .primaryBtn,
   .secondaryBtn {
     width: 100%;
+  }
+
+  .tabMenu {
+    gap: 6px;
+  }
+
+  .tabButton {
+    font-size: 13px;
+    padding: 8px 16px;
   }
 
   .navigation {

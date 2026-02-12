@@ -134,7 +134,12 @@ RULES FOR MILESTONE GENERATION:
 3. Each milestone MUST reduce a specific risk from the assumptions
 4. Use exam-grade specificity - concrete deliverables
 5. All dates must be ${today} or later (NEVER generate past dates)
-6. Distribute milestones evenly from today to target date
+6. Milestones MUST be strictly sequential with NO overlapping date ranges:
+   - First milestone starts on ${today}
+   - Each milestone's startDate = previous milestone's dueDate (next day or same day)
+   - Last milestone's dueDate must be on or before ${targetDate}
+   - A milestone's dueDate must always be AFTER its startDate
+7. Distribute time evenly across milestones from ${today} to ${targetDate}
 
 For each milestone, provide:
 - title: Action-oriented, specific (not vague)

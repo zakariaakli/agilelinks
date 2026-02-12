@@ -157,7 +157,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         {status === 'current' && (
           <span style={{
             display: 'inline-block',
-            fontSize: '0.6875rem',
+            fontSize: '0.625rem',
             fontWeight: 700,
             color: accent.darkText,
             background: accent.badgeBg,
@@ -173,7 +173,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({
         <h4 style={{
           color: statusStyles.titleColor,
           fontSize: isMobile ? '1rem' : '1.125rem',
-          fontWeight: '600',
+          fontWeight: '700',
           margin: '0',
           lineHeight: '1.4'
         }}>

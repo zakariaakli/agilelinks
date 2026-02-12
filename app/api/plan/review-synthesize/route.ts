@@ -140,6 +140,7 @@ Flag any milestone that has these problems:
 3. Would trigger Type ${enneagramType} blind spots (overdoing or avoiding)
 4. Has dates in the past
 5. Lacks specificity (what exactly gets done?)
+6. Overlapping or misordered dates (milestones must be strictly sequential - each milestone's startDate should be on or after the previous milestone's dueDate, with no overlapping date ranges)
 
 For each flagged milestone, provide specific correction guidance.
 
@@ -201,6 +202,8 @@ Apply all corrections:
 - Increase behavioral pressure → make milestones non-negotiable
 - Cut 20% verbosity → be concise
 - Ensure dates are valid (${today} or later, before ${targetDate})
+- Fix any overlapping dates: milestones must be strictly sequential (each startDate = previous dueDate or day after), no overlapping ranges
+- First milestone starts on ${today}, last milestone ends on or before ${targetDate}
 - Address Type ${enneagramType} blind spots in tips
 
 Return the SAME JSON structure as draft milestones, but with improvements applied.
