@@ -52,7 +52,7 @@ export default function WelcomePage() {
             </div>
           </div>
 
-          <a href="/profile" className={styles.primaryBtn}>
+          <a href="/#test" className={styles.primaryBtn}>
             Start Now →
           </a>
         </div>
