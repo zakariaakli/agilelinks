@@ -251,9 +251,10 @@ function sanitizeMilestoneDates(
 ): Milestone[] {
   if (milestones.length === 0) return milestones;
 
-  // Sort by startDate
+  // Sort by startDate (handle NaN from invalid dates by treating them as today)
+  const todayTime = new Date(todayStr).getTime();
   const sorted = [...milestones].sort(
-    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    (a, b) => (new Date(a.startDate).getTime() || todayTime) - (new Date(b.startDate).getTime() || todayTime)
   );
 
   // Calculate even time distribution as fallback
@@ -619,15 +620,35 @@ const GoalWizard: React.FC = () => {
       // Convert to our Milestone format and ensure dates are valid
       // Generate unique IDs for milestones to avoid collisions across different plans
       // Map and validate individual milestones
+      const totalMilestones = finalData.finalMilestones.length;
+      const totalDays = Math.max(1, Math.ceil((new Date(targetDate).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+      const daysPerMilestone = Math.max(1, Math.floor(totalDays / totalMilestones));
+
       const mappedMilestones = finalData.finalMilestones.map((m: any, index: number) => {
-        const startDate = new Date(m.startDate);
-        const dueDate = new Date(m.dueDate);
+        // Fallback for missing startDate: compute from index
+        let rawStart = m.startDate;
+        if (!rawStart || isNaN(new Date(rawStart).getTime())) {
+          const offset = index * daysPerMilestone;
+          rawStart = new Date(today.getTime() + offset * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+        }
+
+        // Fallback for missing dueDate: compute from index
+        let rawDue = m.dueDate;
+        if (!rawDue || isNaN(new Date(rawDue).getTime())) {
+          const offset = (index + 1) * daysPerMilestone;
+          const computed = new Date(today.getTime() + offset * 24 * 60 * 60 * 1000);
+          const cap = new Date(targetDate);
+          rawDue = (computed > cap ? cap : computed).toISOString().split("T")[0];
+        }
+
+        const startDate = new Date(rawStart);
+        const dueDate = new Date(rawDue);
 
         // If start date is in the past, set it to today
-        const validStartDate = startDate < today ? todayStr : m.startDate;
+        const validStartDate = startDate < today ? todayStr : rawStart;
 
         // If due date is in the past, set it to today
-        const validDueDate = dueDate < today ? todayStr : m.dueDate;
+        const validDueDate = dueDate < today ? todayStr : rawDue;
 
         // Create globally unique milestone ID
         const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 11)}_${index}`;

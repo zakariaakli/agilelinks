@@ -141,6 +141,7 @@ Flag any milestone that has these problems:
 4. Has dates in the past
 5. Lacks specificity (what exactly gets done?)
 6. Overlapping or misordered dates (milestones must be strictly sequential - each milestone's startDate should be on or after the previous milestone's dueDate, with no overlapping date ranges)
+7. Missing startDate or dueDate (every milestone MUST have both a startDate and a dueDate in YYYY-MM-DD format). If startDate is missing, set it to the day after the previous milestone's dueDate. If dueDate is missing, set it to the day before the next milestone's startDate.
 
 For each flagged milestone, provide specific correction guidance.
 
@@ -203,6 +204,7 @@ Apply all corrections:
 - Cut 20% verbosity → be concise
 - Ensure dates are valid (${today} or later, before ${targetDate})
 - Fix any overlapping dates: milestones must be strictly sequential (each startDate = previous dueDate or day after), no overlapping ranges
+- Fix missing dates: every milestone MUST have both startDate and dueDate. If startDate is missing, set it to the day after the previous milestone's dueDate (or ${today} for the first milestone). If dueDate is missing, set it to the day before the next milestone's startDate (or ${targetDate} for the last milestone)
 - First milestone starts on ${today}, last milestone ends on or before ${targetDate}
 - Address Type ${enneagramType} blind spots in tips
 
