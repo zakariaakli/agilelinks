@@ -19,6 +19,10 @@ import {
   TargetIcon,
 } from "../../Components/Icons";
 import SimplifiedEnneagramInput from "../../Components/SimplifiedEnneagramInput";
+import ChatbotEntry from "../../Components/ChatbotEntry";
+import ReflectiveChatbot, {
+  ChatMessageData,
+} from "../../Components/ReflectiveChatbot";
 
 interface PlanData {
   id: string;
@@ -100,9 +104,44 @@ function ProfileContent() {
     message: string;
     type: ToastType;
   } | null>(null);
+  const [coachChatOpen, setCoachChatOpen] = useState(false);
 
   const showToast = (message: string, type: ToastType = "info") => {
     setToast({ message, type });
+  };
+
+  const getCoachContextData = () => {
+    const activeGoals = userPlans
+      .filter((p) => p.status === "active")
+      .map((p) => {
+        const currentMilestone = p.milestones?.find(
+          (m) => getMilestoneStatus(m) === "current"
+        );
+        return {
+          goalName: p.goalName || p.goalType || "Personal Goal",
+          goalType: p.goalType,
+          currentMilestone: currentMilestone?.title || null,
+        };
+      });
+
+    return {
+      enneagramType: getPrimaryEnneagramType(enneagramResult),
+      enneagramSummary: enneagramResult?.summary || "",
+      enneagramBlindSpots: enneagramResult?.blindSpots || [],
+      enneagramStrengths: enneagramResult?.keyStrengths || [],
+      activeGoals,
+      userId: user?.uid,
+      userEmail: user?.email,
+      userName: user?.displayName || "",
+    };
+  };
+
+  const handleCoachFinish = (
+    _transcript: ChatMessageData[],
+    summary: string
+  ) => {
+    setCoachChatOpen(false);
+    showToast("Reflection saved!", "success");
   };
 
   const handleEnneagramComplete = async (result: EnneagramResult) => {
@@ -579,6 +618,33 @@ function ProfileContent() {
           </div>
         </div>
       )}
+
+      {/* Coaching Chatbot Entry */}
+      <div style={{ marginBottom: "1.5rem" }}>
+        <ChatbotEntry
+          icon="🪞"
+          promptText="Reflect on your journey with your AI coach"
+          actionText="Start"
+          visible={!loading && !!user}
+          onExpand={() => setCoachChatOpen(true)}
+          variant="prominent"
+        />
+      </div>
+
+      {/* Coaching Chatbot Overlay */}
+      <ReflectiveChatbot
+        isOpen={coachChatOpen}
+        onClose={() => setCoachChatOpen(false)}
+        onFinish={handleCoachFinish}
+        contextTitle="Reflect with your Coach"
+        contextSubtitle="A space to think about your goals, habits, and growth"
+        assistantName="AI Coach"
+        assistantIcon="🪞"
+        apiEndpoint="/api/chatbot/coach-reflect"
+        contextData={getCoachContextData()}
+        initialGreeting={`Hey${user?.displayName ? ` ${user.displayName.split(" ")[0]}` : ""}! What's on your mind today? You can reflect on anything — your goals, a challenge you're facing, or just how you're feeling about your progress.`}
+        placeholder="What's on your mind..."
+      />
 
       {/* Plans Section */}
       {userPlans.length > 0 ? (
