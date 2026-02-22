@@ -5,7 +5,15 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { auth, googleProvider, db } from "../firebase";
 import { onAuthStateChanged, signOut, signInWithPopup } from "firebase/auth";
-import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  limit,
+  onSnapshot,
+} from "firebase/firestore";
 import styles from "../Styles/header.module.css";
 import { useRouter } from "next/navigation";
 import LevelIndicator from "./LevelIndicator";
@@ -37,7 +45,7 @@ interface PlanForSwitcher {
   id: string;
   goalName?: string;
   goalType: string;
-  status: 'active' | 'paused' | 'completed';
+  status: "active" | "paused" | "completed";
   milestones: Array<{
     id: string;
     completed: boolean;
@@ -55,47 +63,66 @@ const Header = () => {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    let unsubscribePlans: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      // Clean up previous plans listener
+      if (unsubscribePlans) {
+        unsubscribePlans();
+        unsubscribePlans = null;
+      }
       if (user) {
         fetchUserStats(user.uid);
-        fetchUserPlans(user.uid);
+        unsubscribePlans = subscribeToUserPlans(user.uid);
       } else {
         setUserStats(null);
         setUserPlans([]);
       }
     });
-    return () => unsubscribe();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribePlans) unsubscribePlans();
+    };
   }, []);
 
-  const fetchUserPlans = async (userId: string) => {
-    try {
-      const plansQuery = query(
-        collection(db, "plans"),
-        where("userId", "==", userId),
-        orderBy("createdAt", "desc"),
-        limit(10)
-      );
-      const plansSnapshot = await getDocs(plansQuery);
-      const plans: PlanForSwitcher[] = plansSnapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          goalName: data.goalName,
-          goalType: data.goalType || '',
-          status: data.status || 'active',
-          milestones: (data.milestones || []).map((m: any) => ({
-            id: m.id,
-            completed: m.completed || false,
-            dueDate: m.dueDate || undefined,
-            steps: (m.steps || []).map((s: any) => ({ completed: s.completed || false })),
-          })),
-        };
-      });
-      setUserPlans(plans);
-    } catch (error) {
-      console.error("Error fetching user plans:", error);
-    }
+  const subscribeToUserPlans = (userId: string): (() => void) => {
+    const plansQuery = query(
+      collection(db, "plans"),
+      where("userId", "==", userId),
+      where("status", "==", "active"),
+      orderBy("createdAt", "desc"),
+      limit(10),
+    );
+    const validStatuses = new Set(["active", "paused", "completed"]);
+    return onSnapshot(
+      plansQuery,
+      (snapshot) => {
+        const plans: PlanForSwitcher[] = snapshot.docs
+          .filter((doc) => validStatuses.has(doc.data().status))
+          .map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              goalName: data.goalName,
+              goalType: data.goalType || "",
+              status: data.status,
+              milestones: (data.milestones || []).map((m: any) => ({
+                id: m.id,
+                completed: m.completed || false,
+                dueDate: m.dueDate || undefined,
+                steps: (m.steps || []).map((s: any) => ({
+                  completed: s.completed || false,
+                })),
+              })),
+            };
+          });
+        setUserPlans(plans);
+      },
+      (error) => {
+        console.error("Error listening to user plans:", error);
+      },
+    );
   };
 
   const fetchUserStats = async (userId: string) => {
@@ -103,7 +130,7 @@ const Header = () => {
       // Fetch user plans
       const plansQuery = query(
         collection(db, "plans"),
-        where("userId", "==", userId)
+        where("userId", "==", userId),
       );
       const plansSnapshot = await getDocs(plansQuery);
       const plans = plansSnapshot.docs.map((doc) => doc.data());
@@ -114,14 +141,16 @@ const Header = () => {
       plans.forEach((plan: any) => {
         if (plan.milestones) {
           totalMilestones += plan.milestones.length;
-          completedMilestones += plan.milestones.filter((m: any) => m.completed).length;
+          completedMilestones += plan.milestones.filter(
+            (m: any) => m.completed,
+          ).length;
         }
       });
 
       // Fetch nudge responses
       const nudgesQuery = query(
         collection(db, "nudges"),
-        where("userId", "==", userId)
+        where("userId", "==", userId),
       );
       const nudgesSnapshot = await getDocs(nudgesQuery);
       const nudges = nudgesSnapshot.docs.map((doc) => doc.data());
@@ -131,7 +160,9 @@ const Header = () => {
       let nudgeStreak = 0;
       const sortedNudges = nudges
         .filter((n: any) => n.feedback)
-        .sort((a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+        .sort(
+          (a: any, b: any) => b.createdAt?.toMillis() - a.createdAt?.toMillis(),
+        );
 
       for (let i = 0; i < sortedNudges.length; i++) {
         if (sortedNudges[i].feedback) {
@@ -142,7 +173,13 @@ const Header = () => {
       }
 
       // Calculate days active (simplified)
-      const daysActive = plans.length > 0 ? Math.ceil((Date.now() - plans[0].createdAt?.toMillis()) / (1000 * 60 * 60 * 24)) : 0;
+      const daysActive =
+        plans.length > 0
+          ? Math.ceil(
+              (Date.now() - plans[0].createdAt?.toMillis()) /
+                (1000 * 60 * 60 * 24),
+            )
+          : 0;
 
       setUserStats({
         totalPlans: plans.length,
@@ -255,7 +292,17 @@ const Header = () => {
                   >
                     <div className={styles.levelIconWrapper}>
                       <span className={styles.levelNumber}>
-                        {Math.min(Math.floor(((userStats.completedMilestones * 100) + (userStats.totalNudgeResponses * 25) + (userStats.nudgeStreak * 10) + (userStats.totalPlans * 200) + (userStats.daysActive * 5)) / 500) + 1, 10)}
+                        {Math.min(
+                          Math.floor(
+                            (userStats.completedMilestones * 100 +
+                              userStats.totalNudgeResponses * 25 +
+                              userStats.nudgeStreak * 10 +
+                              userStats.totalPlans * 200 +
+                              userStats.daysActive * 5) /
+                              500,
+                          ) + 1,
+                          10,
+                        )}
                       </span>
                     </div>
                   </Link>
@@ -289,9 +336,7 @@ const Header = () => {
         <div className={styles.cta}>
           {user ? (
             <div className={styles.userInfo}>
-              {userPlans.length > 0 && (
-                <ProjectSwitcher plans={userPlans} />
-              )}
+              {userPlans.length > 0 && <ProjectSwitcher plans={userPlans} />}
               {userStats && <LevelIndicator userStats={userStats} />}
               <NotificationBell />
               <div className={styles.userDropdown}>
@@ -304,10 +349,7 @@ const Header = () => {
                   <Link href="/profile" className={styles.dropdownItem}>
                     <UserIcon size={16} /> Dashboard
                   </Link>
-                  <Link
-                    href="/personality"
-                    className={styles.dropdownItem}
-                  >
+                  <Link href="/personality" className={styles.dropdownItem}>
                     <UserIcon size={16} /> Personality
                   </Link>
                   <Link
