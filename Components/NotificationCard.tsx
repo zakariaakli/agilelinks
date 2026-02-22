@@ -8,6 +8,7 @@ import { TargetIcon, ClockIcon } from './Icons';
 
 interface NotificationCardProps {
   id: string;
+  type?: 'milestone_reminder' | 'no_plan_reminder';
   milestoneTitle?: string;
   prompt: string;
   createdAt: Date | Timestamp;
@@ -19,6 +20,7 @@ interface NotificationCardProps {
 
 const NotificationCard: React.FC<NotificationCardProps> = ({
   id,
+  type = 'milestone_reminder',
   milestoneTitle,
   prompt,
   createdAt,
@@ -65,9 +67,13 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
     return cleanText.length > 150 ? `${cleanText.slice(0, 150)}...` : cleanText;
   };
 
+  const isNoPlan = type === 'no_plan_reminder';
+  const linkHref = isNoPlan ? '/welcome' : `/nudge/${id}`;
+  const displayTitle = isNoPlan ? 'Get Started' : (milestoneTitle || 'Milestone Reminder');
+
   return (
     <Link
-      href={`/nudge/${id}`}
+      href={linkHref}
       className={`${styles.notificationCard} ${!read ? styles.unread : ''} ${isExpired ? styles.expired : ''}`}
       onClick={onClick}
     >
@@ -80,7 +86,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
           <div className={styles.titleSection}>
             <TargetIcon size={16} className={styles.icon} />
             <h3 className={styles.milestoneTitle}>
-              {milestoneTitle || 'Milestone Reminder'}
+              {displayTitle}
             </h3>
           </div>
           <div className={styles.metadata}>

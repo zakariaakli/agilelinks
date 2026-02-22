@@ -18,6 +18,7 @@ import {
   trackFirebaseRead,
   trackFirebaseWrite,
 } from "../../../lib/firebaseTracker";
+import { processNoPlanReminders } from "../../../lib/noPlanReminders";
 
 interface Milestone {
   id: string;
@@ -91,8 +92,15 @@ async function processMilestoneReminders(_request: Request) {
       const planData = planDoc.data() as PlanData;
       // Use plan ID from document data (with fallback to Firestore doc ID for old plans)
       const planId = planData.id || planDoc.id;
+      // Support both root userId (old plans) and input.userId (new AI pipeline plans)
+      const planUserId = planData.userId || (planData as any).input?.userId;
 
-      console.log(`📋 Checking plan ${planId} for user ${planData.userId}`);
+      if (!planUserId) {
+        console.log(`⏭️ Skipping plan ${planId} - no userId found`);
+        continue;
+      }
+
+      console.log(`📋 Checking plan ${planId} for user ${planUserId}`);
 
       // Get plan's nudge frequency preference (default to weekly for backward compatibility)
       const nudgeFrequency = planData.nudgeFrequency || "weekly";
@@ -162,7 +170,7 @@ async function processMilestoneReminders(_request: Request) {
 
           const existingRemindersQuery = query(
             collection(db, "notifications"),
-            where("userId", "==", planData.userId),
+            where("userId", "==", planUserId),
             where("planId", "==", planId),
             where("milestoneId", "==", milestone.id),
             where("createdAt", ">=", Timestamp.fromDate(lookbackDate))
@@ -174,7 +182,7 @@ async function processMilestoneReminders(_request: Request) {
           await trackFirebaseRead(
             "notifications",
             existingReminders.docs.length,
-            planData.userId,
+            planUserId,
             "user@checking-reminders.com", // Will be updated with actual email in background
             "server",
             "milestone_reminders_check_existing"
@@ -183,7 +191,7 @@ async function processMilestoneReminders(_request: Request) {
           // Get user email to check for testing override
           let userEmail = "";
           try {
-            const userDocRef = doc(db, "users", planData.userId);
+            const userDocRef = doc(db, "users", planUserId);
             const userDoc = await getDoc(userDocRef);
             if (userDoc.exists()) {
               const userData = userDoc.data();
@@ -213,7 +221,7 @@ async function processMilestoneReminders(_request: Request) {
             // Create pending notification (AI will process later via GitHub Actions)
             const notificationRef = doc(collection(db, "notifications"));
             await setDoc(notificationRef, {
-              userId: planData.userId,
+              userId: planUserId,
               type: "milestone_reminder" as const,
               planId: planId,
               milestoneId: milestone.id,
@@ -223,7 +231,7 @@ async function processMilestoneReminders(_request: Request) {
               startDate: milestone.startDate,
               dueDate: milestone.dueDate,
               prompt: "", // Empty prompt - AI will fill this in
-              goalContext: planData.goal, // Store for AI processing
+              goalContext: planData.goal || (planData as any).input?.goalDescription, // Support both old and new plan structures
               createdAt: Timestamp.now(),
               read: false,
               feedback: null,
@@ -235,7 +243,7 @@ async function processMilestoneReminders(_request: Request) {
             await trackFirebaseWrite(
               "notifications",
               1,
-              planData.userId,
+              planUserId,
               "pending-notification@system.com",
               "server",
               "milestone_reminders_create_pending"
@@ -259,11 +267,15 @@ async function processMilestoneReminders(_request: Request) {
       `✅ Milestone reminder check completed. Created ${remindersCreated} pending reminders.`
     );
 
+    // Process no-plan reminders for users without active plans
+    const noPlanRemindersCreated = await processNoPlanReminders();
+
     // Return response - AI processing will happen via GitHub Actions
     return NextResponse.json({
       status: "success",
       pendingRemindersCreated: remindersCreated,
-      message: `Successfully created ${remindersCreated} pending milestone reminders (AI processing will follow)`,
+      noPlanRemindersCreated,
+      message: `Created ${remindersCreated} milestone reminders and ${noPlanRemindersCreated} no-plan reminders`,
     });
   } catch (error) {
     console.error("❌ Error in milestone reminders:", error);

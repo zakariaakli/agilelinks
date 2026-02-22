@@ -510,6 +510,145 @@ async function sendPushNotification(userId, notificationData, notificationId) {
 }
 
 /**
+ * Send no-plan reminder email to encourage goal creation
+ */
+async function sendNoPlanEmail(userId, notificationData) {
+  console.log(`📧 Sending no-plan reminder email to user ${userId}`);
+
+  try {
+    const settingsDoc = await db
+      .collection("companionSettings")
+      .doc(userId)
+      .get();
+
+    if (!settingsDoc.exists) {
+      console.log(`⚠️ No companion settings found for user ${userId}`);
+      return false;
+    }
+
+    const settings = settingsDoc.data();
+
+    if (!settings.emailNudgesOptIn) {
+      console.log(`⏭️ User ${userId} has opted out of email notifications`);
+      return false;
+    }
+
+    if (!settings.email) {
+      console.log(`⚠️ No email address found for user ${userId}`);
+      return false;
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: "Stepiva - Your AI Goal Coach <onboarding@resend.dev>",
+      to: [settings.email],
+      subject: `🚀 Ready to set your first goal?`,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #f9fafb; padding: 24px; border-radius: 12px;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #111827; margin: 0; font-size: 24px;">🚀 Your Journey Awaits</h1>
+          </div>
+          <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #6366f1;">
+            <p style="font-size: 16px; line-height: 1.6; margin: 0; color: #374151;">${notificationData.prompt}</p>
+          </div>
+          <div style="text-align: center; margin-top: 32px;">
+            <a href="https://stepiva.vercel.app/welcome"
+              style="display: inline-block; background: #6366F1; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              Create Your First Goal →
+            </a>
+          </div>
+          <div style="text-align: center; margin-top: 32px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+              You're receiving this because you haven't created a goal yet.<br>
+              <a href="https://stepiva.vercel.app/profile/settings" style="color: #6366f1; text-decoration: none;">Manage your notification preferences</a>
+            </p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error(`❌ No-plan email sending failed:`, error);
+      return false;
+    }
+
+    console.log(`✅ No-plan email sent successfully (ID: ${data.id})`);
+    return true;
+  } catch (error) {
+    console.error(`❌ No-plan email sending error:`, error);
+    return false;
+  }
+}
+
+/**
+ * Process pending no-plan reminder notifications (email + push, no AI)
+ */
+async function processNoPlanNotifications() {
+  console.log("\n🔄 Processing no-plan reminder notifications...");
+
+  const pendingQuery = await db
+    .collection("notifications")
+    .where("type", "==", "no_plan_reminder")
+    .where("emailStatus.deliveryStatus", "==", "pending")
+    .get();
+
+  if (pendingQuery.empty) {
+    console.log("✅ No pending no-plan notifications to process");
+    return { processed: 0, failed: 0 };
+  }
+
+  console.log(`📋 Found ${pendingQuery.size} pending no-plan notifications\n`);
+
+  let processed = 0;
+  let failed = 0;
+
+  for (const notifDoc of pendingQuery.docs) {
+    const notifData = notifDoc.data();
+    console.log(`\n📝 Processing no-plan notification ${notifDoc.id}:`);
+    console.log(`   User: ${notifData.userId}`);
+
+    try {
+      // Send email
+      const emailSent = await sendNoPlanEmail(notifData.userId, notifData);
+
+      if (emailSent) {
+        await notifDoc.ref.update({
+          "emailStatus.sent": true,
+          "emailStatus.sentAt": Timestamp.now(),
+          "emailStatus.deliveryStatus": "sent",
+        });
+        console.log("   ✅ Email sent and status updated");
+      } else {
+        await notifDoc.ref.update({
+          "emailStatus.deliveryStatus": "failed",
+        });
+        console.log("   ⚠️ Email not sent (user opted out or no email)");
+      }
+
+      // Send push notification
+      console.log("   📱 Attempting to send push notification...");
+      await sendPushNotification(notifData.userId, {
+        milestoneTitle: "Create Your First Goal",
+        prompt: notifData.prompt,
+      }, notifDoc.id);
+
+      processed++;
+    } catch (error) {
+      console.error(
+        `   ❌ Failed to process no-plan notification ${notifDoc.id}:`,
+        error
+      );
+      failed++;
+    }
+  }
+
+  console.log(`\n✅ No-plan notification processing complete!`);
+  console.log(`   Processed: ${processed}`);
+  console.log(`   Failed: ${failed}`);
+
+  return { processed, failed };
+}
+
+/**
  * Main processing function
  */
 async function processPendingNotifications() {
@@ -645,9 +784,15 @@ async function processPendingNotifications() {
       }
     }
 
-    console.log(`\n✅ Processing complete!`);
+    console.log(`\n✅ Milestone processing complete!`);
     console.log(`   Processed: ${processed}`);
     console.log(`   Failed: ${failed}`);
+
+    // Process no-plan reminders (template-based, no AI needed)
+    const noPlanResults = await processNoPlanNotifications();
+    console.log(`\n📊 Overall summary:`);
+    console.log(`   Milestone notifications: ${processed} processed, ${failed} failed`);
+    console.log(`   No-plan notifications: ${noPlanResults.processed} processed, ${noPlanResults.failed} failed`);
   } catch (error) {
     console.error("❌ Fatal error:", error);
     process.exit(1);

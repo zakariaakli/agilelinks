@@ -11,7 +11,6 @@ export interface PlanInput {
   hasTimePressure: boolean;
   personalitySummary: string;
   enneagramType: string;
-  userId: string;
 }
 
 export interface GoalFrame {
@@ -41,10 +40,11 @@ export interface PlanDocument {
 }
 
 // Initialize a new plan document
-export async function createPlanDocument(planId: string, input: PlanInput): Promise<void> {
+export async function createPlanDocument(planId: string, userId: string, input: PlanInput): Promise<void> {
   const planRef = doc(db, 'plans', planId);
   await setDoc(planRef, {
     status: 'framed',
+    userId,
     input,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

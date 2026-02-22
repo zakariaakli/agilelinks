@@ -24,7 +24,7 @@ export interface EmailStatus {
 
 export interface NotificationMeta {
   priority: 'low' | 'medium' | 'high';
-  category: 'milestone_reminder';
+  category: 'milestone_reminder' | 'no_plan_reminder';
   scheduledFor?: Timestamp;
   expiresAt?: Timestamp;
 }
@@ -32,7 +32,7 @@ export interface NotificationMeta {
 export interface EnhancedNotification {
   id?: string;
   userId: string;
-  type: string | 'milestone_reminder';
+  type: 'milestone_reminder' | 'no_plan_reminder';
   prompt: string;
   createdAt: Timestamp;
   read: boolean;
@@ -141,11 +141,10 @@ export function getDefaultEmailStatus(): EmailStatus {
 }
 
 // Get default notification meta based on type
-export function getDefaultNotificationMeta(type: string): NotificationMeta {
-  // All notifications are milestone reminders now
+export function getDefaultNotificationMeta(type: 'milestone_reminder' | 'no_plan_reminder'): NotificationMeta {
   return {
-    priority: 'medium',
-    category: 'milestone_reminder',
+    priority: type === 'no_plan_reminder' ? 'high' : 'medium',
+    category: type,
     expiresAt: Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) // 7 days
   };
 }

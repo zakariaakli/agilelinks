@@ -48,15 +48,31 @@ async function diagnoseUserPlans(userIdentifier) {
       userId = userIdentifier;
     }
 
-    // Get all plans for this user
-    const plansSnapshot = await db.collection('plans')
-      .where('userId', '==', userId)
-      .get();
+    // Get all plans for this user (check both root userId and input.userId)
+    const [rootSnapshot, inputSnapshot] = await Promise.all([
+      db.collection('plans').where('userId', '==', userId).get(),
+      db.collection('plans').where('input.userId', '==', userId).get(),
+    ]);
 
-    if (plansSnapshot.empty) {
+    // Merge and deduplicate
+    const seenIds = new Set();
+    const allDocs = [];
+    for (const snapshot of [rootSnapshot, inputSnapshot]) {
+      for (const doc of snapshot.docs) {
+        if (!seenIds.has(doc.id)) {
+          seenIds.add(doc.id);
+          allDocs.push(doc);
+        }
+      }
+    }
+
+    if (allDocs.length === 0) {
       console.log('❌ No plans found for this user');
       return;
     }
+
+    // Create a mock snapshot-like object for iteration
+    const plansSnapshot = { docs: allDocs, empty: allDocs.length === 0 };
 
     console.log(`\n📋 Found ${plansSnapshot.docs.length} plan(s)\n`);
 

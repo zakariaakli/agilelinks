@@ -27,10 +27,9 @@ export async function POST(request: NextRequest) {
       hasTimePressure,
       personalitySummary,
       enneagramType,
-      userId,
     };
 
-    await createPlanDocument(planId, input);
+    await createPlanDocument(planId, userId, input);
     console.log('✅ Plan document created');
 
     // PASS 1: Generate goal frame + goal name + date realism (Chat Completion - gpt-4o-mini)

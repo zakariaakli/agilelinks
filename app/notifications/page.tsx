@@ -193,6 +193,7 @@ const NotificationsPage: React.FC = () => {
               <NotificationCard
                 key={notification.id}
                 id={notification.id!}
+                type={notification.type}
                 milestoneTitle={notification.milestoneTitle}
                 prompt={notification.prompt}
                 createdAt={notification.createdAt}

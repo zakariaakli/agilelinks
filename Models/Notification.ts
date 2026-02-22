@@ -27,7 +27,7 @@ export interface Notification {
   createdAt: any;
   feedback?: string | null; // Radio button selection
   feedbackDetails?: FeedbackDetails;
-  type: string;
+  type: 'milestone_reminder' | 'no_plan_reminder';
   planId?: string;
   milestoneId?: string;
   userId: string;

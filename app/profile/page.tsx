@@ -189,7 +189,8 @@ function ProfileContent() {
 
   const loadUserPlans = async (userId: string) => {
     try {
-      const querySnapshot = await TrackedFirestoreClient.collection("plans")
+      // Query plans with userId at root (old plans)
+      const rootQuery = TrackedFirestoreClient.collection("plans")
         .where("userId", "==", userId)
         .orderBy("createdAt", "desc")
         .limit(10)
@@ -200,15 +201,46 @@ function ProfileContent() {
           functionName: "load_user_plans",
         });
 
+      // Query plans with userId inside input object (new plans from AI pipeline)
+      const inputQuery = TrackedFirestoreClient.collection("plans")
+        .where("input.userId", "==", userId)
+        .orderBy("createdAt", "desc")
+        .limit(10)
+        .get({
+          userId,
+          userEmail: user?.email || undefined,
+          source: "profile_page",
+          functionName: "load_user_plans_input",
+        });
+
+      const [rootSnapshot, inputSnapshot] = await Promise.all([rootQuery, inputQuery]);
+
+      // Merge results, deduplicate by doc ID
+      const seenIds = new Set<string>();
       const plans: PlanData[] = [];
-      querySnapshot.forEach((doc) => {
-        plans.push({
-          id: doc.id,
-          ...doc.data(),
-        } as PlanData);
+
+      for (const snapshot of [rootSnapshot, inputSnapshot]) {
+        snapshot.forEach((doc) => {
+          if (!seenIds.has(doc.id)) {
+            seenIds.add(doc.id);
+            const data = doc.data();
+            plans.push({
+              id: doc.id,
+              ...data,
+              userId: data.userId || data.input?.userId,
+            } as PlanData);
+          }
+        });
+      }
+
+      // Sort by createdAt descending
+      plans.sort((a, b) => {
+        const aTime = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+        const bTime = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+        return bTime - aTime;
       });
 
-      setUserPlans(plans);
+      setUserPlans(plans.slice(0, 10));
     } catch (error) {
       console.error("Error loading user plans:", error);
     }

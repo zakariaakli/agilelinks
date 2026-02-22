@@ -60,9 +60,10 @@ export async function PATCH(
     }
 
     const planData = planSnap.data();
+    const planUserId = planData.userId || planData.input?.userId;
 
     // Verify user owns this plan
-    if (userId && planData.userId !== userId) {
+    if (userId && planUserId !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized: You do not own this plan' },
         { status: 403 }
@@ -79,7 +80,7 @@ export async function PATCH(
     await trackFirebaseWrite(
       'plans',
       1,
-      userId || planData.userId,
+      userId || planUserId,
       userEmail || 'unknown@user.com',
       'client',
       'update_plan_status'
@@ -144,9 +145,10 @@ export async function DELETE(
     }
 
     const planData = planSnap.data();
+    const planUserId = planData.userId || planData.input?.userId;
 
     // Verify user owns this plan
-    if (userId && planData.userId !== userId) {
+    if (userId && planUserId !== userId) {
       return NextResponse.json(
         { error: 'Unauthorized: You do not own this plan' },
         { status: 403 }
@@ -160,7 +162,7 @@ export async function DELETE(
     await trackFirebaseDelete(
       'plans',
       1,
-      userId || planData.userId,
+      userId || planUserId,
       userEmail || 'unknown@user.com',
       'client',
       'delete_plan'
