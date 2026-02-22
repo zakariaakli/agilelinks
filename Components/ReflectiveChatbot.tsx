@@ -111,6 +111,14 @@ export default function ReflectiveChatbot({
     }
   }, [isOpen]);
 
+  const resetChat = () => {
+    setMessages([]);
+    setInputValue('');
+    setHasUnsavedChanges(false);
+    setShowExitConfirm(false);
+    chatStartTime.current = null;
+  };
+
   const showToast = (message: string, type: ToastType = 'info') => {
     setToast({ message, type });
   };
@@ -221,7 +229,7 @@ export default function ReflectiveChatbot({
 
       // Call parent's onFinish with transcript and summary
       onFinish(messages, data.summary);
-      setHasUnsavedChanges(false);
+      resetChat();
     } catch (error) {
       console.error('Error finishing conversation:', error);
       showToast('Failed to save conversation. Please try again.', 'error');
@@ -267,13 +275,27 @@ export default function ReflectiveChatbot({
                 <p className={styles.chatbotSubtitle}>{contextSubtitle}</p>
               )}
             </div>
-            <button
-              onClick={handleClose}
-              className={styles.chatbotCloseButton}
-              aria-label="Close"
-            >
-              ×
-            </button>
+            <div className={styles.chatbotHeaderActions}>
+              {hasUnsavedChanges && messages.length > 1 && (
+                <button
+                  onClick={resetChat}
+                  className={styles.chatbotClearButton}
+                  aria-label="New conversation"
+                  title="Start a new conversation"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.5 3H11V2.5C11 1.67 10.33 1 9.5 1H6.5C5.67 1 5 1.67 5 2.5V3H2.5C2.22 3 2 3.22 2 3.5C2 3.78 2.22 4 2.5 4H3V13C3 13.55 3.45 14 4 14H12C12.55 14 13 13.55 13 13V4H13.5C13.78 4 14 3.78 14 3.5C14 3.22 13.78 3 13.5 3ZM6 2.5C6 2.22 6.22 2 6.5 2H9.5C9.78 2 10 2.22 10 2.5V3H6V2.5ZM12 13H4V4H12V13Z" fill="currentColor"/>
+                  </svg>
+                </button>
+              )}
+              <button
+                onClick={handleClose}
+                className={styles.chatbotCloseButton}
+                aria-label="Close"
+              >
+                ×
+              </button>
+            </div>
           </div>
         </div>
 

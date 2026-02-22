@@ -105,6 +105,11 @@ function ProfileContent() {
     type: ToastType;
   } | null>(null);
   const [coachChatOpen, setCoachChatOpen] = useState(false);
+  const [firstNudgeStatus, setFirstNudgeStatus] = useState<
+    "generating" | "ready" | "failed" | null
+  >(null);
+  const [firstNudgeId, setFirstNudgeId] = useState<string | null>(null);
+  const firstNudgeTriggered = useRef(false);
 
   const showToast = (message: string, type: ToastType = "info") => {
     setToast({ message, type });
@@ -437,6 +442,32 @@ function ProfileContent() {
     }
   }, [newPlanId, planIdFromFeedback, userPlans]);
 
+  // Generate first nudge for newly created plan
+  useEffect(() => {
+    if (!newPlanId || !user || firstNudgeTriggered.current) return;
+    firstNudgeTriggered.current = true;
+    setFirstNudgeStatus("generating");
+
+    fetch("/api/plan/first-nudge", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planId: newPlanId, userId: user.uid }),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed");
+        return res.json();
+      })
+      .then((data) => {
+        setFirstNudgeStatus("ready");
+        setFirstNudgeId(data.notificationId);
+        // Auto-dismiss after 10 seconds
+        setTimeout(() => setFirstNudgeStatus(null), 10000);
+      })
+      .catch(() => {
+        setFirstNudgeStatus(null);
+      });
+  }, [newPlanId, user]);
+
   const getProgressPercentage = (milestones: Milestone[]) => {
     if (!milestones || milestones.length === 0) return 0;
     const today = new Date();
@@ -690,6 +721,31 @@ function ProfileContent() {
         initialGreeting={`Hey${user?.displayName ? ` ${user.displayName.split(" ")[0]}` : ""}! What's on your mind today? You can reflect on anything — your goals, a challenge you're facing, or just how you're feeling about your progress.`}
         placeholder="What's on your mind..."
       />
+
+      {/* First Nudge Banner */}
+      {firstNudgeStatus === "generating" && (
+        <div
+          className={`${styles.firstNudgeBanner} ${styles.firstNudgeBannerGenerating}`}
+        >
+          <span className={styles.firstNudgeBannerIcon}>✨</span>
+          <span className={styles.firstNudgeBannerText}>
+            Crafting your first coaching nudge...
+          </span>
+        </div>
+      )}
+      {firstNudgeStatus === "ready" && firstNudgeId && (
+        <div
+          className={`${styles.firstNudgeBanner} ${styles.firstNudgeBannerReady}`}
+        >
+          <span className={styles.firstNudgeBannerIcon}>🎯</span>
+          <span className={styles.firstNudgeBannerText}>
+            Your first nudge is ready!
+          </span>
+          <Link href={`/nudge/${firstNudgeId}`} className={styles.firstNudgeBannerLink}>
+            View it →
+          </Link>
+        </div>
+      )}
 
       {/* Plans Section */}
       {userPlans.length > 0 ? (

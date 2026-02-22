@@ -889,6 +889,48 @@ const plan = await pollForPlanCompletion(jobId);
 
 ---
 
+## 🚀 First Nudge on Plan Creation
+
+When a user creates a plan, the system immediately generates the first coaching nudge instead of waiting for the daily cron job.
+
+### Flow
+
+```
+Plan saved → Dashboard redirect (?newPlan={id}) → Dashboard fires POST /api/plan/first-nudge
+→ API finds current milestone → Generates AI nudge → Creates notification → Returns notificationId
+→ Dashboard banner updates: "Your first nudge is ready!" → Link to /nudge/{id}
+```
+
+### API Route
+
+**Endpoint**: `POST /api/plan/first-nudge`
+
+**Body**: `{ planId: string, userId: string }`
+
+**Logic**:
+1. Reads plan from Firestore, validates ownership
+2. Finds current active milestone (`startDate ≤ today ≤ dueDate`), falls back to first uncompleted
+3. Calls `generateMilestoneNudgeFromAI()` — same AI pipeline used by daily cron
+4. Creates notification document with filled prompt (not pending)
+5. Returns `{ notificationId }` for dashboard linking
+
+**Fallback**: If AI fails, uses template nudge. If entire API call fails, the daily cron picks it up next cycle.
+
+### Dashboard UX
+
+An animated banner appears above the plans grid:
+- **Generating** (gold): pulsing icon + "Crafting your first coaching nudge..."
+- **Ready** (green): "Your first nudge is ready!" + "View it →" link
+- Auto-dismisses after 10 seconds
+
+### Key Files
+
+- `app/api/plan/first-nudge/route.ts` — API route
+- `app/profile/page.tsx` — Banner state + API call trigger
+- `Styles/profile.module.css` — Banner styles
+
+---
+
 ## 📚 Related Documentation
 
 - [GOAL_WIZARD.md](GOAL_WIZARD.md) - Product documentation for non-technical stakeholders

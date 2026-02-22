@@ -706,6 +706,81 @@
   box-shadow: var(--shadow-md);
 }
 
+/* First Nudge Banner */
+.firstNudgeBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.25rem;
+  animation: fadeInUp 0.5s ease-out;
+  transition: all 0.4s ease;
+}
+
+.firstNudgeBannerGenerating {
+  background: #FDF6E7;
+  border: 1px solid #D9A84E;
+}
+
+.firstNudgeBannerReady {
+  background: #EEF5EF;
+  border: 1px solid #6BA375;
+}
+
+.firstNudgeBannerIcon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.firstNudgeBannerGenerating .firstNudgeBannerIcon {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.firstNudgeBannerText {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.firstNudgeBannerGenerating .firstNudgeBannerText {
+  color: #7A561B;
+}
+
+.firstNudgeBannerReady .firstNudgeBannerText {
+  color: #274F30;
+}
+
+.firstNudgeBannerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #3D7A4A;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(61, 122, 74, 0.1);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.firstNudgeBannerLink:hover {
+  background: rgba(61, 122, 74, 0.2);
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+.firstNudgeBannerDismissing {
+  animation: fadeOut 0.4s ease-out forwards;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .profileContainer {
@@ -745,6 +820,16 @@
 
   .enneagramGrid {
     grid-template-columns: 1fr;
+  }
+
+  .firstNudgeBanner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .firstNudgeBannerLink {
+    align-self: flex-end;
   }
 }
 
