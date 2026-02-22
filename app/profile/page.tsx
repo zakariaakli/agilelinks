@@ -115,7 +115,7 @@ function ProfileContent() {
       .filter((p) => p.status === "active")
       .map((p) => {
         const currentMilestone = p.milestones?.find(
-          (m) => getMilestoneStatus(m) === "current"
+          (m) => getMilestoneStatus(m) === "current",
         );
         return {
           goalName: p.goalName || p.goalType || "Personal Goal",
@@ -138,7 +138,7 @@ function ProfileContent() {
 
   const handleCoachFinish = (
     _transcript: ChatMessageData[],
-    summary: string
+    summary: string,
   ) => {
     setCoachChatOpen(false);
     showToast("Reflection saved!", "success");
@@ -192,6 +192,7 @@ function ProfileContent() {
       // Query plans with userId at root (old plans)
       const rootQuery = TrackedFirestoreClient.collection("plans")
         .where("userId", "==", userId)
+        .where("status", "==", "active")
         .orderBy("createdAt", "desc")
         .limit(10)
         .get({
@@ -203,7 +204,8 @@ function ProfileContent() {
 
       // Query plans with userId inside input object (new plans from AI pipeline)
       const inputQuery = TrackedFirestoreClient.collection("plans")
-        .where("input.userId", "==", userId)
+        .where("userId", "==", userId)
+        .where("status", "==", "active")
         .orderBy("createdAt", "desc")
         .limit(10)
         .get({
@@ -213,7 +215,10 @@ function ProfileContent() {
           functionName: "load_user_plans_input",
         });
 
-      const [rootSnapshot, inputSnapshot] = await Promise.all([rootQuery, inputQuery]);
+      const [rootSnapshot, inputSnapshot] = await Promise.all([
+        rootQuery,
+        inputQuery,
+      ]);
 
       // Merge results, deduplicate by doc ID
       const seenIds = new Set<string>();
@@ -235,8 +240,10 @@ function ProfileContent() {
 
       // Sort by createdAt descending
       plans.sort((a, b) => {
-        const aTime = a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
-        const bTime = b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
+        const aTime =
+          a.createdAt?.toMillis?.() || a.createdAt?.seconds * 1000 || 0;
+        const bTime =
+          b.createdAt?.toMillis?.() || b.createdAt?.seconds * 1000 || 0;
         return bTime - aTime;
       });
 
@@ -260,7 +267,7 @@ function ProfileContent() {
 
   // Helper function to determine milestone status
   const getMilestoneStatus = (
-    milestone: Milestone
+    milestone: Milestone,
   ): "completed" | "current" | "future" => {
     if (milestone.completed) return "completed";
 
@@ -285,7 +292,7 @@ function ProfileContent() {
   const fetchMilestoneNotifications = async (
     userId: string,
     planId: string,
-    milestoneId: string
+    milestoneId: string,
   ): Promise<Notification[]> => {
     try {
       // Need to build complex query step by step for multiple where clauses
@@ -295,7 +302,7 @@ function ProfileContent() {
         where("planId", "==", planId),
         where("milestoneId", "==", milestoneId),
         where("type", "==", "milestone_reminder"),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
       );
       const querySnapshot = await getDocs(q);
 
@@ -321,7 +328,7 @@ function ProfileContent() {
           ({
             id: doc.id,
             ...doc.data(),
-          }) as Notification
+          }) as Notification,
       );
     } catch (error) {
       console.error("Error fetching milestone notifications:", error);
@@ -355,10 +362,10 @@ function ProfileContent() {
         const notifications = await fetchMilestoneNotifications(
           user.uid,
           planId,
-          milestone.id
+          milestone.id,
         );
         return { milestoneId: milestone.id, notifications };
-      }
+      },
     );
 
     try {
@@ -389,7 +396,12 @@ function ProfileContent() {
 
   // Auto-expand first plan by default
   useEffect(() => {
-    if (userPlans.length > 0 && expandedPlans.size === 0 && !newPlanId && !planIdFromFeedback) {
+    if (
+      userPlans.length > 0 &&
+      expandedPlans.size === 0 &&
+      !newPlanId &&
+      !planIdFromFeedback
+    ) {
       setExpandedPlans(new Set([userPlans[0].id]));
     }
   }, [userPlans, expandedPlans.size, newPlanId, planIdFromFeedback]);
@@ -447,7 +459,7 @@ function ProfileContent() {
 
   // Helper to get primary enneagram type from result
   const getPrimaryEnneagramType = (
-    result: EnneagramResult | null
+    result: EnneagramResult | null,
   ): string | undefined => {
     if (!result) return undefined;
 
@@ -464,7 +476,7 @@ function ProfileContent() {
     ];
 
     const maxType = types.reduce((max, type) =>
-      type.value > max.value ? type : max
+      type.value > max.value ? type : max,
     );
     return maxType.label;
   };
@@ -568,7 +580,7 @@ function ProfileContent() {
           `/api/plans/${modalState.planId}?userId=${user.uid}&userEmail=${user.email}`,
           {
             method: "DELETE",
-          }
+          },
         );
 
         if (!response.ok) {
@@ -578,7 +590,7 @@ function ProfileContent() {
 
         // Remove from local state
         setUserPlans((plans) =>
-          plans.filter((p) => p.id !== modalState.planId)
+          plans.filter((p) => p.id !== modalState.planId),
         );
         showToast("Plan deleted successfully", "success");
       } else if (modalState.type === "pause" || modalState.type === "resume") {
@@ -605,8 +617,8 @@ function ProfileContent() {
         // Update local state
         setUserPlans((plans) =>
           plans.map((p) =>
-            p.id === modalState.planId ? { ...p, status: newStatus } : p
-          )
+            p.id === modalState.planId ? { ...p, status: newStatus } : p,
+          ),
         );
 
         const action = modalState.type === "pause" ? "paused" : "resumed";
@@ -616,7 +628,7 @@ function ProfileContent() {
       console.error("Error performing plan action:", error);
       showToast(
         error instanceof Error ? error.message : "Unknown error occurred",
-        "error"
+        "error",
       );
     } finally {
       setActionLoading(null);
@@ -642,8 +654,9 @@ function ProfileContent() {
                 Complete Your Personality Profile
               </h2>
               <p className={styles.onboardingSubtitle}>
-                To personalize your goal milestones and provide tailored coaching,
-                we need to understand your personality type. This will only take a minute!
+                To personalize your goal milestones and provide tailored
+                coaching, we need to understand your personality type. This will
+                only take a minute!
               </p>
             </div>
             <SimplifiedEnneagramInput onComplete={handleEnneagramComplete} />
@@ -684,177 +697,221 @@ function ProfileContent() {
           {userPlans.map((plan, index) => {
             // Define accent theme palette for plan cards
             const planThemes: AccentTheme[] = [
-              { bg: '#FDF0E7', badgeBg: '#FAE0CE', border: '#C27A3E', text: '#9C4B20', darkText: '#7D3C19', shadow: 'rgba(156, 75, 32, 0.12)' },
-              { bg: '#EEF5EF', badgeBg: '#DCEADE', border: '#6BA375', text: '#3D7A4A', darkText: '#274F30', shadow: 'rgba(61, 122, 74, 0.12)' },
-              { bg: '#FDF6E7', badgeBg: '#FAE8C4', border: '#D9A84E', text: '#C68B2C', darkText: '#7A561B', shadow: 'rgba(198, 139, 44, 0.12)' },
-              { bg: '#EEF2F7', badgeBg: '#D8E4EF', border: '#6B90B0', text: '#4A7194', darkText: '#2F4A65', shadow: 'rgba(74, 113, 148, 0.12)' },
-              { bg: '#FDF0EE', badgeBg: '#F8D8D5', border: '#D06B62', text: '#B84A42', darkText: '#7F312B', shadow: 'rgba(184, 74, 66, 0.12)' },
+              {
+                bg: "#FDF0E7",
+                badgeBg: "#FAE0CE",
+                border: "#C27A3E",
+                text: "#9C4B20",
+                darkText: "#7D3C19",
+                shadow: "rgba(156, 75, 32, 0.12)",
+              },
+              {
+                bg: "#EEF5EF",
+                badgeBg: "#DCEADE",
+                border: "#6BA375",
+                text: "#3D7A4A",
+                darkText: "#274F30",
+                shadow: "rgba(61, 122, 74, 0.12)",
+              },
+              {
+                bg: "#FDF6E7",
+                badgeBg: "#FAE8C4",
+                border: "#D9A84E",
+                text: "#C68B2C",
+                darkText: "#7A561B",
+                shadow: "rgba(198, 139, 44, 0.12)",
+              },
+              {
+                bg: "#EEF2F7",
+                badgeBg: "#D8E4EF",
+                border: "#6B90B0",
+                text: "#4A7194",
+                darkText: "#2F4A65",
+                shadow: "rgba(74, 113, 148, 0.12)",
+              },
+              {
+                bg: "#FDF0EE",
+                badgeBg: "#F8D8D5",
+                border: "#D06B62",
+                text: "#B84A42",
+                darkText: "#7F312B",
+                shadow: "rgba(184, 74, 66, 0.12)",
+              },
             ];
             const planTheme = planThemes[index % planThemes.length];
 
             return (
-            <div
-              key={plan.id}
-              ref={(el) => {
-                planRefs.current[plan.id] = el;
-              }}
-              className={`${styles.planCardContainer} slideInUp`}
-              style={{
-                animationDelay: `${0.1 * (index + 2)}s`,
-                borderLeft: `4px solid ${planTheme.text}`
-              }}
-            >
-              {/* Plan Summary (Always Visible) */}
               <div
-                className={styles.planSummarySimple}
-                onClick={() => userPlans.length > 1 ? togglePlanExpansion(plan.id) : undefined}
+                key={plan.id}
+                ref={(el) => {
+                  planRefs.current[plan.id] = el;
+                }}
+                className={`${styles.planCardContainer} slideInUp`}
                 style={{
-                  cursor: userPlans.length > 1 ? 'pointer' : 'default'
+                  animationDelay: `${0.1 * (index + 2)}s`,
+                  borderLeft: `4px solid ${planTheme.text}`,
                 }}
               >
-                <div className={styles.planHeaderSimple}>
-                  <div className={styles.planTitleSimple}>
-                    {plan.goalName
-                      ? plan.goalName
-                      : plan.goalType
-                      ? plan.goalType.charAt(0).toUpperCase() +
-                        plan.goalType.slice(1) +
-                        " Goal"
-                      : "Personal Goal"}
-                  </div>
-                  {userPlans.length > 1 && (
-                    <div className={styles.expandIconSimple}>
-                      {expandedPlans.has(plan.id) ? "▼" : "▶"}
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.planMetricsSimple}>
-                  <div className={styles.metricSimple}>
-                    <span className={styles.metricLabel}>Target:</span>
-                    <span className={styles.metricValue}>
-                      {getDaysUntilTarget(plan.targetDate)}
-                    </span>
-                  </div>
-                  <div className={styles.metricSimple}>
-                    <span className={styles.metricLabel}>Milestones:</span>
-                    <span className={styles.metricValue}>
-                      {(() => {
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        const done = (plan.milestones || []).filter(
-                          (m) => m.completed || new Date(m.dueDate) < today
-                        ).length;
-                        return Math.min(done + 1, plan.milestones?.length || 0);
-                      })()}
-                      /{plan.milestones?.length || 0}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Expanded Plan Details */}
-              {(userPlans.length === 1 || expandedPlans.has(plan.id)) && (
-                <div className={styles.planDetailsSimple}>
-                  <div className={styles.milestoneCardWrapper}>
-                    {(() => {
-                      // Find the current milestone
-                      const currentMilestone = plan.milestones?.find(
-                        (milestone) =>
-                          getMilestoneStatus(milestone) === "current"
-                      );
-
-                      if (currentMilestone) {
-                        const notifications =
-                          milestoneNotifications[currentMilestone.id] || [];
-                        const isLoadingNotification =
-                          loadingNotifications[currentMilestone.id] || false;
-
-                        return (
-                          <MilestoneCard
-                            key={currentMilestone.id}
-                            milestone={currentMilestone}
-                            status="current"
-                            notifications={notifications}
-                            isLoadingNotification={isLoadingNotification}
-                            goalType={plan.goalType}
-                            accentTheme={planTheme}
-                            enneagramData={
-                              enneagramResult
-                                ? {
-                                    type: getPrimaryEnneagramType(
-                                      enneagramResult
-                                    ),
-                                    summary: enneagramResult.summary,
-                                    blindSpots: undefined,
-                                    strengths: undefined,
-                                  }
-                                : undefined
-                            }
-                            showOnlyLatestNotification={true}
-                            hideFeedbackStatus={true}
-                            hideTimeline={true}
-                            planId={plan.id}
-                          />
-                        );
-                      } else {
-                        // No current milestone - show message
-                        const allCompleted = plan.milestones?.every(
-                          (m) => m.completed
-                        );
-                        return (
-                          <div
-                            style={{
-                              padding: "1.5rem",
-                              textAlign: "center",
-                              color: "#6B6560",
-                              background: "#F5F3F0",
-                              borderRadius: "0.5rem",
-                              border: "1px dashed #D5CFC8",
-                            }}
-                          >
-                            {allCompleted
-                              ? "🎉 All milestones completed! Great job!"
-                              : "📋 No active milestone right now. Check full details to see upcoming milestones."}
-                          </div>
-                        );
-                      }
-                    })()}
-                  </div>
-
-                </div>
-              )}
-
-              {/* See Full Details Link - Always visible at bottom of card */}
-              <div
-                style={{
-                  marginTop: (userPlans.length === 1 || expandedPlans.has(plan.id)) ? "1rem" : "0.5rem",
-                  paddingTop: "1rem",
-                  borderTop: "1px solid #E8E4DF",
-                  textAlign: "center",
-                }}
-              >
-                <Link
-                  href={`/profile/goals/${plan.id}`}
-                  className={styles.viewDetailsLink}
+                {/* Plan Summary (Always Visible) */}
+                <div
+                  className={styles.planSummarySimple}
+                  onClick={() =>
+                    userPlans.length > 1
+                      ? togglePlanExpansion(plan.id)
+                      : undefined
+                  }
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    color: planTheme.text,
-                    fontWeight: "600",
-                    textDecoration: "none",
-                    fontSize: "0.875rem",
-                    padding: "0.5rem 1rem",
-                    borderRadius: "0.5rem",
-                    transition: "all 0.2s ease",
+                    cursor: userPlans.length > 1 ? "pointer" : "default",
                   }}
                 >
-                  <EyeIcon size={16} />
-                  View Full Goal Details
-                </Link>
+                  <div className={styles.planHeaderSimple}>
+                    <div className={styles.planTitleSimple}>
+                      {plan.goalName
+                        ? plan.goalName
+                        : plan.goalType
+                          ? plan.goalType.charAt(0).toUpperCase() +
+                            plan.goalType.slice(1) +
+                            " Goal"
+                          : "Personal Goal"}
+                    </div>
+                    {userPlans.length > 1 && (
+                      <div className={styles.expandIconSimple}>
+                        {expandedPlans.has(plan.id) ? "▼" : "▶"}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={styles.planMetricsSimple}>
+                    <div className={styles.metricSimple}>
+                      <span className={styles.metricLabel}>Target:</span>
+                      <span className={styles.metricValue}>
+                        {getDaysUntilTarget(plan.targetDate)}
+                      </span>
+                    </div>
+                    <div className={styles.metricSimple}>
+                      <span className={styles.metricLabel}>Milestones:</span>
+                      <span className={styles.metricValue}>
+                        {(() => {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const done = (plan.milestones || []).filter(
+                            (m) => m.completed || new Date(m.dueDate) < today,
+                          ).length;
+                          return Math.min(
+                            done + 1,
+                            plan.milestones?.length || 0,
+                          );
+                        })()}
+                        /{plan.milestones?.length || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expanded Plan Details */}
+                {(userPlans.length === 1 || expandedPlans.has(plan.id)) && (
+                  <div className={styles.planDetailsSimple}>
+                    <div className={styles.milestoneCardWrapper}>
+                      {(() => {
+                        // Find the current milestone
+                        const currentMilestone = plan.milestones?.find(
+                          (milestone) =>
+                            getMilestoneStatus(milestone) === "current",
+                        );
+
+                        if (currentMilestone) {
+                          const notifications =
+                            milestoneNotifications[currentMilestone.id] || [];
+                          const isLoadingNotification =
+                            loadingNotifications[currentMilestone.id] || false;
+
+                          return (
+                            <MilestoneCard
+                              key={currentMilestone.id}
+                              milestone={currentMilestone}
+                              status="current"
+                              notifications={notifications}
+                              isLoadingNotification={isLoadingNotification}
+                              goalType={plan.goalType}
+                              accentTheme={planTheme}
+                              enneagramData={
+                                enneagramResult
+                                  ? {
+                                      type: getPrimaryEnneagramType(
+                                        enneagramResult,
+                                      ),
+                                      summary: enneagramResult.summary,
+                                      blindSpots: undefined,
+                                      strengths: undefined,
+                                    }
+                                  : undefined
+                              }
+                              showOnlyLatestNotification={true}
+                              hideFeedbackStatus={true}
+                              hideTimeline={true}
+                              planId={plan.id}
+                            />
+                          );
+                        } else {
+                          // No current milestone - show message
+                          const allCompleted = plan.milestones?.every(
+                            (m) => m.completed,
+                          );
+                          return (
+                            <div
+                              style={{
+                                padding: "1.5rem",
+                                textAlign: "center",
+                                color: "#6B6560",
+                                background: "#F5F3F0",
+                                borderRadius: "0.5rem",
+                                border: "1px dashed #D5CFC8",
+                              }}
+                            >
+                              {allCompleted
+                                ? "🎉 All milestones completed! Great job!"
+                                : "📋 No active milestone right now. Check full details to see upcoming milestones."}
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                  </div>
+                )}
+
+                {/* See Full Details Link - Always visible at bottom of card */}
+                <div
+                  style={{
+                    marginTop:
+                      userPlans.length === 1 || expandedPlans.has(plan.id)
+                        ? "1rem"
+                        : "0.5rem",
+                    paddingTop: "1rem",
+                    borderTop: "1px solid #E8E4DF",
+                    textAlign: "center",
+                  }}
+                >
+                  <Link
+                    href={`/profile/goals/${plan.id}`}
+                    className={styles.viewDetailsLink}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      color: planTheme.text,
+                      fontWeight: "600",
+                      textDecoration: "none",
+                      fontSize: "0.875rem",
+                      padding: "0.5rem 1rem",
+                      borderRadius: "0.5rem",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <EyeIcon size={16} />
+                    View Full Goal Details
+                  </Link>
+                </div>
               </div>
-            </div>
             );
           })}
         </div>

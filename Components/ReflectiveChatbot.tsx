@@ -51,6 +51,7 @@ export default function ReflectiveChatbot({
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -231,12 +232,21 @@ export default function ReflectiveChatbot({
 
   const handleClose = () => {
     if (hasUnsavedChanges && messages.length > 1) {
-      const confirmed = window.confirm(
-        "Your reflection isn't saved yet. Close anyway?"
-      );
-      if (!confirmed) return;
+      setShowExitConfirm(true);
+      return;
     }
     onClose();
+  };
+
+  const handleDiscardAndClose = () => {
+    setShowExitConfirm(false);
+    setHasUnsavedChanges(false);
+    onClose();
+  };
+
+  const handleSaveAndClose = async () => {
+    setShowExitConfirm(false);
+    await handleFinish();
   };
 
   if (!isOpen || !mounted) {
@@ -332,6 +342,34 @@ export default function ReflectiveChatbot({
           </div>
         </div>
       </div>
+
+      {showExitConfirm && (
+        <div className={styles.exitConfirmOverlay}>
+          <div className={styles.exitConfirmDialog}>
+            <div className={styles.exitConfirmIcon}>&#x1f4dd;</div>
+            <h3 className={styles.exitConfirmTitle}>Save your reflection?</h3>
+            <p className={styles.exitConfirmMessage}>
+              You&apos;ve shared some great thoughts. Saving helps you track your growth over time.
+            </p>
+            <div className={styles.exitConfirmActions}>
+              <button
+                onClick={handleSaveAndClose}
+                className={styles.exitConfirmSave}
+                disabled={isSummarizing}
+              >
+                {isSummarizing ? 'Saving...' : 'Save & close'}
+              </button>
+              <button
+                onClick={handleDiscardAndClose}
+                className={styles.exitConfirmDiscard}
+                disabled={isSummarizing}
+              >
+                Close without saving
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <Toast
