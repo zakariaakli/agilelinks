@@ -575,16 +575,7 @@ export default function AboutPage() {
               long-term growth:
             </p>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(4, 1fr)",
-                gap: "32px",
-                maxWidth: "1400px",
-                margin: "0 auto",
-                position: "relative",
-              }}
-            >
+            <div className={styles.stepsGrid}>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -893,21 +884,135 @@ export default function AboutPage() {
               </motion.div>
             </div>
 
-            <style jsx>{`
-              @media (max-width: 1024px) {
-                div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
-                  grid-template-columns: repeat(2, 1fr) !important;
-                  gap: 24px !important;
-                }
-              }
-              @media (max-width: 640px) {
-                div[style*="gridTemplateColumns: repeat(4, 1fr)"] {
-                  grid-template-columns: 1fr !important;
-                  gap: 20px !important;
-                }
-              }
-            `}</style>
           </motion.div>
+        </div>
+      </section>
+
+      {/* Who it's for */}
+      <section className={styles.scene} style={{ background: "rgba(156, 75, 32, 0.03)" }}>
+        <div className={styles.sceneContent} style={{ maxWidth: "1100px" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+            style={{ textAlign: "center", marginBottom: "56px" }}
+          >
+            <h2 style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 800, marginBottom: "16px" }}>
+              Built for every <span className={styles.gradientText}>growth journey</span>
+            </h2>
+            <p style={{ fontSize: "clamp(17px, 2.2vw, 21px)", color: "rgba(255,255,255,0.7)", margin: 0 }}>
+              Whether you're growing yourself, guiding others, or shaping the next generation.
+            </p>
+          </motion.div>
+
+          <div className={styles.audienceGrid}>
+            {/* For Individuals */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.8 }}
+              style={{
+                padding: "36px 28px",
+                background: "rgba(156, 75, 32, 0.1)",
+                border: "1px solid rgba(156, 75, 32, 0.3)",
+                borderRadius: "24px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "52px", height: "52px", minWidth: "52px", borderRadius: "14px", background: "#9C4B20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", boxShadow: "0 4px 16px rgba(156,75,32,0.4)" }}>
+                  🌱
+                </div>
+                <h3 style={{ fontSize: "clamp(20px, 2.4vw, 24px)", fontWeight: 700, color: "#ffffff", margin: 0 }}>For Individuals</h3>
+              </div>
+              <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, margin: 0 }}>
+                Take ownership of your growth with an AI companion that knows your personality and keeps you on track between coaching sessions.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                {["Personality-grounded goal setting", "Daily nudges tied to your milestones", "Reflection coach always available", "Progress that actually compounds"].map((item) => (
+                  <li key={item} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "clamp(14px, 1.7vw, 16px)", color: "rgba(255,255,255,0.85)" }}>
+                    <span style={{ color: "#C68B2C", fontWeight: 700, fontSize: "18px", lineHeight: 1 }}>✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* For Coaches */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.25, duration: 0.8 }}
+              style={{
+                padding: "36px 28px",
+                background: "rgba(198, 139, 44, 0.1)",
+                border: "1px solid rgba(198, 139, 44, 0.3)",
+                borderRadius: "24px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "52px", height: "52px", minWidth: "52px", borderRadius: "14px", background: "#C68B2C", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", boxShadow: "0 4px 16px rgba(198,139,44,0.4)" }}>
+                  🎓
+                </div>
+                <h3 style={{ fontSize: "clamp(20px, 2.4vw, 24px)", fontWeight: 700, color: "#ffffff", margin: 0 }}>For Coaches</h3>
+              </div>
+              <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, margin: 0 }}>
+                Extend your impact beyond sessions. Stepiva keeps your clients accountable, motivated, and progressing — so you walk into every session informed.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                {["Client continuity between sessions", "AI aligned with your methodology", "Engagement data at a glance", "Scale your impact without burnout"].map((item) => (
+                  <li key={item} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "clamp(14px, 1.7vw, 16px)", color: "rgba(255,255,255,0.85)" }}>
+                    <span style={{ color: "#C68B2C", fontWeight: 700, fontSize: "18px", lineHeight: 1 }}>✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* For Schools */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              style={{
+                padding: "36px 28px",
+                background: "rgba(61, 122, 74, 0.1)",
+                border: "1px solid rgba(61, 122, 74, 0.3)",
+                borderRadius: "24px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "20px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "52px", height: "52px", minWidth: "52px", borderRadius: "14px", background: "#3D7A4A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", boxShadow: "0 4px 16px rgba(61,122,74,0.4)" }}>
+                  🏫
+                </div>
+                <h3 style={{ fontSize: "clamp(20px, 2.4vw, 24px)", fontWeight: 700, color: "#ffffff", margin: 0 }}>For Schools</h3>
+              </div>
+              <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, margin: 0 }}>
+                Build a culture of self-awareness and soft-skill development. Give students and staff the tools to grow intentionally — with measurable outcomes.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                {["Soft-skills development at scale", "Personality-aware student coaching", "Track institutional growth outcomes", "Prepare students for real-world challenges"].map((item) => (
+                  <li key={item} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "clamp(14px, 1.7vw, 16px)", color: "rgba(255,255,255,0.85)" }}>
+                    <span style={{ color: "#6BA375", fontWeight: 700, fontSize: "18px", lineHeight: 1 }}>✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+
         </div>
       </section>
 
@@ -935,14 +1040,21 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.5, duration: 1 }}
-            style={{ display: "flex", justifyContent: "center" }}
+            style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}
           >
-            <a
-              href="/signup"
-              className={`${styles.ctaCard} ${styles.ctaCardPrimary}`}
-            >
+            <a href="/signup" className={`${styles.ctaCard} ${styles.ctaCardPrimary}`}>
               <div className={styles.ctaLabel}>For Individuals</div>
               <div className={styles.ctaTitle}>Start Your Journey</div>
+              <div className={styles.ctaArrow}>→</div>
+            </a>
+            <a href="/signup" className={`${styles.ctaCard} ${styles.ctaCardPrimary}`} style={{ borderColor: "rgba(198,139,44,0.5)", background: "rgba(198,139,44,0.08)" }}>
+              <div className={styles.ctaLabel}>For Coaches</div>
+              <div className={styles.ctaTitle}>Extend Your Impact</div>
+              <div className={styles.ctaArrow}>→</div>
+            </a>
+            <a href="/signup" className={`${styles.ctaCard} ${styles.ctaCardPrimary}`} style={{ borderColor: "rgba(61,122,74,0.5)", background: "rgba(61,122,74,0.08)" }}>
+              <div className={styles.ctaLabel}>For Schools</div>
+              <div className={styles.ctaTitle}>Transform Your Campus</div>
               <div className={styles.ctaArrow}>→</div>
             </a>
           </motion.div>

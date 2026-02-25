@@ -564,3 +564,42 @@
     font-size: 9px;
   }
 }
+
+
+/* Who it's for - 3 column audience grid */
+.audienceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+@media (max-width: 900px) {
+  .audienceGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* How it works - 4 column steps grid */
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+
+@media (max-width: 1024px) {
+  .stepsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .stepsGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}

@@ -51,12 +51,12 @@
 }
 
 .stepActive .stepNumber {
-  background-color: #6366f1;
+  background-color: #9C4B20;
   color: white;
 }
 
 .stepCompleted .stepNumber {
-  background-color: #10b981;
+  background-color: #3D7A4A;
   color: white;
 }
 
@@ -68,12 +68,12 @@
 }
 
 .stepActive .stepLabel {
-  color: #6366f1;
+  color: #9C4B20;
   font-weight: 600;
 }
 
 .stepCompleted .stepLabel {
-  color: #10b981;
+  color: #3D7A4A;
   font-weight: 600;
 }
 
@@ -122,7 +122,7 @@
 
 .goalTypeDropdown:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -151,7 +151,7 @@
 
 .goalTextarea:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -207,7 +207,7 @@
 
 .datePicker:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -216,7 +216,7 @@
   background-color: #f9fafb;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  border-left: 4px solid #6366f1;
+  border-left: 4px solid #9C4B20;
 }
 
 .goalSummary h3 {
@@ -256,7 +256,7 @@
 .loadingStep {
   font-size: 1rem;
   margin: 1rem 0 !important;
-  color: #6366f1 !important;
+  color: #9C4B20 !important;
   font-weight: 600 !important;
   animation: none !important;
 }
@@ -273,8 +273,8 @@
 
 /* PERSONALIZATION INDICATOR */
 .personalizationBadge {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  border: 2px solid #a78bfa;
+  background: #9C4B20;
+  border: 2px solid #9C4B20;
   border-radius: 0.75rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -354,7 +354,7 @@
 
 .questionAnswer:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -410,7 +410,7 @@
 
 .milestoneTitle:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
 }
 
@@ -452,7 +452,7 @@
 
 .milestoneDescription:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
 }
 
@@ -490,12 +490,12 @@
 .milestoneStartDate:focus,
 .milestoneDueDate:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
 }
 
 .addMilestoneButton {
-  background-color: #10b981;
+  background-color: #3D7A4A;
   color: white;
   border: none;
   padding: 0.875rem 1.5rem;
@@ -553,7 +553,7 @@
 
 .timelineProgress {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  background: #9C4B20;
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -570,7 +570,7 @@
   background-color: #f9fafb;
   padding: 2rem;
   border-radius: 0.75rem;
-  border-left: 4px solid #10b981;
+  border-left: 4px solid #3D7A4A;
 }
 
 .summarySection {
@@ -615,7 +615,7 @@
 }
 
 .createPlanButton {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #3D7A4A;
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -672,14 +672,14 @@
 }
 
 .navButtonPrimary {
-  background-color: #6366f1;
-  border-color: #6366f1;
+  background-color: #9C4B20;
+  border-color: #9C4B20;
   color: white;
 }
 
 .navButtonPrimary:hover:not(:disabled) {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
+  background-color: #7D3C19;
+  border-color: #7D3C19;
 }
 
 /* RESPONSIVE DESIGN */
@@ -942,18 +942,18 @@
 }
 
 .paceOption:hover {
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
 }
 
 .paceOption input[type="radio"] {
   width: 18px;
   height: 18px;
-  accent-color: #6366f1;
+  accent-color: #9C4B20;
 }
 
 .paceOption:has(input[type="radio"]:checked) {
-  border-color: #6366f1;
+  border-color: #9C4B20;
   background-color: #f0f9ff;
 }
 
@@ -964,7 +964,7 @@
 }
 
 .paceOption:has(input[type="radio"]:checked) span {
-  color: #6366f1;
+  color: #9C4B20;
 }
 
 /* NUDGE FREQUENCY SELECTION */
@@ -987,7 +987,7 @@
 }
 
 .nudgeOption:hover {
-  border-color: #6366f1;
+  border-color: #9C4B20;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
 }
 
@@ -995,15 +995,15 @@
   margin-top: 0.25rem;
   width: 18px;
   height: 18px;
-  accent-color: #6366f1;
+  accent-color: #9C4B20;
 }
 
 .nudgeOption input[type="radio"]:checked + .nudgeOptionContent {
-  color: #6366f1;
+  color: #9C4B20;
 }
 
 .nudgeOption:has(input[type="radio"]:checked) {
-  border-color: #6366f1;
+  border-color: #9C4B20;
   background-color: #f0f9ff;
 }
 
@@ -1026,7 +1026,7 @@
 }
 
 .nudgeOption:has(input[type="radio"]:checked) .nudgeOptionTitle {
-  color: #6366f1;
+  color: #9C4B20;
 }
 
 .nudgeOption:has(input[type="radio"]:checked) .nudgeOptionDescription {
@@ -1081,9 +1081,9 @@
 }
 
 .dayButton:hover {
-  border-color: #a78bfa;
+  border-color: #C68B2C;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 4px 8px rgba(156, 75, 32, 0.15);
 }
 
 .dayButton:active {
@@ -1091,16 +1091,16 @@
 }
 
 .dayButtonActive {
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
-  border-color: #8b5cf6;
+  background: #9C4B20;
+  border-color: #9C4B20;
   color: white;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(156, 75, 32, 0.3);
 }
 
 .dayButtonActive:hover {
-  background: linear-gradient(135deg, #7c3aed, #db2777);
-  border-color: #7c3aed;
-  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+  background: #7D3C19;
+  border-color: #7D3C19;
+  box-shadow: 0 6px 16px rgba(156, 75, 32, 0.4);
 }
 
 .dayButtonLabel {
@@ -1110,7 +1110,7 @@
 .daySelectionSummary {
   text-align: center;
   font-size: 0.875rem;
-  color: #6366f1;
+  color: #9C4B20;
   font-weight: 600;
   margin: 0;
   padding: 0.5rem;

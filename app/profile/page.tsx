@@ -19,7 +19,6 @@ import {
   TargetIcon,
 } from "../../Components/Icons";
 import SimplifiedEnneagramInput from "../../Components/SimplifiedEnneagramInput";
-import ChatbotEntry from "../../Components/ChatbotEntry";
 import ReflectiveChatbot, {
   ChatMessageData,
 } from "../../Components/ReflectiveChatbot";
@@ -105,6 +104,7 @@ function ProfileContent() {
     type: ToastType;
   } | null>(null);
   const [coachChatOpen, setCoachChatOpen] = useState(false);
+  const [difficultConvOpen, setDifficultConvOpen] = useState(false);
   const [firstNudgeStatus, setFirstNudgeStatus] = useState<
     "generating" | "ready" | "failed" | null
   >(null);
@@ -695,19 +695,50 @@ function ProfileContent() {
         </div>
       )}
 
-      {/* Coaching Chatbot Entry */}
-      <div style={{ marginBottom: "1.5rem" }}>
-        <ChatbotEntry
-          icon="🪞"
-          promptText="Reflect on your journey with your AI coach"
-          actionText="Start"
-          visible={!loading && !!user}
-          onExpand={() => setCoachChatOpen(true)}
-          variant="prominent"
-        />
+      {/* Coach Action Cards */}
+      <div className={styles.coachCardsGrid}>
+        {/* Reflect on your journey */}
+        <div className={`${styles.coachCard} ${styles.coachCardCopper}`}>
+          <div
+            className={`${styles.coachCardIconWrap} ${styles.coachCardIconCopper}`}
+          >
+            💡
+          </div>
+          <h3 className={styles.coachCardTitle}>Reflect on your journey</h3>
+          <p className={styles.coachCardDesc}>
+            Connect with your AI coach to review your progress and insights
+          </p>
+          <button
+            className={`${styles.coachCardBtn} ${styles.coachCardBtnCopper}`}
+            onClick={() => setCoachChatOpen(true)}
+          >
+            Start Reflection
+          </button>
+        </div>
+
+        {/* Difficult Conversation */}
+        <div className={`${styles.coachCard} ${styles.coachCardSage}`}>
+          <div
+            className={`${styles.coachCardIconWrap} ${styles.coachCardIconSage}`}
+          >
+            💬
+          </div>
+          <h3 className={styles.coachCardTitle}>
+            Prepare a Difficult Conversation
+          </h3>
+          <p className={styles.coachCardDesc}>
+            Practice and prepare for challenging conversations with confidence
+          </p>
+          <button
+            className={`${styles.coachCardBtn} ${styles.coachCardBtnSage}`}
+            onClick={() => setDifficultConvOpen(true)}
+          >
+            Start Practice
+          </button>
+        </div>
       </div>
 
-      {/* Coaching Chatbot Overlay */}
+      {/* Reflect chatbot overlay */}
       <ReflectiveChatbot
         isOpen={coachChatOpen}
         onClose={() => setCoachChatOpen(false)}
@@ -715,11 +746,26 @@ function ProfileContent() {
         contextTitle="Reflect with your Coach"
         contextSubtitle="A space to think about your goals, habits, and growth"
         assistantName="AI Coach"
-        assistantIcon="🪞"
+        assistantIcon="💡"
         apiEndpoint="/api/chatbot/coach-reflect"
         contextData={getCoachContextData()}
         initialGreeting={`Hey${user?.displayName ? ` ${user.displayName.split(" ")[0]}` : ""}! What's on your mind today? You can reflect on anything — your goals, a challenge you're facing, or just how you're feeling about your progress.`}
         placeholder="What's on your mind..."
+      />
+
+      {/* Difficult Conversation chatbot overlay */}
+      <ReflectiveChatbot
+        isOpen={difficultConvOpen}
+        onClose={() => setDifficultConvOpen(false)}
+        onFinish={() => setDifficultConvOpen(false)}
+        contextTitle="Difficult Conversation Practice"
+        contextSubtitle="Practice and prepare for challenging conversations"
+        assistantName="AI Coach"
+        assistantIcon="💬"
+        apiEndpoint="/api/chatbot/difficult-conv-reflect"
+        contextData={getCoachContextData()}
+        initialGreeting={`Hey${user?.displayName ? ` ${user.displayName.split(" ")[0]}` : ""}! Let's prepare for a difficult conversation. Describe the situation — who's involved, what it's about, and what outcome you're hoping for.`}
+        placeholder="Describe the conversation you need to prepare for..."
       />
 
       {/* First Nudge Banner */}
@@ -741,7 +787,10 @@ function ProfileContent() {
           <span className={styles.firstNudgeBannerText}>
             Your first nudge is ready!
           </span>
-          <Link href={`/nudge/${firstNudgeId}`} className={styles.firstNudgeBannerLink}>
+          <Link
+            href={`/nudge/${firstNudgeId}`}
+            className={styles.firstNudgeBannerLink}
+          >
             View it →
           </Link>
         </div>

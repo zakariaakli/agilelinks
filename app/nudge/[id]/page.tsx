@@ -1,5 +1,4 @@
 import React from "react";
-import { db } from "../../../firebase";
 import { Timestamp } from "firebase/firestore";
 import { TrackedFirestoreClient } from "../../../lib/trackedFirestoreClient";
 import Script from "next/script";
@@ -7,6 +6,7 @@ import styles from "../../../Styles/nudge.module.css";
 import FeedbackForm from "../../../Components/FeedbackForm";
 import NudgeFormatter from "../../../Components/NudgeFormatter";
 import NudgeContentWithSteps from "../../../Components/NudgeContentWithSteps";
+import NudgeReadTracker from "../../../Components/NudgeReadTracker";
 import { EnhancedNotification } from "../../../lib/notificationTracking";
 import { Step } from "../../../Models/Step";
 
@@ -149,15 +149,6 @@ const fetchNudge = async (id: string): Promise<NotificationData | null> => {
         },
       }),
     };
-
-    // Mark notification as read
-    await TrackedFirestoreClient.doc(`notifications/${id}`).update(
-      { read: true },
-      {
-        source: "nudge_page",
-        functionName: "mark_notification_as_read",
-      }
-    );
 
     return notificationData;
   } catch (error) {
@@ -367,6 +358,7 @@ const NudgePage = async ({ params }: { params: Promise<{ id: string }> }) => {
       </Script>
 
       <div className={styles.container}>
+        <NudgeReadTracker notificationId={id} />
         {/* Notification metadata */}
         <div className={styles.metadata}>
           <span className={styles.timeAgo}>{getTimeAgo(nudge.createdAt)}</span>

@@ -719,13 +719,13 @@
 }
 
 .firstNudgeBannerGenerating {
-  background: #FDF6E7;
-  border: 1px solid #D9A84E;
+  background: #FDF0E7;
+  border: 1px solid #C27A3E;
 }
 
 .firstNudgeBannerReady {
   background: #EEF5EF;
-  border: 1px solid #6BA375;
+  border: 1px solid #3D7A4A;
 }
 
 .firstNudgeBannerIcon {
@@ -745,7 +745,7 @@
 }
 
 .firstNudgeBannerGenerating .firstNudgeBannerText {
-  color: #7A561B;
+  color: #7D3C19;
 }
 
 .firstNudgeBannerReady .firstNudgeBannerText {
@@ -756,20 +756,20 @@
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  color: #3D7A4A;
+  color: white;
   font-weight: 600;
   font-size: 0.875rem;
   text-decoration: none;
   padding: 0.375rem 0.75rem;
   border-radius: 0.5rem;
-  background: rgba(61, 122, 74, 0.1);
+  background: #3D7A4A;
   transition: all 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .firstNudgeBannerLink:hover {
-  background: rgba(61, 122, 74, 0.2);
+  background: #2D5E38;
 }
 
 @keyframes fadeOut {
@@ -1016,5 +1016,101 @@
 
   .onboardingSubtitle {
     font-size: 0.9rem;
+  }
+}
+
+/* ── Coach action cards (Reflect + Difficult Conversation) ────────────────── */
+
+.coachCardsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.coachCard {
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.coachCardCopper {
+  background: #FDF0E7;
+}
+
+.coachCardSage {
+  background: #EEF5EF;
+}
+
+.coachCardIconWrap {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.coachCardIconCopper {
+  background: #9C4B20;
+}
+
+.coachCardIconSage {
+  background: #3D7A4A;
+}
+
+.coachCardTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1A1714;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.coachCardDesc {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.55;
+  flex: 1;
+  margin: 0;
+}
+
+.coachCardBtn {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.625rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  margin-top: auto;
+}
+
+.coachCardBtn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.coachCardBtn:active {
+  transform: translateY(0);
+}
+
+.coachCardBtnCopper {
+  background: #9C4B20;
+}
+
+.coachCardBtnSage {
+  background: #3D7A4A;
+}
+
+@media (max-width: 640px) {
+  .coachCardsGrid {
+    grid-template-columns: 1fr;
   }
 }

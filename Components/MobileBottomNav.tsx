@@ -60,6 +60,7 @@ const MobileBottomNav = () => {
       const plansQuery = query(
         collection(db, "plans"),
         where("userId", "==", userId),
+        where("status", "==", "active"),
         orderBy("createdAt", "desc"),
         limit(10)
       );

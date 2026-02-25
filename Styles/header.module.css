@@ -78,7 +78,6 @@
   color: var(--text-primary);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
-  padding: var(--space-2) var(--space-3);
   border-radius: var(--border-radius-md);
   transition: var(--transition-all);
   position: relative;
@@ -88,6 +87,7 @@
 .navList li a.active {
   color: #9c4b20;
   background-color: #fdf0e7;
+  padding: var(--space-1) var(--space-2);
 }
 
 .navList li a::after {

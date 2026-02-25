@@ -1,9 +1,11 @@
-'use client';
-import React, { useState, useEffect } from 'react';
-import { auth, db } from '../../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, orderBy, getDocs, where, Timestamp } from 'firebase/firestore';
-import styles from '../../Styles/admin.module.css';
+"use client";
+import React, { useState, useEffect, useMemo } from "react";
+import { auth, db } from "../../firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
+import styles from "../../Styles/admin.module.css";
+
+// ─── Interfaces ───────────────────────────────────────────────────────────────
 
 interface TokenUsage {
   id: string;
@@ -15,8 +17,6 @@ interface TokenUsage {
   totalTokens: number;
   cost: number;
   timestamp: any;
-  requestData?: any;
-  responseData?: any;
 }
 
 interface UserStats {
@@ -31,18 +31,63 @@ interface FirebaseStats {
   totalReads: number;
   totalWrites: number;
   totalDeletes: number;
-  operationBreakdown: { [collection: string]: { reads: number; writes: number; deletes: number; cost: number } };
-  userBreakdown: { [userEmail: string]: { operations: number; cost: number } };
+  operationBreakdown: {
+    [collection: string]: {
+      reads: number;
+      writes: number;
+      deletes: number;
+      cost: number;
+    };
+  };
 }
 
+interface NotifSummary {
+  total: number;
+  withPrompt: number;
+  read: number;
+  feedbackGiven: number;
+  pushSubscribers: number;
+}
+
+interface UserNotifStats {
+  email: string;
+  userId: string;
+  received: number;
+  opened: number;
+  feedbackCount: number;
+  hasPush: boolean;
+  lastNudgeDate: string;
+}
+
+interface RecentNotif {
+  id: string;
+  userId: string;
+  userEmail: string;
+  milestoneTitle: string;
+  createdAt: any;
+  read: boolean;
+  feedback: string | null;
+  aiSummary: string | null;
+  type: string;
+}
+
+const ADMIN_EMAIL = "zakaria.akli.ensa@gmail.com";
+const NOTIF_PAGE_SIZE = 50;
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const AdminDashboard: React.FC = () => {
+  // Auth
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Dashboard tab
+  const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [tokenUsages, setTokenUsages] = useState<TokenUsage[]>([]);
   const [userStats, setUserStats] = useState<UserStats[]>([]);
-  const [selectedFunction, setSelectedFunction] = useState<string>('all');
-  const [dateRange, setDateRange] = useState<string>('7days');
+  const [selectedFunction, setSelectedFunction] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<string>("7days");
   const [totalCost, setTotalCost] = useState(0);
   const [totalTokens, setTotalTokens] = useState(0);
   const [firebaseStats, setFirebaseStats] = useState<FirebaseStats>({
@@ -51,24 +96,33 @@ const AdminDashboard: React.FC = () => {
     totalWrites: 0,
     totalDeletes: 0,
     operationBreakdown: {},
-    userBreakdown: {}
   });
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+
+  // API Testing tab
   const [apiResults, setApiResults] = useState<{ [key: string]: any }>({});
 
-  const ADMIN_EMAIL = 'zakaria.akli.ensa@gmail.com';
+  // Notifications tab — raw data
+  const [notifSummary, setNotifSummary] = useState<NotifSummary>({
+    total: 0,
+    withPrompt: 0,
+    read: 0,
+    feedbackGiven: 0,
+    pushSubscribers: 0,
+  });
+  const [userNotifStats, setUserNotifStats] = useState<UserNotifStats[]>([]);
+  const [allNotifs, setAllNotifs] = useState<RecentNotif[]>([]);
 
-  // OpenAI pricing (as of 2024 - update these as needed)
-  const PRICING = {
-    'gpt-4': {
-      prompt: 0.03 / 1000,    // $0.03 per 1K prompt tokens
-      completion: 0.06 / 1000  // $0.06 per 1K completion tokens
-    },
-    'gpt-3.5-turbo': {
-      prompt: 0.0015 / 1000,   // $0.0015 per 1K prompt tokens
-      completion: 0.002 / 1000  // $0.002 per 1K completion tokens
-    }
-  };
+  // Notifications tab — filters
+  const [notifFilterUser, setNotifFilterUser] = useState<string>("all");
+  const [notifFilterMilestone, setNotifFilterMilestone] =
+    useState<string>("all");
+  const [notifFilterRead, setNotifFilterRead] = useState<string>("all");
+  const [notifFilterFeedback, setNotifFilterFeedback] = useState<string>("all");
+  const [notifFilterDateFrom, setNotifFilterDateFrom] = useState<string>("");
+  const [notifFilterDateTo, setNotifFilterDateTo] = useState<string>("");
+  const [notifPage, setNotifPage] = useState(0);
+
+  // ─── Auth ──────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -81,7 +135,6 @@ const AdminDashboard: React.FC = () => {
       }
       setLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 
@@ -89,95 +142,56 @@ const AdminDashboard: React.FC = () => {
     if (isAdmin) {
       loadTokenUsageData();
       loadFirebaseUsageData();
+      loadNotificationData();
     }
-  }, [isAdmin, selectedFunction, dateRange]);
+  }, [isAdmin]);
+
+  // Re-query token usage when function filter changes
+  useEffect(() => {
+    if (isAdmin) loadTokenUsageData();
+  }, [selectedFunction, dateRange]);
+
+  // ─── Data loaders ──────────────────────────────────────────────────────────
 
   const loadTokenUsageData = async () => {
     try {
       setLoading(true);
-      console.log('📊 Loading token usage data...');
-      
-      // For now, let's load all data without date filtering since we're using string timestamps
-      let tokenQuery = query(
-        collection(db, 'tokenUsage'),
-        orderBy('timestamp', 'desc')
+      const tokenQuery =
+        selectedFunction !== "all"
+          ? query(
+              collection(db, "tokenUsage"),
+              where("functionName", "==", selectedFunction),
+              orderBy("timestamp", "desc"),
+            )
+          : query(collection(db, "tokenUsage"), orderBy("timestamp", "desc"));
+
+      const snapshot = await getDocs(tokenQuery);
+      const usages: TokenUsage[] = snapshot.docs.map(
+        (doc) => ({ id: doc.id, ...doc.data() }) as TokenUsage,
       );
 
-      if (selectedFunction !== 'all') {
-        tokenQuery = query(
-          collection(db, 'tokenUsage'),
-          where('functionName', '==', selectedFunction),
-          orderBy('timestamp', 'desc')
-        );
-      }
-
-      console.log('🔍 Executing Firestore query...');
-      const querySnapshot = await getDocs(tokenQuery);
-      const usages: TokenUsage[] = [];
-      
-      console.log('📄 Query returned', querySnapshot.size, 'documents');
-      
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        console.log('📝 Document data:', data);
-        
-        usages.push({
-          id: doc.id,
-          userId: data.userId || 'unknown',
-          userEmail: data.userEmail || 'unknown',
-          functionName: data.functionName || 'unknown',
-          promptTokens: data.promptTokens || 0,
-          completionTokens: data.completionTokens || 0,
-          totalTokens: data.totalTokens || 0,
-          cost: data.cost || 0,
-          timestamp: data.timestamp,
-          requestData: data.requestData,
-          responseData: data.responseData
-        } as TokenUsage);
-      });
-
       setTokenUsages(usages);
+      setTotalCost(usages.reduce((s, u) => s + (u.cost || 0), 0));
+      setTotalTokens(usages.reduce((s, u) => s + u.totalTokens, 0));
 
-      // Calculate totals
-      const totalCostCalc = usages.reduce((sum, usage) => sum + (usage.cost || 0), 0);
-      const totalTokensCalc = usages.reduce((sum, usage) => sum + usage.totalTokens, 0);
-      
-      setTotalCost(totalCostCalc);
-      setTotalTokens(totalTokensCalc);
-
-      // Calculate user statistics
-      const userStatsMap = new Map<string, UserStats>();
-      
-      usages.forEach(usage => {
-        const email = usage.userEmail;
-        if (!userStatsMap.has(email)) {
-          userStatsMap.set(email, {
-            email,
-            totalCost: 0,
-            totalTokens: 0,
-            requestCount: 0
-          });
-        }
-        
-        const stats = userStatsMap.get(email)!;
-        stats.totalCost += usage.cost || 0;
-        stats.totalTokens += usage.totalTokens;
-        stats.requestCount += 1;
+      const statsMap = new Map<string, UserStats>();
+      usages.forEach((u) => {
+        const s = statsMap.get(u.userEmail) || {
+          email: u.userEmail,
+          totalCost: 0,
+          totalTokens: 0,
+          requestCount: 0,
+        };
+        s.totalCost += u.cost || 0;
+        s.totalTokens += u.totalTokens;
+        s.requestCount++;
+        statsMap.set(u.userEmail, s);
       });
-
-      const userStatsArray = Array.from(userStatsMap.values())
-        .sort((a, b) => b.totalCost - a.totalCost);
-      
-      setUserStats(userStatsArray);
-
-      console.log('✅ Successfully loaded', usages.length, 'token usage records');
-      console.log('💰 Total cost:', totalCostCalc);
-      console.log('🎯 Total tokens:', totalTokensCalc);
-
-    } catch (error) {
-      console.error('❌ Error loading token usage data:', error);
-      
-      // Set empty data on error so we can see the UI
+      setUserStats(
+        Array.from(statsMap.values()).sort((a, b) => b.totalCost - a.totalCost),
+      );
+    } catch (err) {
+      console.error("❌ Error loading token usage:", err);
       setTokenUsages([]);
       setUserStats([]);
       setTotalCost(0);
@@ -189,192 +203,382 @@ const AdminDashboard: React.FC = () => {
 
   const loadFirebaseUsageData = async () => {
     try {
-      console.log('🔥 Loading Firebase usage data...');
-      
-      // Query firebaseUsage collection
-      const firebaseQuery = query(
-        collection(db, 'firebaseUsage'),
-        orderBy('timestamp', 'desc')
+      const snapshot = await getDocs(
+        query(collection(db, "firebaseUsage"), orderBy("timestamp", "desc")),
       );
+      let totalCost = 0,
+        totalReads = 0,
+        totalWrites = 0,
+        totalDeletes = 0;
+      const operationBreakdown: FirebaseStats["operationBreakdown"] = {};
 
-      const querySnapshot = await getDocs(firebaseQuery);
-      console.log('📄 Firebase usage query returned', querySnapshot.size, 'documents');
-      
-      let totalCost = 0;
-      let totalReads = 0;
-      let totalWrites = 0;
-      let totalDeletes = 0;
-      const operationBreakdown: { [collection: string]: { reads: number; writes: number; deletes: number; cost: number } } = {};
-      const userBreakdown: { [userEmail: string]: { operations: number; cost: number } } = {};
-      
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        
-        totalCost += data.cost || 0;
-        
-        // Count operations
-        switch (data.operation) {
-          case 'read':
-            totalReads += data.documentCount || 0;
-            break;
-          case 'write':
-            totalWrites += data.documentCount || 0;
-            break;
-          case 'delete':
-            totalDeletes += data.documentCount || 0;
-            break;
-        }
-        
-        // Collection breakdown
-        const collectionName = data.collection;
-        if (!operationBreakdown[collectionName]) {
-          operationBreakdown[collectionName] = { reads: 0, writes: 0, deletes: 0, cost: 0 };
-        }
-        if (data.operation === 'reads') {
-          operationBreakdown[collectionName].reads += data.documentCount || 0;
-        } else if (data.operation === 'writes') {
-          operationBreakdown[collectionName].writes += data.documentCount || 0;
-        } else if (data.operation === 'deletes') {
-          operationBreakdown[collectionName].deletes += data.documentCount || 0;
-        }
-        operationBreakdown[collectionName].cost += data.cost || 0;
-        
-        // User breakdown
-        const userEmail = data.userEmail;
-        if (!userBreakdown[userEmail]) {
-          userBreakdown[userEmail] = { operations: 0, cost: 0 };
-        }
-        userBreakdown[userEmail].operations += data.documentCount || 0;
-        userBreakdown[userEmail].cost += data.cost || 0;
+      snapshot.forEach((doc) => {
+        const d = doc.data();
+        totalCost += d.cost || 0;
+        if (d.operation === "read") totalReads += d.documentCount || 0;
+        if (d.operation === "write") totalWrites += d.documentCount || 0;
+        if (d.operation === "delete") totalDeletes += d.documentCount || 0;
+
+        const col = d.collection || "unknown";
+        if (!operationBreakdown[col])
+          operationBreakdown[col] = {
+            reads: 0,
+            writes: 0,
+            deletes: 0,
+            cost: 0,
+          };
+        if (d.operation === "read")
+          operationBreakdown[col].reads += d.documentCount || 0;
+        if (d.operation === "write")
+          operationBreakdown[col].writes += d.documentCount || 0;
+        if (d.operation === "delete")
+          operationBreakdown[col].deletes += d.documentCount || 0;
+        operationBreakdown[col].cost += d.cost || 0;
       });
-      
+
       setFirebaseStats({
         totalCost,
         totalReads,
         totalWrites,
         totalDeletes,
         operationBreakdown,
-        userBreakdown
       });
-
-      console.log('✅ Successfully loaded Firebase usage:', { totalCost, totalReads, totalWrites, totalDeletes });
-      
-    } catch (error) {
-      console.error('❌ Error loading Firebase usage data:', error);
+    } catch (err) {
+      console.error("❌ Error loading Firebase usage:", err);
     }
   };
 
-  const formatCost = (cost: number) => {
-    return `$${cost.toFixed(4)}`;
+  const loadNotificationData = async () => {
+    try {
+      // Load all notifications (admin-only, ~500-1000 docs — client-side is fine)
+      const notifsSnap = await getDocs(
+        query(collection(db, "notifications"), orderBy("createdAt", "desc")),
+      );
+
+      // Load push subscriptions
+      const pushSnap = await getDocs(collection(db, "pushSubscriptions"));
+      const activePushUserIds = new Set<string>();
+      pushSnap.forEach((doc) => {
+        if (doc.data().active) activePushUserIds.add(doc.id);
+      });
+
+      // Load users for email mapping
+      const usersSnap = await getDocs(collection(db, "users"));
+      const userEmailMap = new Map<string, string>();
+      usersSnap.forEach((doc) => {
+        const d = doc.data();
+        userEmailMap.set(doc.id, d.email || d.userEmail || doc.id);
+      });
+
+      // Aggregate
+      let total = 0,
+        withPrompt = 0,
+        read = 0,
+        feedbackGiven = 0;
+      const perUser = new Map<
+        string,
+        {
+          received: number;
+          opened: number;
+          feedbackCount: number;
+          lastNudgeDate: any;
+        }
+      >();
+      const notifs: RecentNotif[] = [];
+
+      notifsSnap.forEach((doc) => {
+        const d = doc.data();
+        const userId = d.userId;
+        total++;
+        if (d.prompt) withPrompt++;
+        if (d.read) read++;
+        if (d.feedbackDetails?.aiSummary) feedbackGiven++;
+
+        const u = perUser.get(userId) || {
+          received: 0,
+          opened: 0,
+          feedbackCount: 0,
+          lastNudgeDate: null,
+        };
+        u.received++;
+        if (d.read) u.opened++;
+        if (d.feedback) u.feedbackCount++;
+        if (!u.lastNudgeDate) u.lastNudgeDate = d.createdAt;
+        perUser.set(userId, u);
+
+        notifs.push({
+          id: doc.id,
+          userId,
+          userEmail: userEmailMap.get(userId) || userId,
+          milestoneTitle: d.milestoneTitle || d.type || "—",
+          createdAt: d.createdAt,
+          read: !!d.read,
+          feedback: d.feedback || null,
+          aiSummary: d.feedbackDetails?.aiSummary || null,
+          type: d.type || "",
+        });
+      });
+
+      setNotifSummary({
+        total,
+        withPrompt,
+        read,
+        feedbackGiven,
+        pushSubscribers: activePushUserIds.size,
+      });
+      setAllNotifs(notifs);
+
+      const userNotifs: UserNotifStats[] = [];
+      perUser.forEach((stats, userId) => {
+        userNotifs.push({
+          email: userEmailMap.get(userId) || userId,
+          userId,
+          received: stats.received,
+          opened: stats.opened,
+          feedbackCount: stats.feedbackCount,
+          hasPush: activePushUserIds.has(userId),
+          lastNudgeDate: formatDate(stats.lastNudgeDate),
+        });
+      });
+      setUserNotifStats(userNotifs.sort((a, b) => b.received - a.received));
+    } catch (err) {
+      console.error("❌ Error loading notification data:", err);
+    }
   };
 
-  const formatTokens = (tokens: number) => {
-    return tokens.toLocaleString();
-  };
+  // ─── Derived: filter options (built from full dataset, not current page) ───
+
+  const allUsers = useMemo(
+    () => Array.from(new Set(allNotifs.map((n) => n.userEmail))).sort(),
+    [allNotifs],
+  );
+
+  const allMilestones = useMemo(
+    () =>
+      Array.from(new Set(allNotifs.map((n) => n.milestoneTitle)))
+        .filter((t) => t !== "—")
+        .sort(),
+    [allNotifs],
+  );
+
+  // ─── Derived: filtered + paginated notifications ───────────────────────────
+
+  const filteredNotifs = useMemo(() => {
+    return allNotifs.filter((n) => {
+      if (notifFilterUser !== "all" && n.userEmail !== notifFilterUser)
+        return false;
+      if (
+        notifFilterMilestone !== "all" &&
+        n.milestoneTitle !== notifFilterMilestone
+      )
+        return false;
+      if (notifFilterRead === "read" && !n.read) return false;
+      if (notifFilterRead === "unread" && n.read) return false;
+      if (notifFilterFeedback === "with" && !n.aiSummary) return false;
+      if (notifFilterFeedback === "without" && n.aiSummary) return false;
+      if (notifFilterDateFrom || notifFilterDateTo) {
+        let date: Date;
+        try {
+          date = n.createdAt?.toDate?.() || new Date(n.createdAt);
+        } catch {
+          return true;
+        }
+        if (notifFilterDateFrom && date < new Date(notifFilterDateFrom))
+          return false;
+        if (notifFilterDateTo) {
+          const to = new Date(notifFilterDateTo);
+          to.setHours(23, 59, 59, 999);
+          if (date > to) return false;
+        }
+      }
+      return true;
+    });
+  }, [
+    allNotifs,
+    notifFilterUser,
+    notifFilterMilestone,
+    notifFilterRead,
+    notifFilterFeedback,
+    notifFilterDateFrom,
+    notifFilterDateTo,
+  ]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setNotifPage(0);
+  }, [
+    notifFilterUser,
+    notifFilterMilestone,
+    notifFilterRead,
+    notifFilterFeedback,
+    notifFilterDateFrom,
+    notifFilterDateTo,
+  ]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredNotifs.length / NOTIF_PAGE_SIZE),
+  );
+  const safePage = Math.min(notifPage, totalPages - 1);
+  const pageNotifs = filteredNotifs.slice(
+    safePage * NOTIF_PAGE_SIZE,
+    (safePage + 1) * NOTIF_PAGE_SIZE,
+  );
+
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  const formatCost = (cost: number) => `$${cost.toFixed(4)}`;
+  const formatTokens = (tokens: number) => tokens.toLocaleString();
 
   const formatDate = (timestamp: any) => {
     try {
-      // Handle both Firestore Timestamp and string timestamps
-      if (timestamp?.toDate) {
-        return timestamp.toDate().toLocaleString();
-      } else if (typeof timestamp === 'string') {
-        return new Date(timestamp).toLocaleString();
-      } else {
-        return new Date(timestamp).toLocaleString();
-      }
+      const date = timestamp?.toDate?.() ?? new Date(timestamp);
+      return date.toLocaleString();
     } catch {
-      return 'Invalid Date';
+      return "Invalid Date";
     }
   };
 
-  const getFunctionDisplayName = (functionName: string) => {
-    const displayNames: { [key: string]: string } = {
-      'openai_questions': 'Question Generation',
-      'openai_milestones': 'Milestone Generation',
-      'openai_nudges': 'Weekly Milestone Nudges',
-      'openai_daily_nudges': 'Daily Nudge Generation',
-      'openai_feedback': 'Feedback Processing',
-      'enneagram_chat_conversation': 'Enneagram Test Chat',
-      'enneagram_result_parsing': 'Enneagram Result Processing',
-      'test_function': 'Test Function'
-    };
-    return displayNames[functionName] || functionName;
-  };
+  const getFunctionDisplayName = (fn: string) =>
+    (
+      ({
+        openai_questions: "Question Generation",
+        openai_milestones: "Milestone Generation",
+        openai_nudges: "Weekly Milestone Nudges",
+        openai_daily_nudges: "Daily Nudge Generation",
+        openai_feedback: "Feedback Processing",
+        enneagram_chat_conversation: "Enneagram Test Chat",
+        enneagram_result_parsing: "Enneagram Result Processing",
+        test_function: "Test Function",
+      }) as Record<string, string>
+    )[fn] || fn;
+
+  // ─── API Testing ───────────────────────────────────────────────────────────
 
   const apiEndpoints = [
-    { name: 'Milestone Reminders (with Email)', endpoint: '/api/milestoneReminders', method: 'POST' },
-    { name: 'Track OpenAI Usage', endpoint: '/api/track-openai-usage', method: 'GET' }
+    {
+      name: "Milestone Reminders (with Email)",
+      endpoint: "/api/milestoneReminders",
+      method: "POST",
+    },
+    {
+      name: "Track OpenAI Usage",
+      endpoint: "/api/track-openai-usage",
+      method: "GET",
+    },
   ];
 
   const callApi = async (endpoint: string, method: string, name: string) => {
+    setApiResults((prev) => ({ ...prev, [name]: { loading: true } }));
     try {
-      setApiResults(prev => ({ ...prev, [name]: { loading: true } }));
-      
       const response = await fetch(endpoint, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        method,
+        headers: { "Content-Type": "application/json" },
       });
-      
       const data = await response.json();
-      
-      setApiResults(prev => ({
+      setApiResults((prev) => ({
         ...prev,
         [name]: {
           loading: false,
           success: response.ok,
           status: response.status,
-          data: data,
-          timestamp: new Date().toLocaleString()
-        }
+          data,
+          timestamp: new Date().toLocaleString(),
+        },
       }));
     } catch (error) {
-      setApiResults(prev => ({
+      setApiResults((prev) => ({
         ...prev,
         [name]: {
           loading: false,
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toLocaleString()
-        }
+          error: error instanceof Error ? error.message : "Unknown error",
+          timestamp: new Date().toLocaleString(),
+        },
       }));
     }
   };
 
-  if (loading) {
+  // ─── Guards ────────────────────────────────────────────────────────────────
+
+  if (loading)
     return (
       <div className={styles.container}>
         <div className={styles.loading}>Loading admin dashboard...</div>
       </div>
     );
-  }
-
-  if (!user) {
+  if (!user)
     return (
       <div className={styles.container}>
         <div className={styles.unauthorized}>
           <h1>Access Denied</h1>
-          <p>Please log in to access the admin dashboard.</p>
+          <p>Please log in.</p>
         </div>
       </div>
     );
-  }
-
-  if (!isAdmin) {
+  if (!isAdmin)
     return (
       <div className={styles.container}>
         <div className={styles.unauthorized}>
           <h1>Access Denied</h1>
-          <p>You do not have permission to access the admin dashboard.</p>
+          <p>You do not have permission.</p>
         </div>
       </div>
     );
-  }
 
   const uniqueFunctions = Array.from(
-    new Set(tokenUsages.map(usage => usage.functionName))
+    new Set(tokenUsages.map((u) => u.functionName)),
   );
+
+  // ─── Pagination controls (reusable inline) ─────────────────────────────────
+
+  const PaginationBar = () => (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        margin: "0.75rem 0",
+      }}
+    >
+      <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>
+        {filteredNotifs.length} results — page {safePage + 1} of {totalPages}
+      </span>
+      <div style={{ display: "flex", gap: "0.5rem" }}>
+        {[
+          {
+            label: "Previous",
+            disabled: safePage === 0,
+            onClick: () => setNotifPage((p) => Math.max(p - 1, 0)),
+          },
+          {
+            label: "Next",
+            disabled: safePage >= totalPages - 1,
+            onClick: () => setNotifPage((p) => Math.min(p + 1, totalPages - 1)),
+          },
+        ].map(({ label, disabled, onClick }) => (
+          <button
+            key={label}
+            onClick={onClick}
+            disabled={disabled}
+            style={{
+              padding: "0.375rem 0.75rem",
+              borderRadius: "0.375rem",
+              border: "1px solid #d1d5db",
+              background: disabled ? "#f3f4f6" : "white",
+              color: disabled ? "#9ca3af" : "#374151",
+              cursor: disabled ? "default" : "pointer",
+              fontSize: "0.8rem",
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className={styles.container}>
@@ -385,26 +589,239 @@ const AdminDashboard: React.FC = () => {
 
       {/* Tab Navigation */}
       <div className={styles.tabs}>
-        <button
-          className={`${styles.tab} ${activeTab === 'dashboard' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('dashboard')}
-        >
-          📊 Dashboard
-        </button>
-        <button
-          className={`${styles.tab} ${activeTab === 'api-testing' ? styles.tabActive : ''}`}
-          onClick={() => setActiveTab('api-testing')}
-        >
-          🚀 API Testing
-        </button>
+        {[
+          { id: "dashboard", label: "📊 Dashboard" },
+          { id: "notifications", label: "🔔 Notifications" },
+          { id: "api-testing", label: "🚀 API Testing" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            className={`${styles.tab} ${activeTab === tab.id ? styles.tabActive : ""}`}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {activeTab === 'api-testing' ? (
-        /* API Testing Tab */
+      {/* ── Notifications Tab ──────────────────────────────────────────────── */}
+      {activeTab === "notifications" && (
+        <>
+          {/* Summary cards */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>
+              Notification Delivery Overview
+            </h2>
+            <div className={styles.summaryCards}>
+              {[
+                {
+                  label: "Total Nudges",
+                  icon: "🔔",
+                  value: notifSummary.withPrompt,
+                  sub: `${notifSummary.total - notifSummary.withPrompt} pending`,
+                },
+                {
+                  label: "Open Rate",
+                  icon: "👁",
+                  sub: `${notifSummary.read} / ${notifSummary.withPrompt} opened`,
+                  value:
+                    notifSummary.withPrompt > 0
+                      ? `${Math.round((notifSummary.read / notifSummary.withPrompt) * 100)}%`
+                      : "—",
+                },
+                {
+                  label: "Push Subscribers",
+                  icon: "📱",
+                  value: notifSummary.pushSubscribers,
+                  sub: `${notifSummary.feedbackGiven} feedback given`,
+                },
+              ].map(({ label, icon, value, sub }) => (
+                <div key={label} className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <h3>{label}</h3>
+                    <span className={styles.icon}>{icon}</span>
+                  </div>
+                  <div className={styles.cardValue}>{value}</div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "#6b7280",
+                      marginTop: "0.25rem",
+                    }}
+                  >
+                    {sub}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Per-user engagement */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Per-User Engagement</h2>
+            <div className={styles.table}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Received</th>
+                    <th>Opened</th>
+                    <th>Open Rate</th>
+                    <th>Push</th>
+                    <th>Feedback</th>
+                    <th>Last Nudge</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userNotifStats.map((u) => (
+                    <tr key={u.userId}>
+                      <td>{u.email}</td>
+                      <td>{u.received}</td>
+                      <td>{u.opened}</td>
+                      <td>
+                        {u.received > 0
+                          ? `${Math.round((u.opened / u.received) * 100)}%`
+                          : "—"}
+                      </td>
+                      <td>{u.hasPush ? "✅" : "❌"}</td>
+                      <td>{u.feedbackCount}</td>
+                      <td>{u.lastNudgeDate}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Notifications log with filters */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Notifications Log</h2>
+
+            {/* Filters */}
+            <div className={styles.filters} style={{ flexWrap: "wrap" }}>
+              <div className={styles.filterGroup}>
+                <label>From</label>
+                <input
+                  type="date"
+                  className={styles.select}
+                  value={notifFilterDateFrom}
+                  onChange={(e) => setNotifFilterDateFrom(e.target.value)}
+                />
+              </div>
+              <div className={styles.filterGroup}>
+                <label>To</label>
+                <input
+                  type="date"
+                  className={styles.select}
+                  value={notifFilterDateTo}
+                  onChange={(e) => setNotifFilterDateTo(e.target.value)}
+                />
+              </div>
+              <div className={styles.filterGroup}>
+                <label>User</label>
+                <select
+                  className={styles.select}
+                  value={notifFilterUser}
+                  onChange={(e) => setNotifFilterUser(e.target.value)}
+                >
+                  <option value="all">All Users</option>
+                  {allUsers.map((email) => (
+                    <option key={email} value={email}>
+                      {email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.filterGroup}>
+                <label>Milestone</label>
+                <select
+                  className={styles.select}
+                  value={notifFilterMilestone}
+                  onChange={(e) => setNotifFilterMilestone(e.target.value)}
+                >
+                  <option value="all">All Milestones</option>
+                  {allMilestones.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.filterGroup}>
+                <label>Read</label>
+                <select
+                  className={styles.select}
+                  value={notifFilterRead}
+                  onChange={(e) => setNotifFilterRead(e.target.value)}
+                  style={{ minWidth: "120px" }}
+                >
+                  <option value="all">All</option>
+                  <option value="read">Read</option>
+                  <option value="unread">Unread</option>
+                </select>
+              </div>
+              <div className={styles.filterGroup}>
+                <label>Feedback</label>
+                <select
+                  className={styles.select}
+                  value={notifFilterFeedback}
+                  onChange={(e) => setNotifFilterFeedback(e.target.value)}
+                  style={{ minWidth: "140px" }}
+                >
+                  <option value="all">All</option>
+                  <option value="with">With Feedback</option>
+                  <option value="without">No Feedback</option>
+                </select>
+              </div>
+            </div>
+
+            <PaginationBar />
+
+            <div className={styles.table}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Milestone</th>
+                    <th>Read</th>
+                    <th>AI Reflection</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageNotifs.map((n) => (
+                    <tr key={n.id}>
+                      <td>{formatDate(n.createdAt)}</td>
+                      <td>{n.userEmail}</td>
+                      <td>{n.milestoneTitle}</td>
+                      <td>{n.read ? "✅" : "⬜"}</td>
+                      <td
+                        style={{
+                          maxWidth: "320px",
+                          fontSize: "0.8rem",
+                          color: n.aiSummary ? "#374151" : "#9ca3af",
+                        }}
+                      >
+                        {n.aiSummary || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <PaginationBar />
+          </div>
+        </>
+      )}
+
+      {/* ── API Testing Tab ────────────────────────────────────────────────── */}
+      {activeTab === "api-testing" && (
         <div className={styles.section}>
           <h2 className={styles.sectionTitle}>🚀 API Testing Panel</h2>
-          <p className={styles.subtitle}>Test all available API endpoints with one click</p>
-          
+          <p className={styles.subtitle}>
+            Test all available API endpoints with one click
+          </p>
           <div className={styles.apiGrid}>
             {apiEndpoints.map((api) => (
               <div key={api.name} className={styles.apiCard}>
@@ -419,23 +836,31 @@ const AdminDashboard: React.FC = () => {
                     onClick={() => callApi(api.endpoint, api.method, api.name)}
                     disabled={apiResults[api.name]?.loading}
                   >
-                    {apiResults[api.name]?.loading ? '⏳ Testing...' : '🚀 Test API'}
+                    {apiResults[api.name]?.loading
+                      ? "⏳ Testing..."
+                      : "🚀 Test API"}
                   </button>
-                  
                   {apiResults[api.name] && !apiResults[api.name].loading && (
-                    <div className={`${styles.apiResult} ${apiResults[api.name].success ? styles.success : styles.error}`}>
+                    <div
+                      className={`${styles.apiResult} ${apiResults[api.name].success ? styles.success : styles.error}`}
+                    >
                       <div className={styles.resultHeader}>
                         <span className={styles.status}>
-                          {apiResults[api.name].success ? '✅ Success' : '❌ Error'} 
-                          ({apiResults[api.name].status || 'N/A'})
+                          {apiResults[api.name].success
+                            ? "✅ Success"
+                            : "❌ Error"}{" "}
+                          ({apiResults[api.name].status || "N/A"})
                         </span>
-                        <span className={styles.timestamp}>{apiResults[api.name].timestamp}</span>
+                        <span className={styles.timestamp}>
+                          {apiResults[api.name].timestamp}
+                        </span>
                       </div>
                       <pre className={styles.resultData}>
                         {JSON.stringify(
-                          apiResults[api.name].data || apiResults[api.name].error, 
-                          null, 
-                          2
+                          apiResults[api.name].data ||
+                            apiResults[api.name].error,
+                          null,
+                          2,
                         )}
                       </pre>
                     </div>
@@ -445,258 +870,236 @@ const AdminDashboard: React.FC = () => {
             ))}
           </div>
         </div>
-      ) : (
-        /* Dashboard Tab */
+      )}
+
+      {/* ── Dashboard Tab ──────────────────────────────────────────────────── */}
+      {activeTab === "dashboard" && (
         <>
-          {/* Filters */}
           <div className={styles.filters}>
-        <div className={styles.filterGroup}>
-          <label htmlFor="function-select">Function:</label>
-          <select
-            id="function-select"
-            value={selectedFunction}
-            onChange={(e) => setSelectedFunction(e.target.value)}
-            className={styles.select}
-          >
-            <option value="all">All Functions</option>
-            {uniqueFunctions.map(func => (
-              <option key={func} value={func}>
-                {getFunctionDisplayName(func)}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div className={styles.filterGroup}>
+              <label htmlFor="function-select">Function:</label>
+              <select
+                id="function-select"
+                value={selectedFunction}
+                onChange={(e) => setSelectedFunction(e.target.value)}
+                className={styles.select}
+              >
+                <option value="all">All Functions</option>
+                {uniqueFunctions.map((fn) => (
+                  <option key={fn} value={fn}>
+                    {getFunctionDisplayName(fn)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.filterGroup}>
+              <label htmlFor="date-range">Date Range:</label>
+              <select
+                id="date-range"
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value)}
+                className={styles.select}
+              >
+                <option value="1day">Last 24 Hours</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="30days">Last 30 Days</option>
+                <option value="90days">Last 90 Days</option>
+              </select>
+            </div>
+          </div>
 
-        <div className={styles.filterGroup}>
-          <label htmlFor="date-range">Date Range:</label>
-          <select
-            id="date-range"
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className={styles.select}
-          >
-            <option value="1day">Last 24 Hours</option>
-            <option value="7days">Last 7 Days</option>
-            <option value="30days">Last 30 Days</option>
-            <option value="90days">Last 90 Days</option>
-          </select>
-        </div>
-      </div>
+          {/* OpenAI Summary */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>OpenAI Usage Summary</h2>
+            <div className={styles.summaryCards}>
+              {[
+                {
+                  label: "OpenAI Cost",
+                  icon: "🤖",
+                  value: formatCost(totalCost),
+                },
+                {
+                  label: "Total Tokens",
+                  icon: "🎯",
+                  value: formatTokens(totalTokens),
+                },
+                { label: "API Calls", icon: "📊", value: tokenUsages.length },
+                { label: "Active Users", icon: "👥", value: userStats.length },
+              ].map(({ label, icon, value }) => (
+                <div key={label} className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <h3>{label}</h3>
+                    <span className={styles.icon}>{icon}</span>
+                  </div>
+                  <div className={styles.cardValue}>{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {/* Debug Info */}
-      <div className={styles.section}>
-        <details>
-          <summary style={{ cursor: 'pointer', fontWeight: 'bold', marginBottom: '1rem' }}>
-            🔍 Debug Information
-          </summary>
-          <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '0.5rem', fontFamily: 'monospace', fontSize: '0.875rem' }}>
-            <p><strong>User:</strong> {user?.email}</p>
-            <p><strong>Is Admin:</strong> {isAdmin ? 'Yes' : 'No'}</p>
-            <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</p>
-            <p><strong>Token Usages Count:</strong> {tokenUsages.length}</p>
-            <p><strong>User Stats Count:</strong> {userStats.length}</p>
-            <p><strong>Selected Function:</strong> {selectedFunction}</p>
-            <p><strong>Date Range:</strong> {dateRange}</p>
-            <p><strong>Total Cost:</strong> {totalCost}</p>
-            <p><strong>Total Tokens:</strong> {totalTokens}</p>
-            {tokenUsages.length > 0 && (
-              <div>
-                <p><strong>Sample Record:</strong></p>
-                <pre style={{ background: '#ffffff', padding: '0.5rem', borderRadius: '0.25rem', overflow: 'auto' }}>
-                  {JSON.stringify(tokenUsages[0], null, 2)}
-                </pre>
+          {/* Firebase Summary */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Firebase Usage Summary</h2>
+            <div className={styles.summaryCards}>
+              {[
+                {
+                  label: "Firebase Cost",
+                  icon: "🔥",
+                  value: formatCost(firebaseStats.totalCost),
+                },
+                {
+                  label: "Reads",
+                  icon: "👀",
+                  value: firebaseStats.totalReads.toLocaleString(),
+                },
+                {
+                  label: "Writes",
+                  icon: "✍️",
+                  value: firebaseStats.totalWrites.toLocaleString(),
+                },
+                {
+                  label: "Deletes",
+                  icon: "🗑️",
+                  value: firebaseStats.totalDeletes.toLocaleString(),
+                },
+              ].map(({ label, icon, value }) => (
+                <div key={label} className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <h3>{label}</h3>
+                    <span className={styles.icon}>{icon}</span>
+                  </div>
+                  <div className={styles.cardValue}>{value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Combined cost */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Total Infrastructure Cost</h2>
+            <div className={styles.summaryCards}>
+              <div
+                className={styles.card}
+                style={{ background: "#1A1714", color: "white" }}
+              >
+                <div className={styles.cardHeader}>
+                  <h3>Combined Total</h3>
+                  <span className={styles.icon}>💎</span>
+                </div>
+                <div className={styles.cardValue}>
+                  {formatCost(totalCost + firebaseStats.totalCost)}
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.875rem",
+                    opacity: 0.8,
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  OpenAI: {formatCost(totalCost)} + Firebase:{" "}
+                  {formatCost(firebaseStats.totalCost)}
+                </div>
               </div>
+            </div>
+          </div>
+
+          {/* Firebase collection breakdown */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Firebase Collection Usage</h2>
+            <div className={styles.table}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Collection</th>
+                    <th>Reads</th>
+                    <th>Writes</th>
+                    <th>Deletes</th>
+                    <th>Total Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(firebaseStats.operationBreakdown).map(
+                    ([col, stats]) => (
+                      <tr key={col}>
+                        <td>{col}</td>
+                        <td>{stats.reads.toLocaleString()}</td>
+                        <td>{stats.writes.toLocaleString()}</td>
+                        <td>{stats.deletes.toLocaleString()}</td>
+                        <td>{formatCost(stats.cost)}</td>
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* User cost analysis */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>User Cost Analysis</h2>
+            <div className={styles.table}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>User Email</th>
+                    <th>Total Cost</th>
+                    <th>Total Tokens</th>
+                    <th>API Calls</th>
+                    <th>Avg Cost/Call</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userStats.map((s, i) => (
+                    <tr key={i}>
+                      <td>{s.email}</td>
+                      <td>{formatCost(s.totalCost)}</td>
+                      <td>{formatTokens(s.totalTokens)}</td>
+                      <td>{s.requestCount}</td>
+                      <td>{formatCost(s.totalCost / s.requestCount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Detailed usage log */}
+          <div className={styles.section}>
+            <h2 className={styles.sectionTitle}>Detailed Usage Log</h2>
+            <div className={styles.table}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>User</th>
+                    <th>Function</th>
+                    <th>Prompt Tokens</th>
+                    <th>Completion Tokens</th>
+                    <th>Total Tokens</th>
+                    <th>Cost</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tokenUsages.slice(0, 100).map((u) => (
+                    <tr key={u.id}>
+                      <td>{formatDate(u.timestamp)}</td>
+                      <td>{u.userEmail}</td>
+                      <td>{getFunctionDisplayName(u.functionName)}</td>
+                      <td>{formatTokens(u.promptTokens)}</td>
+                      <td>{formatTokens(u.completionTokens)}</td>
+                      <td>{formatTokens(u.totalTokens)}</td>
+                      <td>{formatCost(u.cost || 0)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {tokenUsages.length > 100 && (
+              <p className={styles.note}>
+                Showing first 100 records. Use filters to narrow down.
+              </p>
             )}
           </div>
-        </details>
-      </div>
-
-      {/* OpenAI Summary Cards */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>OpenAI Usage Summary</h2>
-        <div className={styles.summaryCards}>
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>OpenAI Cost</h3>
-              <span className={styles.icon}>🤖</span>
-            </div>
-            <div className={styles.cardValue}>{formatCost(totalCost)}</div>
-          </div>
-
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>Total Tokens</h3>
-              <span className={styles.icon}>🎯</span>
-            </div>
-            <div className={styles.cardValue}>{formatTokens(totalTokens)}</div>
-          </div>
-
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>API Calls</h3>
-              <span className={styles.icon}>📊</span>
-            </div>
-            <div className={styles.cardValue}>{tokenUsages.length}</div>
-          </div>
-
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>Active Users</h3>
-              <span className={styles.icon}>👥</span>
-            </div>
-            <div className={styles.cardValue}>{userStats.length}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Firebase Summary Cards */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Firebase Usage Summary</h2>
-        <div className={styles.summaryCards}>
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>Firebase Cost</h3>
-              <span className={styles.icon}>🔥</span>
-            </div>
-            <div className={styles.cardValue}>{formatCost(firebaseStats.totalCost)}</div>
-          </div>
-
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>Reads</h3>
-              <span className={styles.icon}>👀</span>
-            </div>
-            <div className={styles.cardValue}>{firebaseStats.totalReads.toLocaleString()}</div>
-          </div>
-
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>Writes</h3>
-              <span className={styles.icon}>✍️</span>
-            </div>
-            <div className={styles.cardValue}>{firebaseStats.totalWrites.toLocaleString()}</div>
-          </div>
-
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <h3>Deletes</h3>
-              <span className={styles.icon}>🗑️</span>
-            </div>
-            <div className={styles.cardValue}>{firebaseStats.totalDeletes.toLocaleString()}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Combined Cost Overview */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Total Infrastructure Cost</h2>
-        <div className={styles.summaryCards}>
-          <div className={styles.card} style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
-            <div className={styles.cardHeader}>
-              <h3>Combined Total</h3>
-              <span className={styles.icon}>💎</span>
-            </div>
-            <div className={styles.cardValue}>{formatCost(totalCost + firebaseStats.totalCost)}</div>
-            <div style={{ fontSize: '0.875rem', opacity: 0.9, marginTop: '0.5rem' }}>
-              OpenAI: {formatCost(totalCost)} + Firebase: {formatCost(firebaseStats.totalCost)}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Firebase Collection Breakdown */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Firebase Collection Usage</h2>
-        <div className={styles.table}>
-          <table>
-            <thead>
-              <tr>
-                <th>Collection</th>
-                <th>Reads</th>
-                <th>Writes</th>
-                <th>Deletes</th>
-                <th>Total Cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(firebaseStats.operationBreakdown).map(([collection, stats]) => (
-                <tr key={collection}>
-                  <td>{collection}</td>
-                  <td>{stats.reads.toLocaleString()}</td>
-                  <td>{stats.writes.toLocaleString()}</td>
-                  <td>{stats.deletes.toLocaleString()}</td>
-                  <td>{formatCost(stats.cost)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* User Statistics */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>User Cost Analysis</h2>
-        <div className={styles.table}>
-          <table>
-            <thead>
-              <tr>
-                <th>User Email</th>
-                <th>Total Cost</th>
-                <th>Total Tokens</th>
-                <th>API Calls</th>
-                <th>Avg Cost/Call</th>
-              </tr>
-            </thead>
-            <tbody>
-              {userStats.map((stats, index) => (
-                <tr key={index}>
-                  <td>{stats.email}</td>
-                  <td>{formatCost(stats.totalCost)}</td>
-                  <td>{formatTokens(stats.totalTokens)}</td>
-                  <td>{stats.requestCount}</td>
-                  <td>{formatCost(stats.totalCost / stats.requestCount)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Detailed Usage Log */}
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Detailed Usage Log</h2>
-        <div className={styles.table}>
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>User</th>
-                <th>Function</th>
-                <th>Prompt Tokens</th>
-                <th>Completion Tokens</th>
-                <th>Total Tokens</th>
-                <th>Cost</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tokenUsages.slice(0, 100).map((usage) => (
-                <tr key={usage.id}>
-                  <td>{formatDate(usage.timestamp)}</td>
-                  <td>{usage.userEmail}</td>
-                  <td>{getFunctionDisplayName(usage.functionName)}</td>
-                  <td>{formatTokens(usage.promptTokens)}</td>
-                  <td>{formatTokens(usage.completionTokens)}</td>
-                  <td>{formatTokens(usage.totalTokens)}</td>
-                  <td>{formatCost(usage.cost || 0)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {tokenUsages.length > 100 && (
-          <p className={styles.note}>Showing first 100 records. Use filters to narrow down results.</p>
-        )}
-      </div>
         </>
       )}
     </div>
