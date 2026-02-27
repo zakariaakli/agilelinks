@@ -71,6 +71,26 @@ interface RecentNotif {
   type: string;
 }
 
+interface UserPlan {
+  id: string;
+  goal: string;
+  goalType: string;
+  status: string;
+  createdAt: any;
+  milestoneCount: number;
+}
+
+interface UserNudge {
+  id: string;
+  planId: string | null;
+  milestoneTitle: string;
+  prompt: string;
+  createdAt: any;
+  read: boolean;
+  aiSummary: string | null;
+  emailSent: boolean;
+}
+
 const ADMIN_EMAIL = "zakaria.akli.ensa@gmail.com";
 const NOTIF_PAGE_SIZE = 50;
 
@@ -111,6 +131,15 @@ const AdminDashboard: React.FC = () => {
   });
   const [userNotifStats, setUserNotifStats] = useState<UserNotifStats[]>([]);
   const [allNotifs, setAllNotifs] = useState<RecentNotif[]>([]);
+
+  // Users tab
+  const [allUserList, setAllUserList] = useState<{ uid: string; email: string }[]>([]);
+  const [usersTab_selectedUser, setUsersTab_selectedUser] = useState<string>("");
+  const [usersTab_plans, setUsersTab_plans] = useState<UserPlan[]>([]);
+  const [usersTab_nudges, setUsersTab_nudges] = useState<UserNudge[]>([]);
+  const [usersTab_expandedPlans, setUsersTab_expandedPlans] = useState<Set<string>>(new Set());
+  const [usersTab_expandedNudges, setUsersTab_expandedNudges] = useState<Set<string>>(new Set());
+  const [usersTab_loading, setUsersTab_loading] = useState(false);
 
   // Notifications tab — filters
   const [notifFilterUser, setNotifFilterUser] = useState<string>("all");
@@ -341,8 +370,61 @@ const AdminDashboard: React.FC = () => {
         });
       });
       setUserNotifStats(userNotifs.sort((a, b) => b.received - a.received));
+
+      // Populate user list for Users tab (reuse already-fetched users)
+      const list = Array.from(userEmailMap.entries())
+        .map(([uid, email]) => ({ uid, email }))
+        .sort((a, b) => a.email.localeCompare(b.email));
+      setAllUserList(list);
     } catch (err) {
       console.error("❌ Error loading notification data:", err);
+    }
+  };
+
+  const loadUserDetails = async (userId: string) => {
+    setUsersTab_loading(true);
+    setUsersTab_expandedPlans(new Set());
+    setUsersTab_expandedNudges(new Set());
+    try {
+      const [plansSnap, nudgesSnap] = await Promise.all([
+        getDocs(query(collection(db, "plans"), where("userId", "==", userId), orderBy("createdAt", "desc"))),
+        getDocs(query(collection(db, "notifications"), where("userId", "==", userId), orderBy("createdAt", "desc"))),
+      ]);
+
+      const wizardStatuses = new Set(["framed", "drafted", "finalized", "error"]);
+      setUsersTab_plans(
+        plansSnap.docs
+          .filter((doc) => !wizardStatuses.has(doc.data().status))
+          .map((doc) => {
+            const d = doc.data();
+            return {
+              id: doc.id,
+              goal: d.goal || "—",
+              goalType: d.goalType || "",
+              status: d.status || "active",
+              createdAt: d.createdAt,
+              milestoneCount: d.milestones?.length || 0,
+            };
+          })
+      );
+
+      setUsersTab_nudges(nudgesSnap.docs.map((doc) => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          planId: d.planId || null,
+          milestoneTitle: d.milestoneTitle || "—",
+          prompt: d.prompt || "",
+          createdAt: d.createdAt,
+          read: !!d.read,
+          aiSummary: d.feedbackDetails?.aiSummary || null,
+          emailSent: d.emailStatus?.sent || false,
+        };
+      }));
+    } catch (err) {
+      console.error("❌ Error loading user details:", err);
+    } finally {
+      setUsersTab_loading(false);
     }
   };
 
@@ -592,6 +674,7 @@ const AdminDashboard: React.FC = () => {
         {[
           { id: "dashboard", label: "📊 Dashboard" },
           { id: "notifications", label: "🔔 Notifications" },
+          { id: "users", label: "👥 Users" },
           { id: "api-testing", label: "🚀 API Testing" },
         ].map((tab) => (
           <button
@@ -813,6 +896,175 @@ const AdminDashboard: React.FC = () => {
             <PaginationBar />
           </div>
         </>
+      )}
+
+      {/* ── Users Tab ──────────────────────────────────────────────────────── */}
+      {activeTab === "users" && (
+        <div className={styles.section}>
+          <h2 className={styles.sectionTitle}>User Activity</h2>
+
+          {/* User selector */}
+          <div className={styles.filters}>
+            <div className={styles.filterGroup}>
+              <label>Select User</label>
+              <select
+                className={styles.select}
+                value={usersTab_selectedUser}
+                onChange={(e) => {
+                  setUsersTab_selectedUser(e.target.value);
+                  if (e.target.value) loadUserDetails(e.target.value);
+                  else {
+                    setUsersTab_plans([]);
+                    setUsersTab_nudges([]);
+                  }
+                }}
+                style={{ minWidth: "280px" }}
+              >
+                <option value="">— Select a user —</option>
+                {allUserList.map((u) => (
+                  <option key={u.uid} value={u.uid}>{u.email}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {!usersTab_selectedUser && (
+            <p style={{ color: "#9ca3af", marginTop: "1.5rem", fontSize: "0.9rem" }}>
+              Select a user to view their plans and nudges.
+            </p>
+          )}
+
+          {usersTab_loading && (
+            <p style={{ color: "#6b7280", marginTop: "1.5rem", fontSize: "0.9rem" }}>Loading...</p>
+          )}
+
+          {usersTab_selectedUser && !usersTab_loading && (
+            <>
+              {/* Plans */}
+              {usersTab_plans.length === 0 ? (
+                <p style={{ color: "#9ca3af", marginTop: "1.5rem", fontSize: "0.9rem" }}>No plans found for this user.</p>
+              ) : (
+                <>
+                  <h3 style={{ margin: "1.5rem 0 0.75rem", fontSize: "1rem", fontWeight: 600, color: "#374151" }}>
+                    Plans ({usersTab_plans.length})
+                  </h3>
+                  {usersTab_plans.map((plan) => {
+                    const planNudges = usersTab_nudges.filter((n) => n.planId === plan.id);
+                    const isExpanded = usersTab_expandedPlans.has(plan.id);
+                    const statusColors: Record<string, { bg: string; color: string }> = {
+                      active: { bg: "#d1fae5", color: "#047857" },
+                      completed: { bg: "#dbeafe", color: "#1d4ed8" },
+                      paused: { bg: "#fef3c7", color: "#92400e" },
+                    };
+                    const sc = statusColors[plan.status] || statusColors.paused;
+                    return (
+                      <div key={plan.id} style={{ border: "1px solid #e5e7eb", borderRadius: "8px", marginBottom: "0.75rem", overflow: "hidden" }}>
+                        {/* Plan header — clickable to expand */}
+                        <div
+                          onClick={() => setUsersTab_expandedPlans((prev) => {
+                            const next = new Set(prev);
+                            next.has(plan.id) ? next.delete(plan.id) : next.add(plan.id);
+                            return next;
+                          })}
+                          style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.875rem 1rem", background: "#f9fafb", cursor: "pointer" }}
+                        >
+                          <span style={{ fontSize: "0.7rem", fontWeight: 600, padding: "0.2rem 0.5rem", borderRadius: "999px", background: sc.bg, color: sc.color, flexShrink: 0 }}>
+                            {plan.status}
+                          </span>
+                          <span style={{ fontWeight: 500, color: "#111827", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {plan.goal}
+                          </span>
+                          <span style={{ fontSize: "0.75rem", color: "#6b7280", flexShrink: 0 }}>{plan.milestoneCount} milestones</span>
+                          <span style={{ fontSize: "0.75rem", color: "#6b7280", flexShrink: 0 }}>{planNudges.length} nudges</span>
+                          <span style={{ fontSize: "0.75rem", color: "#9ca3af", flexShrink: 0 }}>{formatDate(plan.createdAt)}</span>
+                          <span style={{ fontSize: "0.7rem", color: "#9ca3af", flexShrink: 0 }}>{isExpanded ? "▲" : "▼"}</span>
+                        </div>
+
+                        {/* Nudge list */}
+                        {isExpanded && (
+                          <div style={{ borderTop: "1px solid #e5e7eb" }}>
+                            {planNudges.length === 0 ? (
+                              <p style={{ padding: "0.75rem 1rem", color: "#9ca3af", fontSize: "0.85rem", margin: 0 }}>No nudges for this plan.</p>
+                            ) : (
+                              planNudges.map((nudge) => {
+                                const nudgeExpanded = usersTab_expandedNudges.has(nudge.id);
+                                return (
+                                  <div key={nudge.id} style={{ borderBottom: "1px solid #f3f4f6", background: "white" }}>
+                                    {/* Nudge row — clickable to expand */}
+                                    <div
+                                      onClick={() => setUsersTab_expandedNudges((prev) => {
+                                        const next = new Set(prev);
+                                        next.has(nudge.id) ? next.delete(nudge.id) : next.add(nudge.id);
+                                        return next;
+                                      })}
+                                      style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", padding: "0.75rem 1rem", cursor: "pointer" }}
+                                    >
+                                      <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>{formatDate(nudge.createdAt)}</span>
+                                      <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem", borderRadius: "999px", background: nudge.read ? "#d1fae5" : "#f3f4f6", color: nudge.read ? "#047857" : "#6b7280" }}>
+                                        {nudge.read ? "read" : "unread"}
+                                      </span>
+                                      {nudge.aiSummary && (
+                                        <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem", borderRadius: "999px", background: "#ede9fe", color: "#6d28d9" }}>reflected</span>
+                                      )}
+                                      {nudge.emailSent && (
+                                        <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem", borderRadius: "999px", background: "#dbeafe", color: "#1d4ed8" }}>email sent</span>
+                                      )}
+                                      <span style={{ fontSize: "0.8rem", color: "#374151", flex: 1 }}>{nudge.milestoneTitle}</span>
+                                      <span style={{ fontSize: "0.7rem", color: "#9ca3af" }}>{nudgeExpanded ? "▲" : "▼"}</span>
+                                    </div>
+                                    {/* Expanded: nudge prompt + AI summary */}
+                                    {nudgeExpanded && (
+                                      <div style={{ padding: "0 1rem 0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                                        <p style={{ margin: 0, fontSize: "0.85rem", color: "#111827", lineHeight: 1.6, background: "#f9fafb", borderRadius: "6px", padding: "0.75rem", borderLeft: "3px solid #6366f1" }}>
+                                          {nudge.prompt || "—"}
+                                        </p>
+                                        {nudge.aiSummary && (
+                                          <p style={{ margin: 0, fontSize: "0.8rem", color: "#4b5563", lineHeight: 1.5, borderLeft: "3px solid #ede9fe", paddingLeft: "0.5rem" }}>
+                                            <strong style={{ color: "#6d28d9", fontSize: "0.7rem" }}>REFLECTION: </strong>{nudge.aiSummary}
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+
+              {/* General reminders (nudges not linked to any plan) */}
+              {(() => {
+                const generalNudges = usersTab_nudges.filter((n) => !n.planId);
+                if (generalNudges.length === 0) return null;
+                return (
+                  <>
+                    <h3 style={{ margin: "1.5rem 0 0.75rem", fontSize: "1rem", fontWeight: 600, color: "#374151" }}>
+                      General Reminders ({generalNudges.length})
+                    </h3>
+                    <div style={{ border: "1px solid #e5e7eb", borderRadius: "8px", overflow: "hidden" }}>
+                      {generalNudges.map((nudge) => (
+                        <div key={nudge.id} style={{ padding: "0.75rem 1rem", borderBottom: "1px solid #f3f4f6", background: "white", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <span style={{ fontSize: "0.75rem", color: "#9ca3af" }}>{formatDate(nudge.createdAt)}</span>
+                          <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem", borderRadius: "999px", background: nudge.read ? "#d1fae5" : "#f3f4f6", color: nudge.read ? "#047857" : "#6b7280" }}>
+                            {nudge.read ? "read" : "unread"}
+                          </span>
+                          {nudge.aiSummary && (
+                            <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.4rem", borderRadius: "999px", background: "#ede9fe", color: "#6d28d9" }}>reflected</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
+            </>
+          )}
+        </div>
       )}
 
       {/* ── API Testing Tab ────────────────────────────────────────────────── */}

@@ -407,7 +407,7 @@ async function sendMilestoneEmail(userId, notificationData) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: "Stepiva - Your AI Goal Coach <onboarding@resend.dev>",
+      from: "Stepiva <nudges@stepiva.ai>",
       to: [settings.email],
       subject: `🎯 Your Milestone Check-in: ${notificationData.milestoneTitle}`,
       html: `
@@ -539,7 +539,7 @@ async function sendNoPlanEmail(userId, notificationData) {
     }
 
     const { data, error } = await resend.emails.send({
-      from: "Stepiva - Your AI Goal Coach <onboarding@resend.dev>",
+      from: "Stepiva <nudges@stepiva.ai>",
       to: [settings.email],
       subject: `🚀 Ready to set your first goal?`,
       html: `
