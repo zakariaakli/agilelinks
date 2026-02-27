@@ -156,7 +156,7 @@ export async function sendMilestoneEmail(
 
     // Send email via Resend
     await resend.emails.send({
-      from: 'Stepiva <onboarding@resend.dev>', // Update to your verified domain
+      from: 'Stepiva <nudges@stepiva.ai>',
       to: email,
       subject,
       html: emailHtml
