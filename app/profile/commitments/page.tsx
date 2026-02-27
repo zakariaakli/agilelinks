@@ -66,7 +66,7 @@ export default function CommitmentsPage() {
       querySnapshot.forEach((doc) => {
         const plan = { id: doc.id, ...doc.data() } as PlanData;
         const goalName = plan.goalName || plan.goal;
-        plan.milestones.forEach((milestone) => {
+        (plan.milestones || []).forEach((milestone) => {
           (milestone.steps || []).forEach((step) => {
             steps.push({
               ...step,
