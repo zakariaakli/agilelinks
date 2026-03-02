@@ -14,3 +14,8 @@
       growthAreas?: string[],
       blindSpots?: string[]
       }
+
+    export interface UserPersonalityProfile {
+      enneagramResult?: EnneagramResult;
+      mbtiType?: string;
+    }

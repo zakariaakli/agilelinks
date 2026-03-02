@@ -26,19 +26,22 @@ const Auth = () => {
       const result = await signInWithPopup(auth, googleProvider);
 
       const userTestResult = localStorage.getItem('userTestResult');
-      if (userTestResult) {
-        const parsedResult = JSON.parse(userTestResult);
-        await TrackedFirestoreClient.doc(`users/${result.user.uid}`).set({
-          enneagramResult: parsedResult,
+      const userMBTIResult = localStorage.getItem('userMBTIResult');
+      if (userTestResult || userMBTIResult) {
+        const payload: Record<string, any> = {
           name: result.user.displayName,
-          email: result.user.email
-        }, {
+          email: result.user.email,
+        };
+        if (userTestResult) payload.enneagramResult = JSON.parse(userTestResult);
+        if (userMBTIResult) payload.mbtiType = userMBTIResult;
+        await TrackedFirestoreClient.doc(`users/${result.user.uid}`).set(payload, {
           userId: result.user.uid,
           userEmail: result.user.email || undefined,
           source: 'auth_component',
-          functionName: 'save_enneagram_result_on_signup'
+          functionName: 'save_personality_on_signup'
         });
-        localStorage.removeItem('userTestResult');
+        if (userTestResult) localStorage.removeItem('userTestResult');
+        if (userMBTIResult) localStorage.removeItem('userMBTIResult');
       }
 
       const user = result.user;
@@ -97,20 +100,22 @@ const Auth = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const storedResult = localStorage.getItem('userTestResult');
-        if (storedResult) {
+        const storedMBTI = localStorage.getItem('userMBTIResult');
+        if (storedResult || storedMBTI) {
           try {
-            const enneagramResult = JSON.parse(storedResult);
-            await TrackedFirestoreClient.doc(`users/${user.uid}`).set({
-              enneagramResult
-            }, {
+            const payload: Record<string, any> = {};
+            if (storedResult) payload.enneagramResult = JSON.parse(storedResult);
+            if (storedMBTI) payload.mbtiType = storedMBTI;
+            await TrackedFirestoreClient.doc(`users/${user.uid}`).set(payload, {
               userId: user.uid,
               userEmail: user.email || undefined,
               source: 'auth_component',
-              functionName: 'save_enneagram_result_on_auth_change'
+              functionName: 'save_personality_on_auth_change'
             });
-            localStorage.removeItem('userTestResult');
+            if (storedResult) localStorage.removeItem('userTestResult');
+            if (storedMBTI) localStorage.removeItem('userMBTIResult');
           } catch (error) {
-            console.error('Error saving stored result after login:', error);
+            console.error('Error saving stored personality after login:', error);
           }
         }
         setUser(user);

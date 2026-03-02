@@ -203,7 +203,12 @@ const SimplifiedEnneagramInput: React.FC<SimplifiedEnneagramInputProps> = ({
           wing ? `${wing}` : undefined
         );
 
-        router.push("/signup");
+        if (onComplete) {
+          // Parent component handles navigation (e.g., show MBTI step next)
+          onComplete(result);
+        } else {
+          router.push("/signup");
+        }
       }
     } catch (error) {
       console.error("Error saving Enneagram result:", error);

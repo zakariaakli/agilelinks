@@ -78,6 +78,8 @@ interface UserPlan {
   status: string;
   createdAt: any;
   milestoneCount: number;
+  nudgeFrequency: string;
+  nudgeDays: number[];
 }
 
 interface UserNudge {
@@ -404,6 +406,8 @@ const AdminDashboard: React.FC = () => {
               status: d.status || "active",
               createdAt: d.createdAt,
               milestoneCount: d.milestones?.length || 0,
+              nudgeFrequency: d.nudgeFrequency || "weekly",
+              nudgeDays: d.nudgeDays || [1],
             };
           })
       );
@@ -957,6 +961,10 @@ const AdminDashboard: React.FC = () => {
                       paused: { bg: "#fef3c7", color: "#92400e" },
                     };
                     const sc = statusColors[plan.status] || statusColors.paused;
+                    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                    const nudgeLabel = plan.nudgeFrequency === "daily"
+                      ? "daily"
+                      : `${plan.nudgeFrequency} · ${plan.nudgeDays.map((d) => dayNames[d]).join(", ")}`;
                     return (
                       <div key={plan.id} style={{ border: "1px solid #e5e7eb", borderRadius: "8px", marginBottom: "0.75rem", overflow: "hidden" }}>
                         {/* Plan header — clickable to expand */}
@@ -976,6 +984,7 @@ const AdminDashboard: React.FC = () => {
                           </span>
                           <span style={{ fontSize: "0.75rem", color: "#6b7280", flexShrink: 0 }}>{plan.milestoneCount} milestones</span>
                           <span style={{ fontSize: "0.75rem", color: "#6b7280", flexShrink: 0 }}>{planNudges.length} nudges</span>
+                          <span style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "999px", background: "#f0f9ff", color: "#0369a1", flexShrink: 0 }}>🔔 {nudgeLabel}</span>
                           <span style={{ fontSize: "0.75rem", color: "#9ca3af", flexShrink: 0 }}>{formatDate(plan.createdAt)}</span>
                           <span style={{ fontSize: "0.7rem", color: "#9ca3af", flexShrink: 0 }}>{isExpanded ? "▲" : "▼"}</span>
                         </div>

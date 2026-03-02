@@ -18,7 +18,7 @@ import {
   EyeIcon,
   TargetIcon,
 } from "../../Components/Icons";
-import SimplifiedEnneagramInput from "../../Components/SimplifiedEnneagramInput";
+import PersonalityOnboarding from "../../Components/PersonalityOnboarding";
 import ReflectiveChatbot, {
   ChatMessageData,
 } from "../../Components/ReflectiveChatbot";
@@ -80,7 +80,8 @@ function ProfileContent() {
   const [userPlans, setUserPlans] = useState<PlanData[]>([]);
   const [expandedPlans, setExpandedPlans] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [showEnneagramOnboarding, setShowEnneagramOnboarding] = useState(false);
+  const [showPersonalityOnboarding, setShowPersonalityOnboarding] = useState(false);
+  const [mbtiType, setMbtiType] = useState<string | null>(null);
   const [milestoneNotifications, setMilestoneNotifications] = useState<
     Record<string, Notification[]>
   >({});
@@ -149,12 +150,8 @@ function ProfileContent() {
     showToast("Reflection saved!", "success");
   };
 
-  const handleEnneagramComplete = async (result: EnneagramResult) => {
-    // Update local state
-    setEnneagramResult(result);
-    setShowEnneagramOnboarding(false);
-
-    // Show success feedback
+  const handlePersonalityComplete = () => {
+    setShowPersonalityOnboarding(false);
     showToast("Personality profile completed! 🎉", "success");
   };
 
@@ -181,10 +178,11 @@ function ProfileContent() {
       if (userDoc.exists()) {
         const data = userDoc.data();
         setEnneagramResult(data?.enneagramResult as EnneagramResult);
+        setMbtiType(data?.mbtiType ?? null);
 
-        // Check if enneagramResult is missing and show onboarding modal
-        if (!data?.enneagramResult) {
-          setShowEnneagramOnboarding(true);
+        // Show onboarding modal if neither personality type is set
+        if (!data?.enneagramResult && !data?.mbtiType) {
+          setShowPersonalityOnboarding(true);
         }
       }
     } catch (error) {
@@ -676,8 +674,8 @@ function ProfileContent() {
 
   return (
     <div className={`${styles.profileContainer} container my20`}>
-      {/* Enneagram Onboarding Modal */}
-      {showEnneagramOnboarding && (
+      {/* Personality Onboarding Modal */}
+      {showPersonalityOnboarding && (
         <div className={styles.onboardingModalOverlay}>
           <div className={styles.onboardingModalContent}>
             <div className={styles.onboardingHeader}>
@@ -685,12 +683,14 @@ function ProfileContent() {
                 Complete Your Personality Profile
               </h2>
               <p className={styles.onboardingSubtitle}>
-                To personalize your goal milestones and provide tailored
-                coaching, we need to understand your personality type. This will
-                only take a minute!
+                Your personality type helps us personalize your goal milestones
+                and coaching nudges. This will only take a minute!
               </p>
             </div>
-            <SimplifiedEnneagramInput onComplete={handleEnneagramComplete} />
+            <PersonalityOnboarding
+              onComplete={handlePersonalityComplete}
+              onSkip={() => setShowPersonalityOnboarding(false)}
+            />
           </div>
         </div>
       )}

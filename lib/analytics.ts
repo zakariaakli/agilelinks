@@ -155,6 +155,10 @@ export const trackEnneagramCompleted = (enneagramType: string, wing?: string) =>
   });
 };
 
+export const trackMBTICompleted = (mbtiType: string) => {
+  trackEvent('mbti_completed', { mbti_type: mbtiType });
+};
+
 export const trackAuthSignIn = (method: string = 'google') => {
   trackEvent('auth_signin', {
     method,
