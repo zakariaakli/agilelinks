@@ -140,6 +140,44 @@ export default function AboutPage() {
   const { scrollYProgress } = useScroll();
   const timelineWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
 
+  const [coachEmail, setCoachEmail] = useState("");
+  const [coachSubmitted, setCoachSubmitted] = useState(false);
+  const [coachLoading, setCoachLoading] = useState(false);
+  const [coachError, setCoachError] = useState("");
+
+  const [orgEmail, setOrgEmail] = useState("");
+  const [orgSubmitted, setOrgSubmitted] = useState(false);
+  const [orgLoading, setOrgLoading] = useState(false);
+  const [orgError, setOrgError] = useState("");
+
+  async function handleWaitlist(
+    email: string,
+    segment: "coach" | "organization",
+    setLoading: (v: boolean) => void,
+    setSubmitted: (v: boolean) => void,
+    setError: (v: string) => void
+  ) {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, segment }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSubmitted(true);
+      } else {
+        setError(data.error || "Something went wrong");
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className={styles.filmContainer}>
       {/* Film grain overlay */}
@@ -174,21 +212,12 @@ export default function AboutPage() {
             STEPIVA PRESENTS
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.5, duration: 1.5 }}
-            className={styles.openingTitle}
-          >
-            <span className={styles.gradientText}>Your AI coach</span> for
-            sustained growth
-          </motion.h1>
-
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.5, duration: 1.2 }}
+            transition={{ delay: 1.2, duration: 1.2 }}
             className={styles.openingContent}
+            style={{ marginTop: "16px" }}
           >
             <p className={styles.openingParagraph}>
               Coaching creates{" "}
@@ -205,9 +234,32 @@ export default function AboutPage() {
           </motion.div>
 
           <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 2.2, duration: 1 }}
+            style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap", marginTop: "48px" }}
+          >
+            <a
+              href="https://calendly.com/zakaria-akli-ensa/one-on-one-with-zak"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ padding: "18px 36px", borderRadius: "16px", background: "#9C4B20", color: "#ffffff", fontWeight: 700, fontSize: "18px", textDecoration: "none", whiteSpace: "nowrap", boxShadow: "0 6px 24px rgba(156,75,32,0.4)" }}
+            >
+              I&apos;m an Individual → Book a Call
+            </a>
+            <a
+              href="#who-its-for"
+              onClick={(e) => { e.preventDefault(); document.getElementById("who-its-for")?.scrollIntoView({ behavior: "smooth" }); }}
+              style={{ padding: "18px 36px", borderRadius: "16px", background: "rgba(198,139,44,0.15)", border: "1px solid rgba(198,139,44,0.5)", color: "#C68B2C", fontWeight: 700, fontSize: "18px", textDecoration: "none", cursor: "pointer", whiteSpace: "nowrap" }}
+            >
+              I&apos;m a Coach → Join Waitlist
+            </a>
+          </motion.div>
+
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 3, duration: 1 }}
+            transition={{ delay: 2.8, duration: 1 }}
             className={styles.scrollHint}
           ></motion.div>
         </div>
@@ -889,7 +941,7 @@ export default function AboutPage() {
       </section>
 
       {/* Who it's for */}
-      <section className={styles.scene} style={{ background: "rgba(156, 75, 32, 0.03)" }}>
+      <section id="who-its-for" className={styles.scene} style={{ background: "rgba(156, 75, 32, 0.03)" }}>
         <div className={styles.sceneContent} style={{ maxWidth: "1100px" }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -906,7 +958,7 @@ export default function AboutPage() {
             </p>
           </motion.div>
 
-          <div className={styles.audienceGrid}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "28px" }}>
             {/* For Individuals */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -930,7 +982,7 @@ export default function AboutPage() {
                 <h3 style={{ fontSize: "clamp(20px, 2.4vw, 24px)", fontWeight: 700, color: "#ffffff", margin: 0 }}>For Individuals</h3>
               </div>
               <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, margin: 0 }}>
-                Take ownership of your growth with an AI companion that knows your personality and keeps you on track between coaching sessions.
+                Already in a coaching program? Book a free call to explore how the AI/human hybrid experience can help your insights stick between sessions.
               </p>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
                 {["Personality-grounded goal setting", "Daily nudges tied to your milestones", "Reflection coach always available", "Progress that actually compounds"].map((item) => (
@@ -940,6 +992,28 @@ export default function AboutPage() {
                   </li>
                 ))}
               </ul>
+              <a
+                href="https://calendly.com/zakaria-akli-ensa/one-on-one-with-zak"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "14px 24px",
+                  borderRadius: "12px",
+                  background: "#9C4B20",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  fontSize: "16px",
+                  textDecoration: "none",
+                  marginTop: "4px",
+                  transition: "opacity 0.2s",
+                }}
+              >
+                Book a Free Call →
+              </a>
             </motion.div>
 
             {/* For Coaches */}
@@ -965,7 +1039,7 @@ export default function AboutPage() {
                 <h3 style={{ fontSize: "clamp(20px, 2.4vw, 24px)", fontWeight: 700, color: "#ffffff", margin: 0 }}>For Coaches</h3>
               </div>
               <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, margin: 0 }}>
-                Extend your impact beyond sessions. Stepiva keeps your clients accountable, motivated, and progressing — so you walk into every session informed.
+                Be among the first to test the AI/human hybrid experience with your clients. Join the waitlist and help shape how coaching evolves between sessions.
               </p>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
                 {["Client continuity between sessions", "AI aligned with your methodology", "Engagement data at a glance", "Scale your impact without burnout"].map((item) => (
@@ -975,42 +1049,115 @@ export default function AboutPage() {
                   </li>
                 ))}
               </ul>
-            </motion.div>
-
-            {/* For Schools */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              style={{
-                padding: "36px 28px",
-                background: "rgba(61, 122, 74, 0.1)",
-                border: "1px solid rgba(61, 122, 74, 0.3)",
-                borderRadius: "24px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "20px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                <div style={{ width: "52px", height: "52px", minWidth: "52px", borderRadius: "14px", background: "#3D7A4A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "26px", boxShadow: "0 4px 16px rgba(61,122,74,0.4)" }}>
-                  🏫
+              {coachSubmitted ? (
+                <div style={{ padding: "16px", background: "rgba(198,139,44,0.15)", border: "1px solid rgba(198,139,44,0.4)", borderRadius: "12px", textAlign: "center" }}>
+                  <p style={{ color: "#C68B2C", fontWeight: 600, margin: 0, fontSize: "15px" }}>You're on the list. We'll be in touch soon.</p>
                 </div>
-                <h3 style={{ fontSize: "clamp(20px, 2.4vw, 24px)", fontWeight: 700, color: "#ffffff", margin: 0 }}>For Schools</h3>
-              </div>
-              <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, margin: 0 }}>
-                Build a culture of self-awareness and soft-skill development. Give students and staff the tools to grow intentionally — with measurable outcomes.
-              </p>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
-                {["Soft-skills development at scale", "Personality-aware student coaching", "Track institutional growth outcomes", "Prepare students for real-world challenges"].map((item) => (
-                  <li key={item} style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "clamp(14px, 1.7vw, 16px)", color: "rgba(255,255,255,0.85)" }}>
-                    <span style={{ color: "#6BA375", fontWeight: 700, fontSize: "18px", lineHeight: 1 }}>✓</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleWaitlist(coachEmail, "coach", setCoachLoading, setCoachSubmitted, setCoachError);
+                  }}
+                  style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "4px" }}
+                >
+                  <input
+                    type="email"
+                    value={coachEmail}
+                    onChange={(e) => setCoachEmail(e.target.value)}
+                    placeholder="Your email"
+                    required
+                    style={{
+                      flex: 1,
+                      minWidth: "180px",
+                      padding: "13px 16px",
+                      borderRadius: "10px",
+                      border: "1px solid rgba(198,139,44,0.4)",
+                      background: "rgba(0,0,0,0.3)",
+                      color: "#ffffff",
+                      fontSize: "15px",
+                      outline: "none",
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={coachLoading}
+                    style={{
+                      padding: "13px 22px",
+                      borderRadius: "10px",
+                      background: "#C68B2C",
+                      color: "#ffffff",
+                      border: "none",
+                      fontWeight: 700,
+                      fontSize: "15px",
+                      cursor: coachLoading ? "not-allowed" : "pointer",
+                      opacity: coachLoading ? 0.7 : 1,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {coachLoading ? "..." : "Join Waitlist"}
+                  </button>
+                  {coachError && (
+                    <p style={{ color: "#ff6b6b", fontSize: "13px", margin: "4px 0 0", width: "100%" }}>{coachError}</p>
+                  )}
+                </form>
+              )}
             </motion.div>
+          </div>
+
+          {/* Subtle org CTA */}
+          <div style={{ textAlign: "center", marginTop: "36px" }}>
+            {orgSubmitted ? (
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "15px" }}>
+                Thanks — we'll reach out when we have an institutional offering ready.
+              </p>
+            ) : (
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "15px", margin: 0, display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: "8px" }}>
+                <span>A coaching school or organization?</span>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleWaitlist(orgEmail, "organization", setOrgLoading, setOrgSubmitted, setOrgError);
+                  }}
+                  style={{ display: "inline-flex", gap: "8px", alignItems: "center" }}
+                >
+                  <input
+                    type="email"
+                    value={orgEmail}
+                    onChange={(e) => setOrgEmail(e.target.value)}
+                    placeholder="Your email"
+                    required
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: "8px",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      background: "rgba(255,255,255,0.05)",
+                      color: "#ffffff",
+                      fontSize: "14px",
+                      outline: "none",
+                      width: "200px",
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={orgLoading}
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: "8px",
+                      background: "rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.7)",
+                      border: "1px solid rgba(255,255,255,0.2)",
+                      fontSize: "14px",
+                      cursor: orgLoading ? "not-allowed" : "pointer",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {orgLoading ? "..." : "Get in touch →"}
+                  </button>
+                  {orgError && <span style={{ color: "#ff6b6b", fontSize: "13px" }}>{orgError}</span>}
+                </form>
+              </div>
+            )}
           </div>
 
         </div>
@@ -1042,19 +1189,27 @@ export default function AboutPage() {
             transition={{ delay: 0.5, duration: 1 }}
             style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}
           >
-            <a href="/signup" className={`${styles.ctaCard} ${styles.ctaCardPrimary}`}>
+            <a
+              href="https://calendly.com/zakaria-akli-ensa/one-on-one-with-zak"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.ctaCard} ${styles.ctaCardPrimary}`}
+            >
               <div className={styles.ctaLabel}>For Individuals</div>
-              <div className={styles.ctaTitle}>Start Your Journey</div>
+              <div className={styles.ctaTitle}>Book a Free Call</div>
               <div className={styles.ctaArrow}>→</div>
             </a>
-            <a href="/signup" className={`${styles.ctaCard} ${styles.ctaCardPrimary}`} style={{ borderColor: "rgba(198,139,44,0.5)", background: "rgba(198,139,44,0.08)" }}>
+            <a
+              href="#who-its-for"
+              className={`${styles.ctaCard} ${styles.ctaCardPrimary}`}
+              style={{ borderColor: "rgba(198,139,44,0.5)", background: "rgba(198,139,44,0.08)" }}
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById("who-its-for")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
               <div className={styles.ctaLabel}>For Coaches</div>
-              <div className={styles.ctaTitle}>Extend Your Impact</div>
-              <div className={styles.ctaArrow}>→</div>
-            </a>
-            <a href="/signup" className={`${styles.ctaCard} ${styles.ctaCardPrimary}`} style={{ borderColor: "rgba(61,122,74,0.5)", background: "rgba(61,122,74,0.08)" }}>
-              <div className={styles.ctaLabel}>For Schools</div>
-              <div className={styles.ctaTitle}>Transform Your Campus</div>
+              <div className={styles.ctaTitle}>Join the Waitlist</div>
               <div className={styles.ctaArrow}>→</div>
             </a>
           </motion.div>

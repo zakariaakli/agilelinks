@@ -394,12 +394,6 @@ const Header = () => {
               >
                 Log In
               </Link>
-              <a
-                href="/#test"
-                className={`${styles.button} ${styles.signupButton}`}
-              >
-                <SparklesIcon size={16} /> Get Started
-              </a>
             </>
           )}
         </div>
