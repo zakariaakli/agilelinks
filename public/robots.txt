@@ -3,4 +3,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://agilelinks.vercel.app/sitemap.xml
+Sitemap: https://stepiva.ai/sitemap.xml
