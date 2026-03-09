@@ -389,6 +389,23 @@ const Header = () => {
           ) : (
             <>
               <Link
+                href="/enneagram-test"
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '10px',
+                  background: 'rgba(156, 75, 32, 0.12)',
+                  border: '1px solid rgba(156, 75, 32, 0.3)',
+                  color: '#C27A3E',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  textDecoration: 'none',
+                  whiteSpace: 'nowrap',
+                  transition: 'background 0.15s ease',
+                }}
+              >
+                🔮 Take the Test
+              </Link>
+              <Link
                 href="/login"
                 className={`${styles.button} ${styles.loginButton}`}
               >

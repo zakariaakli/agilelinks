@@ -2,7 +2,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { auth, db } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, orderBy, getDocs, where } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, where, doc, getDoc, setDoc } from "firebase/firestore";
+import { CORE_TYPE_INFO } from "../../Data/enneagramTypeData";
 import styles from "../../Styles/admin.module.css";
 
 // ─── Interfaces ───────────────────────────────────────────────────────────────
@@ -142,6 +143,11 @@ const AdminDashboard: React.FC = () => {
   const [usersTab_expandedPlans, setUsersTab_expandedPlans] = useState<Set<string>>(new Set());
   const [usersTab_expandedNudges, setUsersTab_expandedNudges] = useState<Set<string>>(new Set());
   const [usersTab_loading, setUsersTab_loading] = useState(false);
+  const [usersTab_personality, setUsersTab_personality] = useState<{ enneagramType: number | null; mbtiType: string | null } | null>(null);
+  const [usersTab_editEnneagram, setUsersTab_editEnneagram] = useState<number>(0);
+  const [usersTab_editMbti, setUsersTab_editMbti] = useState<string>("");
+  const [usersTab_savingPersonality, setUsersTab_savingPersonality] = useState(false);
+  const [usersTab_personalitySaved, setUsersTab_personalitySaved] = useState(false);
 
   // Notifications tab — filters
   const [notifFilterUser, setNotifFilterUser] = useState<string>("all");
@@ -387,11 +393,33 @@ const AdminDashboard: React.FC = () => {
     setUsersTab_loading(true);
     setUsersTab_expandedPlans(new Set());
     setUsersTab_expandedNudges(new Set());
+    setUsersTab_personality(null);
+    setUsersTab_editEnneagram(0);
+    setUsersTab_editMbti("");
+    setUsersTab_personalitySaved(false);
     try {
-      const [plansSnap, nudgesSnap] = await Promise.all([
+      const [plansSnap, nudgesSnap, userSnap] = await Promise.all([
         getDocs(query(collection(db, "plans"), where("userId", "==", userId), orderBy("createdAt", "desc"))),
         getDocs(query(collection(db, "notifications"), where("userId", "==", userId), orderBy("createdAt", "desc"))),
+        getDoc(doc(db, "users", userId)),
       ]);
+
+      // Derive dominant Enneagram type from scores
+      const userData = userSnap.data();
+      if (userData) {
+        const er = userData.enneagramResult;
+        let dominantType: number | null = null;
+        if (er) {
+          let maxScore = -1;
+          for (let i = 1; i <= 9; i++) {
+            const score = er[`enneagramType${i}`] ?? 0;
+            if (score > maxScore) { maxScore = score; dominantType = i; }
+          }
+        }
+        setUsersTab_personality({ enneagramType: dominantType, mbtiType: userData.mbtiType || null });
+        setUsersTab_editEnneagram(dominantType ?? 0);
+        setUsersTab_editMbti(userData.mbtiType || "");
+      }
 
       const wizardStatuses = new Set(["framed", "drafted", "finalized", "error"]);
       setUsersTab_plans(
@@ -429,6 +457,55 @@ const AdminDashboard: React.FC = () => {
       console.error("❌ Error loading user details:", err);
     } finally {
       setUsersTab_loading(false);
+    }
+  };
+
+  const MBTI_TYPES = ["INTJ","INTP","ENTJ","ENTP","INFJ","INFP","ENFJ","ENFP","ISTJ","ISFJ","ESTJ","ESFJ","ISTP","ISFP","ESTP","ESFP"];
+
+  const handleSavePersonality = async () => {
+    if (!usersTab_selectedUser) return;
+    setUsersTab_savingPersonality(true);
+    setUsersTab_personalitySaved(false);
+    try {
+      const updates: Record<string, any> = {};
+
+      // Build full EnneagramResult if a type was chosen
+      if (usersTab_editEnneagram > 0) {
+        const typeInfo = CORE_TYPE_INFO[usersTab_editEnneagram as keyof typeof CORE_TYPE_INFO];
+        const scores: Record<string, number> = {};
+        for (let i = 1; i <= 9; i++) {
+          scores[`enneagramType${i}`] = i === usersTab_editEnneagram ? 15 : 3;
+        }
+        // Give slight boost to wing types
+        const wingA = usersTab_editEnneagram === 1 ? 9 : usersTab_editEnneagram - 1;
+        const wingB = usersTab_editEnneagram === 9 ? 1 : usersTab_editEnneagram + 1;
+        scores[`enneagramType${wingA}`] = 8;
+        scores[`enneagramType${wingB}`] = 8;
+
+        updates.enneagramResult = {
+          ...scores,
+          summary: typeInfo?.coreMotivation || "",
+          coreMotivation: typeInfo?.coreMotivation || "",
+          keyStrengths: typeInfo?.keyStrengths || [],
+          growthAreas: typeInfo?.growthAreas || [],
+          blindSpots: typeInfo?.blindSpots || [],
+          adminOverride: true,
+          overrideType: usersTab_editEnneagram,
+        };
+      }
+
+      if (usersTab_editMbti) {
+        updates.mbtiType = usersTab_editMbti;
+      }
+
+      await setDoc(doc(db, "users", usersTab_selectedUser), updates, { merge: true });
+      setUsersTab_personality({ enneagramType: usersTab_editEnneagram || null, mbtiType: usersTab_editMbti || null });
+      setUsersTab_personalitySaved(true);
+      setTimeout(() => setUsersTab_personalitySaved(false), 3000);
+    } catch (err) {
+      console.error("❌ Error saving personality override:", err);
+    } finally {
+      setUsersTab_savingPersonality(false);
     }
   };
 
@@ -944,6 +1021,57 @@ const AdminDashboard: React.FC = () => {
 
           {usersTab_selectedUser && !usersTab_loading && (
             <>
+              {/* Personality Override */}
+              <div style={{ border: "1px solid #e5e7eb", borderRadius: "10px", padding: "1.25rem", marginTop: "1.5rem", background: "#fafafa" }}>
+                <h3 style={{ margin: "0 0 1rem", fontSize: "1rem", fontWeight: 600, color: "#374151" }}>Personality Type Override</h3>
+                <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 500, color: "#6b7280", marginBottom: "0.35rem" }}>
+                      Current Enneagram: <strong style={{ color: "#111827" }}>{usersTab_personality?.enneagramType ? `Type ${usersTab_personality.enneagramType}` : "Not set"}</strong>
+                    </label>
+                    <select
+                      value={usersTab_editEnneagram}
+                      onChange={(e) => setUsersTab_editEnneagram(Number(e.target.value))}
+                      className={styles.select}
+                      style={{ minWidth: "160px" }}
+                    >
+                      <option value={0}>— No override —</option>
+                      {[1,2,3,4,5,6,7,8,9].map((t) => (
+                        <option key={t} value={t}>Type {t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 500, color: "#6b7280", marginBottom: "0.35rem" }}>
+                      Current MBTI: <strong style={{ color: "#111827" }}>{usersTab_personality?.mbtiType || "Not set"}</strong>
+                    </label>
+                    <select
+                      value={usersTab_editMbti}
+                      onChange={(e) => setUsersTab_editMbti(e.target.value)}
+                      className={styles.select}
+                      style={{ minWidth: "160px" }}
+                    >
+                      <option value="">— No override —</option>
+                      {MBTI_TYPES.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <button
+                      onClick={handleSavePersonality}
+                      disabled={usersTab_savingPersonality}
+                      style={{ padding: "0.5rem 1.25rem", background: "#4f46e5", color: "#fff", border: "none", borderRadius: "6px", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", opacity: usersTab_savingPersonality ? 0.6 : 1 }}
+                    >
+                      {usersTab_savingPersonality ? "Saving…" : "Save"}
+                    </button>
+                    {usersTab_personalitySaved && (
+                      <span style={{ fontSize: "0.85rem", color: "#047857", fontWeight: 500 }}>✓ Saved</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Plans */}
               {usersTab_plans.length === 0 ? (
                 <p style={{ color: "#9ca3af", marginTop: "1.5rem", fontSize: "0.9rem" }}>No plans found for this user.</p>

@@ -940,6 +940,65 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* AI Enneagram Test CTA */}
+      <section className={styles.scene} style={{ background: "rgba(156, 75, 32, 0.06)", padding: "80px 24px" }}>
+        <div style={{ maxWidth: "760px", margin: "0 auto", textAlign: "center" }}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.9 }}
+          >
+            <div style={{ fontSize: "2.5rem", marginBottom: "16px" }}>🔮</div>
+            <h2 style={{ fontSize: "clamp(26px, 4vw, 42px)", fontWeight: 800, marginBottom: "16px", color: "#ffffff" }}>
+              Don&apos;t know your Enneagram type yet?
+            </h2>
+            <p style={{ fontSize: "clamp(16px, 2vw, 20px)", color: "rgba(255,255,255,0.75)", lineHeight: 1.7, marginBottom: "36px" }}>
+              Our AI conducts a 10–12 minute typing interview — a natural conversation
+              about how you navigate life. You&apos;ll get a radar diagram across all 9 types
+              and a personalized profile your coach can use to dig deeper.
+            </p>
+            <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", marginBottom: "20px" }}>
+              {["No multiple choice", "Motivation-focused", "Coach-ready radar diagram"].map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "20px",
+                    background: "rgba(156, 75, 32, 0.15)",
+                    border: "1px solid rgba(156, 75, 32, 0.35)",
+                    color: "#C27A3E",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+            <a
+              href="/enneagram-test"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                padding: "16px 40px",
+                borderRadius: "14px",
+                background: "#9C4B20",
+                color: "#ffffff",
+                fontWeight: 700,
+                fontSize: "clamp(15px, 1.8vw, 18px)",
+                textDecoration: "none",
+                boxShadow: "0 6px 24px rgba(156,75,32,0.4)",
+                transition: "opacity 0.2s",
+              }}
+            >
+              Discover My Type — Free →
+            </a>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Who it's for */}
       <section id="who-its-for" className={styles.scene} style={{ background: "rgba(156, 75, 32, 0.03)" }}>
         <div className={styles.sceneContent} style={{ maxWidth: "1100px" }}>
@@ -958,7 +1017,7 @@ export default function AboutPage() {
             </p>
           </motion.div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "28px" }}>
+          <div className={styles.twoColGrid}>
             {/* For Individuals */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
