@@ -204,20 +204,11 @@ export default function AboutPage() {
       <section className={`${styles.scene} ${styles.sceneOpening}`}>
         <div className={`${styles.sceneContent} ${styles.sceneContentCenter}`}>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5, duration: 1 }}
-            className={styles.filmTitle}
-          >
-            STEPIVA PRESENTS
-          </motion.div>
-
-          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2, duration: 1.2 }}
+            transition={{ delay: 0.5, duration: 1.2 }}
             className={styles.openingContent}
-            style={{ marginTop: "16px" }}
+            style={{ marginTop: "0" }}
           >
             <p className={styles.openingParagraph}>
               Coaching creates{" "}
@@ -237,7 +228,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 2.2, duration: 1 }}
-            style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap", marginTop: "48px" }}
+            style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap", marginTop: "32px" }}
           >
             <a
               href="https://calendly.com/zakaria-akli-ensa/one-on-one-with-zak"

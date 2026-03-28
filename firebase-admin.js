@@ -14,7 +14,7 @@ let firebaseInitialized = false;
 if (!admin.apps.length) {
   try {
     if (process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV !== 'preview') {
-      const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+      const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
       if (serviceAccountKey) {
         const serviceAccount = JSON.parse(serviceAccountKey);
         if (serviceAccount.project_id) {
@@ -29,16 +29,25 @@ if (!admin.apps.length) {
         console.warn('Firebase service account key not found in production');
       }
     } else if (process.env.NODE_ENV === 'development') {
-      try {
-        const serviceAccountPath = path.resolve(__dirname, './serviceaccount.json');
-        const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
-
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-        });
-        firebaseInitialized = true;
-      } catch (error) {
-        console.warn('Firebase service account file not found in development:', error.message);
+      // Try env var first (works with --env-file or .env.local), then fall back to file
+      const envKey = process.env.FIREBASE_SERVICE_ACCOUNT || process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+      if (envKey) {
+        try {
+          const serviceAccount = JSON.parse(envKey);
+          admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+          firebaseInitialized = true;
+        } catch (error) {
+          console.warn('Failed to parse FIREBASE_SERVICE_ACCOUNT env var:', error.message);
+        }
+      } else {
+        try {
+          const serviceAccountPath = path.resolve(__dirname, './serviceaccount.json');
+          const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
+          admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+          firebaseInitialized = true;
+        } catch (error) {
+          console.warn('Firebase service account file not found in development:', error.message);
+        }
       }
     }
   } catch (error) {
