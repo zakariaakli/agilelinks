@@ -42,6 +42,7 @@ interface PlanData {
   goal: string;
   targetDate: string;
   hasTimePressure: boolean;
+  importance?: "high" | "medium" | "low";
   milestones: Milestone[];
   createdAt: any;
   status: "active" | "completed" | "paused";
@@ -81,6 +82,7 @@ const GoalDetailsPage = () => {
     planTitle: "",
   });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [importance, setImportanceState] = useState<"high" | "medium" | "low">("medium");
   const [toast, setToast] = useState<{
     message: string;
     type: ToastType;
@@ -88,6 +90,21 @@ const GoalDetailsPage = () => {
 
   const showToast = (message: string, type: ToastType = "info") => {
     setToast({ message, type });
+  };
+
+  const handleImportanceChange = async (value: "high" | "medium" | "low") => {
+    if (!plan || !user) return;
+    setImportanceState(value);
+    try {
+      await fetch(`/api/plans/${plan.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ importance: value, userId: user.uid, userEmail: user.email }),
+      });
+      setPlan(prev => prev ? { ...prev, importance: value } : null);
+    } catch {
+      showToast("Failed to update importance", "error");
+    }
   };
 
   useEffect(() => {
@@ -132,6 +149,7 @@ const GoalDetailsPage = () => {
         }
 
         setPlan(planData);
+        setImportanceState(planData.importance ?? "medium");
         await loadMilestoneNotifications(userId, planData);
       } else {
         showToast("Plan not found", "error");
@@ -580,7 +598,7 @@ const GoalDetailsPage = () => {
               border: "1px solid #C68B2C",
               padding: "1rem",
               borderRadius: "0.5rem",
-              marginBottom: "2rem",
+              marginBottom: "1rem",
               textAlign: "center",
               fontWeight: "600",
               color: "#7A561B",
@@ -589,6 +607,49 @@ const GoalDetailsPage = () => {
             ⚡ Accelerated Timeline
           </div>
         )}
+
+        {/* Importance picker */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            marginBottom: "2rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <span style={{ fontSize: "0.8rem", color: "#6B6560", fontWeight: 600 }}>
+            Importance:
+          </span>
+          {(["high", "medium", "low"] as const).map((level) => {
+            const colors: Record<string, { bg: string; border: string; text: string }> = {
+              high:   { bg: "rgba(184,74,66,0.08)",  border: "#B84A42", text: "#B84A42" },
+              medium: { bg: "rgba(198,139,44,0.08)", border: "#C68B2C", text: "#C68B2C" },
+              low:    { bg: "rgba(138,131,120,0.08)",border: "#8A8378", text: "#8A8378" },
+            };
+            const c = colors[level];
+            const active = importance === level;
+            return (
+              <button
+                key={level}
+                onClick={() => handleImportanceChange(level)}
+                style={{
+                  padding: "0.3rem 0.875rem",
+                  borderRadius: "20px",
+                  border: `1.5px solid ${active ? c.border : "rgba(0,0,0,0.15)"}`,
+                  background: active ? c.bg : "transparent",
+                  color: active ? c.text : "#6B6560",
+                  fontWeight: active ? 700 : 400,
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </button>
+            );
+          })}
+        </div>
 
         {/* Overall Progress Bar */}
         <div style={{ marginBottom: "2rem" }}>

@@ -24,7 +24,7 @@ export interface EmailStatus {
 
 export interface NotificationMeta {
   priority: 'low' | 'medium' | 'high';
-  category: 'milestone_reminder' | 'no_plan_reminder';
+  category: 'milestone_reminder' | 'no_plan_reminder' | 'daily_action_review';
   scheduledFor?: Timestamp;
   expiresAt?: Timestamp;
 }
@@ -32,7 +32,7 @@ export interface NotificationMeta {
 export interface EnhancedNotification {
   id?: string;
   userId: string;
-  type: 'milestone_reminder' | 'no_plan_reminder';
+  type: 'milestone_reminder' | 'no_plan_reminder' | 'daily_action_review';
   prompt: string;
   createdAt: Timestamp;
   read: boolean;
@@ -141,11 +141,16 @@ export function getDefaultEmailStatus(): EmailStatus {
 }
 
 // Get default notification meta based on type
-export function getDefaultNotificationMeta(type: 'milestone_reminder' | 'no_plan_reminder'): NotificationMeta {
+export function getDefaultNotificationMeta(
+  type: 'milestone_reminder' | 'no_plan_reminder' | 'daily_action_review'
+): NotificationMeta {
   return {
     priority: type === 'no_plan_reminder' ? 'high' : 'medium',
     category: type,
-    expiresAt: Timestamp.fromDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)) // 7 days
+    // daily_action_review expires after 24 h; others after 7 days
+    expiresAt: Timestamp.fromDate(
+      new Date(Date.now() + (type === 'daily_action_review' ? 24 : 7 * 24) * 60 * 60 * 1000)
+    ),
   };
 }
 
@@ -174,6 +179,7 @@ export async function getNotificationStats(userId?: string) {
       pending: 0,
       failed: 0,
       milestone_reminders: 0,
+      daily_action_reviews: 0,
       read: 0,
       feedback_given: 0
     };
@@ -186,8 +192,8 @@ export async function getNotificationStats(userId?: string) {
       else if (data.emailStatus?.deliveryStatus === 'failed') stats.failed++;
       else stats.pending++;
 
-      // All notifications are milestone reminders now
-      stats.milestone_reminders++;
+      if (data.type === 'daily_action_review') stats.daily_action_reviews++;
+      else stats.milestone_reminders++;
 
       if (data.read) stats.read++;
       if (data.feedback) stats.feedback_given++;

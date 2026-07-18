@@ -14,7 +14,7 @@ export async function PATCH(
   try {
     const { planId } = params;
     const body = await request.json();
-    const { status, userId, userEmail } = body;
+    const { status, importance, userId, userEmail } = body;
 
     if (!planId) {
       return NextResponse.json(
@@ -23,17 +23,25 @@ export async function PATCH(
       );
     }
 
-    if (!status) {
+    if (!status && !importance) {
       return NextResponse.json(
-        { error: 'Status is required' },
+        { error: 'status or importance is required' },
         { status: 400 }
       );
     }
 
     // Validate status
-    if (!['active', 'paused', 'completed'].includes(status)) {
+    if (status && !['active', 'paused', 'completed'].includes(status)) {
       return NextResponse.json(
         { error: 'Invalid status. Must be: active, paused, or completed' },
+        { status: 400 }
+      );
+    }
+
+    // Validate importance
+    if (importance && !['high', 'medium', 'low'].includes(importance)) {
+      return NextResponse.json(
+        { error: 'Invalid importance. Must be: high, medium, or low' },
         { status: 400 }
       );
     }
@@ -70,11 +78,12 @@ export async function PATCH(
       );
     }
 
-    // Update plan status
-    await updateDoc(planRef, {
-      status,
-      updatedAt: new Date()
-    });
+    // Build update payload — only include fields that were sent
+    const updatePayload: { updatedAt: Date; status?: string; importance?: string } = { updatedAt: new Date() };
+    if (status) updatePayload.status = status;
+    if (importance) updatePayload.importance = importance;
+
+    await updateDoc(planRef, updatePayload);
 
     // Track write operation
     await trackFirebaseWrite(
@@ -83,14 +92,15 @@ export async function PATCH(
       userId || planUserId,
       userEmail || 'unknown@user.com',
       'client',
-      'update_plan_status'
+      status ? 'update_plan_status' : 'update_plan_importance'
     );
 
     return NextResponse.json({
       success: true,
-      message: `Plan status updated to ${status}`,
+      message: status ? `Plan status updated to ${status}` : `Plan importance updated to ${importance}`,
       planId,
-      status
+      status,
+      importance,
     });
 
   } catch (error) {

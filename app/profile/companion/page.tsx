@@ -19,6 +19,7 @@ interface PlanData {
   goalName?: string;
   targetDate: string;
   hasTimePressure: boolean;
+  importance: "high" | "medium" | "low";
   nudgeFrequency: "daily" | "custom";
   nudgeDays?: number[]; // Day indices: 0=Sunday, 1=Monday, ..., 6=Saturday
   goalFrame?: {
@@ -320,6 +321,7 @@ const GoalWizard: React.FC = () => {
   const [enneagramResult, setEnneagramResult] =
     useState<EnneagramResult | null>(null);
   const [hasTimePressure, setHasTimePressure] = useState<boolean>(false);
+  const [importance, setImportance] = useState<"high" | "medium" | "low">("medium");
   const [nudgeFrequency, setNudgeFrequency] = useState<"daily" | "custom">(
     "custom"
   );
@@ -1041,6 +1043,7 @@ const GoalWizard: React.FC = () => {
         goalName,
         targetDate,
         hasTimePressure,
+        importance,
         nudgeFrequency,
         nudgeDays: nudgeFrequency === "custom" ? nudgeDays : (nudgeFrequency === "daily" ? [0, 1, 2, 3, 4, 5, 6] : undefined),
         goalFrame: goalFrame || undefined,
@@ -1238,6 +1241,32 @@ const GoalWizard: React.FC = () => {
                   />
                   <span>Accelerated - I'm under time pressure</span>
                 </label>
+              </div>
+            </div>
+
+            <div className={styles.section}>
+              <h2 className={styles.subtitle}>Goal Importance</h2>
+              <p className={styles.helperText}>
+                How important is this goal relative to your other goals? This
+                drives the Priority Matrix importance axis.
+              </p>
+              <div className={styles.paceSelection}>
+                {(["high", "medium", "low"] as const).map((level) => (
+                  <label key={level} className={styles.paceOption}>
+                    <input
+                      type="radio"
+                      name="importance"
+                      value={level}
+                      checked={importance === level}
+                      onChange={() => setImportance(level)}
+                    />
+                    <span>
+                      {level === "high" && "High — top priority this period"}
+                      {level === "medium" && "Medium — important but not critical"}
+                      {level === "low" && "Low — nice to have"}
+                    </span>
+                  </label>
+                ))}
               </div>
             </div>
 

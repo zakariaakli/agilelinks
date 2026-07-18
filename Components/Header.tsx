@@ -29,6 +29,7 @@ import {
   ArrowRightIcon,
   SparklesIcon,
   ClipboardListIcon,
+  BarChartIcon,
 } from "./Icons";
 import NotificationBell from "./NotificationBell";
 
@@ -251,6 +252,9 @@ const Header = () => {
                 <li>
                   <Link href="/profile/commitments">Commitments</Link>
                 </li>
+                <li>
+                  <Link href="/profile/matrix">Matrix</Link>
+                </li>
               </>
             )}
           </ul>
@@ -357,6 +361,12 @@ const Header = () => {
                     className={styles.dropdownItem}
                   >
                     <ClipboardListIcon size={16} /> Commitments
+                  </Link>
+                  <Link
+                    href="/profile/matrix"
+                    className={styles.dropdownItem}
+                  >
+                    <BarChartIcon size={16} /> Matrix
                   </Link>
                   <Link
                     href="/profile/companion"

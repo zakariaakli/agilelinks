@@ -8,7 +8,7 @@ import { TargetIcon, ClockIcon } from './Icons';
 
 interface NotificationCardProps {
   id: string;
-  type?: 'milestone_reminder' | 'no_plan_reminder';
+  type?: 'milestone_reminder' | 'no_plan_reminder' | 'daily_action_review';
   milestoneTitle?: string;
   prompt: string;
   createdAt: Date | Timestamp;
@@ -68,8 +68,13 @@ const NotificationCard: React.FC<NotificationCardProps> = ({
   };
 
   const isNoPlan = type === 'no_plan_reminder';
-  const linkHref = isNoPlan ? '/welcome' : `/nudge/${id}`;
-  const displayTitle = isNoPlan ? 'Get Started' : (milestoneTitle || 'Milestone Reminder');
+  const isDailyReview = type === 'daily_action_review';
+  const linkHref = isNoPlan ? '/welcome' : isDailyReview ? '/profile/matrix' : `/nudge/${id}`;
+  const displayTitle = isNoPlan
+    ? 'Get Started'
+    : isDailyReview
+    ? 'Evening Check-In'
+    : milestoneTitle || 'Milestone Reminder';
 
   return (
     <Link

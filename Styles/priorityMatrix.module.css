@@ -1,0 +1,597 @@
+/* ──────────────────────────────────────────────────────────────────────────
+   Priority Matrix — warm Eisenhower palette
+   Quadrant colours per spec:
+     urgent_important          → warm red   #B84A42
+     not_urgent_important      → sage       #3D7A4A
+     urgent_not_important      → gold       #C68B2C
+     not_urgent_not_important  → neutral    #8A8378
+────────────────────────────────────────────────────────────────────────── */
+
+/* Page shell */
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.periodLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6b6560;
+}
+
+.daysRemaining {
+  font-size: 0.8rem;
+  color: #8A8378;
+}
+
+/* ── 2×2 board ─────────────────────────────────────────────────────────── */
+.board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+/* ── Quadrant cell ─────────────────────────────────────────────────────── */
+.quadrant {
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.quadrant.dragOver {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Quadrant backgrounds — light tinted */
+.quadrant_urgent_important {
+  background: rgba(184, 74, 66, 0.07);
+  border: 1.5px solid rgba(184, 74, 66, 0.25);
+}
+
+.quadrant_not_urgent_important {
+  background: rgba(61, 122, 74, 0.07);
+  border: 1.5px solid rgba(61, 122, 74, 0.25);
+}
+
+.quadrant_urgent_not_important {
+  background: rgba(198, 139, 44, 0.07);
+  border: 1.5px solid rgba(198, 139, 44, 0.25);
+}
+
+.quadrant_not_urgent_not_important {
+  background: rgba(138, 131, 120, 0.07);
+  border: 1.5px solid rgba(138, 131, 120, 0.25);
+}
+
+.quadrantHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.quadrantDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot_urgent_important        { background: #B84A42; }
+.dot_not_urgent_important    { background: #3D7A4A; }
+.dot_urgent_not_important    { background: #C68B2C; }
+.dot_not_urgent_not_important{ background: #8A8378; }
+
+.quadrantTitle {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.label_urgent_important        { color: #B84A42; }
+.label_not_urgent_important    { color: #3D7A4A; }
+.label_urgent_not_important    { color: #C68B2C; }
+.label_not_urgent_not_important{ color: #8A8378; }
+
+.quadrantHint {
+  font-size: 0.7rem;
+  color: #8A8378;
+  margin-bottom: 0.25rem;
+}
+
+/* ── Action cards ──────────────────────────────────────────────────────── */
+.actionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+}
+
+.actionCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.825rem;
+  line-height: 1.35;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: box-shadow 0.15s, opacity 0.15s;
+  position: relative;
+}
+
+.actionCard:active {
+  cursor: grabbing;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.actionCard.done {
+  opacity: 0.45;
+  text-decoration: line-through;
+  cursor: default;
+}
+
+.actionCard.removed {
+  display: none;
+}
+
+.actionText {
+  flex: 1;
+  color: #1a1a1a;
+}
+
+.actionEditInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 0.825rem;
+  background: transparent;
+  padding: 0;
+}
+
+.actionMeta {
+  font-size: 0.7rem;
+  color: #8A8378;
+  white-space: nowrap;
+}
+
+.sourcePlanChip {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #9C4B20;
+  background: rgba(156, 75, 32, 0.08);
+  border-radius: 10px;
+  padding: 0.1rem 0.45rem;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.actionMenu {
+  display: flex;
+  gap: 0.25rem;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.actionCard:hover .actionMenu {
+  opacity: 1;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  padding: 0.15rem 0.25rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #8A8378;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.iconBtn:hover {
+  background: rgba(0,0,0,0.06);
+  color: #1a1a1a;
+}
+
+/* Add action form */
+.addActionRow {
+  display: flex;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+}
+
+.addInput {
+  flex: 1;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  outline: none;
+  background: #fff;
+}
+
+.addInput:focus {
+  border-color: #9C4B20;
+}
+
+.addBtn {
+  background: #9C4B20;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.addBtn:hover {
+  background: #7D3C19;
+}
+
+/* ── Empty state ───────────────────────────────────────────────────────── */
+.emptyState {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #6b6560;
+}
+
+.emptyState h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.emptyState p {
+  font-size: 0.875rem;
+}
+
+/* ── Period settings ───────────────────────────────────────────────────── */
+.periodSettings {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(156, 75, 32, 0.05);
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.periodBtn {
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  border: 1.5px solid rgba(156, 75, 32, 0.3);
+  background: transparent;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #6b6560;
+  transition: all 0.15s;
+}
+
+.periodBtn.active {
+  background: #9C4B20;
+  color: #fff;
+  border-color: #9C4B20;
+}
+
+.periodBtn:hover:not(.active) {
+  background: rgba(156, 75, 32, 0.1);
+}
+
+.refreshBtn {
+  margin-left: auto;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  border: 1.5px solid rgba(0,0,0,0.15);
+  background: transparent;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #6b6560;
+}
+
+.refreshBtn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* ── Trajectory ────────────────────────────────────────────────────────── */
+.trajectory {
+  background: rgba(156, 75, 32, 0.04);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.trajectoryTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b6560;
+  margin-bottom: 0.875rem;
+}
+
+.trajectoryBar {
+  height: 10px;
+  background: rgba(0,0,0,0.08);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.trajectoryFill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+.fill_on_track  { background: linear-gradient(90deg, #3D7A4A 0%, #56A864 100%); }
+.fill_at_risk   { background: linear-gradient(90deg, #C68B2C 0%, #E5A43A 100%); }
+.fill_off_track { background: linear-gradient(90deg, #B84A42 0%, #D45C54 100%); }
+
+.trajectoryStatus {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #6b6560;
+}
+
+.statusBadge {
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+
+.badge_on_track  { color: #3D7A4A; background: rgba(61, 122, 74, 0.12); }
+.badge_at_risk   { color: #C68B2C; background: rgba(198, 139, 44, 0.12); }
+.badge_off_track { color: #B84A42; background: rgba(184, 74, 66, 0.12); }
+
+.trajectoryInsight {
+  font-size: 0.8rem;
+  color: #6b6560;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* ── Axis labels (decorative) ──────────────────────────────────────────── */
+.axisRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.axisLabel {
+  font-size: 0.7rem;
+  text-align: center;
+  color: #8A8378;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Loader / spinner ──────────────────────────────────────────────────── */
+.loader {
+  text-align: center;
+  padding: 4rem;
+  color: #6b6560;
+}
+
+/* ── Goal drill-down (bottom sheet on mobile, modal on desktop) ─────────── */
+.drilldownOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;        /* bottom sheet on mobile */
+  justify-content: center;
+}
+
+@media (min-width: 641px) {
+  .drilldownOverlay {
+    align-items: center;        /* centered modal on desktop */
+  }
+}
+
+.drilldownSheet {
+  background: #fff;
+  width: 100%;
+  max-width: 600px;
+  border-radius: 16px 16px 0 0;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+@media (min-width: 641px) {
+  .drilldownSheet {
+    border-radius: 16px;
+    max-height: 80vh;
+    margin: 1rem;
+  }
+}
+
+/* Drag handle (mobile) */
+.drilldownHandle {
+  width: 40px;
+  height: 4px;
+  background: #E8E4DF;
+  border-radius: 2px;
+  margin: 0.75rem auto 0;
+  flex-shrink: 0;
+}
+
+@media (min-width: 641px) {
+  .drilldownHandle { display: none; }
+}
+
+.drilldownHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid #E8E4DF;
+  flex-shrink: 0;
+}
+
+.drilldownTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.35;
+  flex: 1;
+  margin: 0;
+}
+
+.drilldownSubtitle {
+  font-size: 0.75rem;
+  color: #8A8378;
+  margin-top: 0.2rem;
+}
+
+.drilldownCloseBtn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #8A8378;
+  padding: 0.1rem 0.3rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.drilldownCloseBtn:hover { color: #1a1a1a; }
+
+.drilldownBody {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0.75rem 1.25rem 1rem;
+}
+
+/* Milestone action row */
+.drilldownRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid #F3F0EC;
+}
+
+.drilldownRow:last-child { border-bottom: none; }
+
+.drilldownRowContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.drilldownRowTitle {
+  font-size: 0.85rem;
+  color: #1a1a1a;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.drilldownRowTitle.done {
+  text-decoration: line-through;
+  color: #8A8378;
+}
+
+/* Inline quadrant picker — 4 small colour pills */
+.quadrantPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+}
+
+.qpBtn {
+  font-size: 0.67rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.12s;
+}
+
+.qpBtn_urgent_important         { color: #B84A42; border-color: rgba(184,74,66,0.35); }
+.qpBtn_not_urgent_important     { color: #3D7A4A; border-color: rgba(61,122,74,0.35); }
+.qpBtn_urgent_not_important     { color: #C68B2C; border-color: rgba(198,139,44,0.35); }
+.qpBtn_not_urgent_not_important { color: #8A8378; border-color: rgba(138,131,120,0.35); }
+
+.qpBtn.active_urgent_important         { background: rgba(184,74,66,0.10); border-color: #B84A42; }
+.qpBtn.active_not_urgent_important     { background: rgba(61,122,74,0.10); border-color: #3D7A4A; }
+.qpBtn.active_urgent_not_important     { background: rgba(198,139,44,0.10); border-color: #C68B2C; }
+.qpBtn.active_not_urgent_not_important { background: rgba(138,131,120,0.10); border-color: #8A8378; }
+
+/* Row action buttons */
+.drilldownRowActions {
+  display: flex;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+
+/* Add row at the bottom */
+.drilldownAddRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #E8E4DF;
+}
+
+/* Loading / empty state inside drilldown */
+.drilldownEmpty {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #8A8378;
+  font-size: 0.85rem;
+}
+
+/* ── Mobile ────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .board {
+    grid-template-columns: 1fr;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

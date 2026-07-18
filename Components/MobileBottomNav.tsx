@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, getDocs, orderBy, limit } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import styles from "../Styles/mobileBottomNav.module.css";
-import { LogOutIcon, PlusIcon, UserIcon, TargetIcon, ClipboardListIcon } from "./Icons";
+import { LogOutIcon, PlusIcon, UserIcon, TargetIcon, ClipboardListIcon, BarChartIcon } from "./Icons";
 import NotificationBell from "./NotificationBell";
 import MobileProjectSheet from "./MobileProjectSheet";
 import { signOut } from "firebase/auth";
@@ -190,6 +190,9 @@ const MobileBottomNav = () => {
         </button>
         <Link href="/profile/commitments" className={styles.navItem} aria-label="Commitments">
           <ClipboardListIcon size={22} strokeWidth={2} />
+        </Link>
+        <Link href="/profile/matrix" className={styles.navItem} aria-label="Matrix">
+          <BarChartIcon size={22} strokeWidth={2} />
         </Link>
         <Link href="/profile/companion" className={styles.navItem} aria-label="Create plan">
           <PlusIcon size={22} strokeWidth={2} />
